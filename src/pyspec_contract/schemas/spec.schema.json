@@ -148,8 +148,8 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "source_ref": {
-          "$ref": "#/$defs/content_source_ref"
+        "resolver_ref": {
+          "$ref": "#/$defs/content_resolver_ref"
         }
       },
       "required": [
@@ -803,8 +803,8 @@
       "pattern": "^content_example\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
-    "content_source_ref": {
-      "description": "Content source reference. Text resources use text_resource.* identifiers; media assets use media_asset.* identifiers.",
+    "content_resolver_ref": {
+      "description": "Content resolver reference. Text resources use text_resource.* identifiers; media assets use media_asset.* identifiers.",
       "oneOf": [
         {
           "$ref": "#/$defs/text_resource_ref"
@@ -2856,8 +2856,8 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "source_ref": {
-          "$ref": "#/$defs/content_source_ref"
+        "resolver_ref": {
+          "$ref": "#/$defs/content_resolver_ref"
         }
       },
       "required": [

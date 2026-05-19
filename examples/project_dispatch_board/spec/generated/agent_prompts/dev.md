@@ -18,7 +18,7 @@ Generated interfaces to consume:
 - `spec/generated/product_interfaces/workflow.cwl.yaml`
 - `spec/generated/product_interfaces/html.routes.json`, `spec/generated/product_interfaces/html.state_machines.json`, and HTML audit evidence
 - `spec/generated/product_interfaces/textual.projection.py` and Textual audit evidence
-- `spec/generated/content_resolvers/` when generated content source signatures or stubs exist
+- `spec/generated/content_resolvers/` when generated content resolver signatures or stubs exist
 
 Completion checks:
 - `pyspec compile . --layers full`

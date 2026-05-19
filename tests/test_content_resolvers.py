@@ -14,7 +14,7 @@ from tests.helpers import EXAMPLE_ROOT
 ROOT = EXAMPLE_ROOT
 
 
-def test_final_text_source_is_contract_declared_and_executable() -> None:
+def test_final_text_resolver_is_contract_declared_and_executable() -> None:
     result = call_text_resource(
         ROOT,
         "text_resource.project.detail.ready.heading",

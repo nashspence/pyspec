@@ -1,4 +1,4 @@
-"""Generated content source stubs. Do not edit; move needed functions into spec.py."""
+"""Generated content resolver stubs. Do not edit; move needed functions into spec.py."""
 from __future__ import annotations
 
 from pyspec_contract.content import ContentContext, MediaAssetResult, media_asset, text_resource

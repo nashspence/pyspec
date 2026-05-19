@@ -24,9 +24,9 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - <!-- top-level:access_policies --> `access_policies`: canonical access-control policies with `subject`, `resource`, `action`, `environment`, rules, `rule_effect`, and `combining_algorithm`.
 - <!-- top-level:fixtures --> `fixtures`: named concrete seed data namespaces used by behavior scenarios, preconditions, assertions, content examples, and render examples.
 - <!-- top-level:behavior_scenarios --> `behavior_scenarios`: formal BDD behavior scenarios with system_under_test_ref, given, when, and then contracts.
-- <!-- top-level:media_assets --> `media_assets`: canonical media assets with media kind, asset role, placeholders, and source-backed resolution when present.
-- <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-source projections.
-- <!-- top-level:content_examples --> `content_examples`: named content-source examples for dynamic text and media asset content.
+- <!-- top-level:media_assets --> `media_assets`: canonical media assets with media kind, asset role, placeholders, and resolver-backed resolution when present.
+- <!-- top-level:text_resources --> `text_resources`: text resources used by state-machine slots and content-resolver projections.
+- <!-- top-level:content_examples --> `content_examples`: named content-resolver examples for dynamic text and media asset content.
 - <!-- top-level:viewport_profiles --> `viewport_profiles`: canonical global HTML and Textual viewport profiles for audit/golden-image rendering.
 - <!-- top-level:reference_index --> `reference_index`: canonical compiled-only index of generated references used by projections and tests.
 - <!-- top-level:project --> `project`: the project slug for the specification workspace.
@@ -36,7 +36,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 ## ID Namespaces
 
 - `media_asset_ref`: `media_asset.<domain>...`; media asset declarations, generated media asset slots, content examples, and audit evidence.
-- `content_example_ref`: `content_example.<domain>...`; content source examples.
+- `content_example_ref`: `content_example.<domain>...`; content resolver examples.
 - `schema_ref`: `schema.<domain>...`; reusable typed payload schemas referenced through JSON Schema `$ref`.
 - `data_refresh_signal_name`: local state-machine data-refresh signal name; authored sources do not use global-looking `data_refresh_signal.*` references for local refresh signals.
 - `external_interface_ref`: `external_interface.<domain>...`; external-interface declarations, delegated external-interface invocations, and behavior-scenario `open_external_interface` or `call_external_interface` stimuli.
@@ -58,7 +58,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `rule_id`: local state-machine signal-sync rule id within one composed state.
 - `state_machine_ref`: `state_machine.<domain>...`; state-machine declarations, `child_state_machines`, state-machine external-interface invocations, and behavior-scenario state-machine assertions.
 - `behavior_scenario_ref`: `behavior_scenario.<domain>...`; formal behavior-scenario declarations and generated feature tags.
-- `text_resource_ref`: `text_resource.<domain>...`; text resource declarations, generated text slots, content examples, and content source signatures.
+- `text_resource_ref`: `text_resource.<domain>...`; text resource declarations, generated text slots, content examples, and content resolver signatures.
 - `container_id`: local Textual layout container id within one state.
 - `viewport_id`: local viewport id within `html_viewports` or `textual_viewports`.
 - `workflow_ref`: `workflow.<domain>...`; workflow declarations, workflow external-interface invocations, and generated workflow references.
@@ -95,7 +95,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `signal_sync_rule.trigger`: child state-machine local-signal source that starts a signal synchronization rule. It does not reuse BDD `when`.
 - `viewport_profile`: global audit/golden-image viewport map. Renderable state machines require at least one viewport profile, and profiles must include viewport sets for each declared renderer surface (`html_viewports` for HTML, `textual_viewports` for Textual).
 - `render example`: state-local visual evidence input. It supplies seed fixtures, optional context, optional precondition references, and, for composed states, an exact child instance state vector; it never names viewport profiles directly.
-- `content source`: a final resolver declaration where `text_resource.source_ref` or `media_asset.source_ref` equals the resource id. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
+- `content_resolver`: a final resolver declaration where `text_resource.resolver_ref` or `media_asset.resolver_ref` equals the resource id. Final content resolvers require at least one matching `content_example`, and example args must exactly match the resource args.
 - `rationale`: bounded plain text used on authored resources and on intentionally unobservable local effects. Missing top-level resource rationale is filled by a deterministic compiler default.
 - `Command binding`: local state use of a global command, normally user-triggered, including `input_mapping` and local_effects. A renderer control binds to this local invocation, not directly to `command_ref`.
 - `Query binding`: local state-machine or state use of a query for data loading or refresh, including `input_mapping`, load policy, context updates, result binding, and local_effects. State-machine-level queries load with `on_start`/`on_mount`; state-level queries load with `on_enter`.
@@ -369,7 +369,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:context_condition --> `$defs/context_condition`: state-machine contract component.
 - <!-- schema-def:content_args --> `$defs/content_args`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:content_example_ref --> `$defs/content_example_ref`: typed reference definition for its namespace.
-- <!-- schema-def:content_source_ref --> `$defs/content_source_ref`: typed reference definition for its namespace.
+- <!-- schema-def:content_resolver_ref --> `$defs/content_resolver_ref`: typed reference definition for its namespace.
 - <!-- schema-def:context_bindings --> `$defs/context_bindings`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:context_set_local_effect --> `$defs/context_set_local_effect`: state-machine contract component.
 - <!-- schema-def:external_interface_command_invocation --> `$defs/external_interface_command_invocation`: external-interface adapter, invocation, input, or response contract component.

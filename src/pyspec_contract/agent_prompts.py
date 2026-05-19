@@ -297,14 +297,14 @@ def _review_prompt(context: _PromptContext) -> str:
         "",
         "Dev audit:",
         "- Check whether implementation consumes generated projections/constants and implements the declared contract without inventing contract surface.",
-        "- Reject invented HTML routes, text resources, selectors, domain_events, workflows, access_policies, commands, queries, fixtures, behavior-scenario IDs, persistence contracts, or content source signatures outside the spec.",
+        "- Reject invented HTML routes, text resources, selectors, domain_events, workflows, access_policies, commands, queries, fixtures, behavior-scenario IDs, persistence contracts, or content resolver signatures outside the spec.",
         "- For every dev issue, provide a recommended prompt for `dev.md` that asks for the smallest implementation fix.",
         "",
         "Evidence checks:",
         f"- Run or inspect `pyspec compile . --layers {context.layer_arg}` and `pyspec validate . --layers {context.layer_arg}` for generated-tree freshness and layer correctness.",
         "- Run the project tests that exercise the generated pytest-bdd corpus.",
         "- For UI layers, inspect render/audit evidence and call out visual, accessibility, or composition mismatches.",
-        "- For content sources, confirm generated signatures/stubs are followed and outputs are deterministic for declared examples.",
+        "- For content resolvers, confirm generated signatures/stubs are followed and outputs are deterministic for declared examples.",
         "",
         "Output format:",
         "- Start with `Ready for merge: yes` or `Ready for merge: no`.",
@@ -349,7 +349,7 @@ def _dev_prompt(context: _PromptContext) -> str:
     if "textual" in context.layers:
         lines.append("- `spec/generated/product_interfaces/textual.projection.py` and Textual audit evidence")
     if "ui" in context.layers:
-        lines.append("- `spec/generated/content_resolvers/` when generated content source signatures or stubs exist")
+        lines.append("- `spec/generated/content_resolvers/` when generated content resolver signatures or stubs exist")
     lines.extend(
         [
             "",

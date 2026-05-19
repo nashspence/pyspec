@@ -476,23 +476,23 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
         except ValueError:
             pass
     for ref, item in contract.get("text_resources", {}).items():
-        source_ref = item.get("source_ref")
+        resolver_ref = item.get("resolver_ref")
         arg_cls = module.TEXT_RESOURCE_ARG_CLASSES[ref]
         instantiate_args(root, "text_resource", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
-        if source_ref:
+        if resolver_ref:
             if ref not in text_resource_registry.refs:
-                raise ContractError(f"Missing final text source: {ref}")
+                raise ContractError(f"Missing final text resolver: {ref}")
             try:
                 validate_resolver_function(text_resource_registry.function(ref), arg_cls)
             except ContentError as exc:
                 raise ContractError(str(exc)) from exc
     for ref, item in contract.get("media_assets", {}).items():
-        source_ref = item.get("source_ref")
+        resolver_ref = item.get("resolver_ref")
         arg_cls = module.MEDIA_ASSET_ARG_CLASSES[ref]
         instantiate_args(root, "media_asset", ref, {name: _sample_value_for_type(type_name) for name, type_name in item.get("args", {}).items()})
-        if source_ref:
+        if resolver_ref:
             if ref not in media_asset_registry.refs:
-                raise ContractError(f"Missing final media asset source: {ref}")
+                raise ContractError(f"Missing final media asset resolver: {ref}")
             try:
                 validate_resolver_function(media_asset_registry.function(ref), arg_cls)
             except ContentError as exc:
@@ -505,7 +505,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
         ref = case["ref"]
         if ref.startswith("text_resource."):
             item = contract["text_resources"][ref]
-            if not item.get("source_ref"):
+            if not item.get("resolver_ref"):
                 result = item["placeholder"]
             else:
                 try:
@@ -518,7 +518,7 @@ def validate_content_contract(root: Path, contract: dict[str, Any]) -> None:
                 raise ContractError(f"Content example {case_id} text result exceeds max_chars")
         else:
             item = contract["media_assets"][ref]
-            if item.get("source_ref"):
+            if item.get("resolver_ref"):
                 try:
                     result = call_media_asset(root, ref, args, ContentContext(render_surface="content_example"))
                 except ContentError as exc:
@@ -535,7 +535,7 @@ def _final_content_refs(contract: dict[str, Any]) -> set[str]:
     refs: set[str] = set()
     for section in ["text_resources", "media_assets"]:
         for ref, item in contract.get(section, {}).items():
-            if item.get("source_ref"):
+            if item.get("resolver_ref"):
                 refs.add(ref)
     return refs
 

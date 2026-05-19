@@ -28,7 +28,7 @@ class MediaAssetResult:
     alt: str = ""
 
 
-class ContentSourceRegistry:
+class ContentResolverRegistry:
     def __init__(self, kind: str) -> None:
         self.kind = kind
         self._functions: dict[str, Callable[..., Any]] = {}
@@ -39,7 +39,7 @@ class ContentSourceRegistry:
     def implements(self, ref: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         def decorate(func: Callable[..., Any]) -> Callable[..., Any]:
             if ref in self._functions:
-                raise ContentError(f"Duplicate {self.kind} content source: {ref}")
+                raise ContentError(f"Duplicate {self.kind} content resolver: {ref}")
             self._functions[ref] = func
             return func
         return decorate
@@ -52,11 +52,11 @@ class ContentSourceRegistry:
         try:
             return self._functions[ref]
         except KeyError as exc:
-            raise ContentError(f"Missing {self.kind} content source: {ref}") from exc
+            raise ContentError(f"Missing {self.kind} content resolver: {ref}") from exc
 
 
-text_resource = ContentSourceRegistry("text_resource")
-media_asset = ContentSourceRegistry("media_asset")
+text_resource = ContentResolverRegistry("text_resource")
+media_asset = ContentResolverRegistry("media_asset")
 _LOADED_ROOT: Path | None = None
 _RESOLVER_MODULE_NAME = "_pyspec_contract_project_spec"
 

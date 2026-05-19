@@ -1936,7 +1936,7 @@ text_resources:
     rationale: Ready heading for the detail state machine.
     max_chars: 80
     placeholder: Project detail
-    source_ref: text_resource.project.detail.ready.heading
+    resolver_ref: text_resource.project.detail.ready.heading
     intent: neutral
   text_resource.project.list.empty.body:
     rationale: Empty body for the project list state machine.
@@ -1980,7 +1980,7 @@ media_assets:
       aspect_ratio: '1:1'
       label: Project priority badge
       placeholder_symbol: square
-    source_ref: media_asset.project.detail.ready.priority_badge
+    resolver_ref: media_asset.project.detail.ready.priority_badge
   media_asset.project.list.empty.illustration:
     alt_text: text_resource.project.list.empty.heading
     rationale: Generic placeholder illustration used by the empty queue state machine state.

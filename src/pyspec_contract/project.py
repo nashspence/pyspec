@@ -817,7 +817,7 @@ def _content_signature_items(contract: dict[str, Any], section: str) -> list[tup
 
 def content_contract_projection(contract: dict[str, Any]) -> str:
     lines = [
-        '"""Generated content source signatures. Do not edit by hand."""',
+        '"""Generated content resolver signatures. Do not edit by hand."""',
         "from __future__ import annotations",
         "",
         "from dataclasses import dataclass",
@@ -840,8 +840,8 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
             else:
                 lines.append("    pass")
             lines.append("")
-    lines.append(f"TEXT_RESOURCE_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': text_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'text_resources')}!r}")
-    lines.append(f"MEDIA_ASSET_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'source_ref': spec.get('source_ref'), 'arg_class': asset_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'media_assets')}!r}")
+    lines.append(f"TEXT_RESOURCE_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'resolver_ref': spec.get('resolver_ref'), 'arg_class': text_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'text_resources')}!r}")
+    lines.append(f"MEDIA_ASSET_SIGNATURES = { {ref: {'args': spec.get('args', {}), 'resolver_ref': spec.get('resolver_ref'), 'arg_class': asset_classes[ref]} for ref, spec, _ in _content_signature_items(contract, 'media_assets')}!r}")
     lines.append(f"TEXT_RESOURCE_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in text_classes.items())}}}")
     lines.append(f"MEDIA_ASSET_ARG_CLASSES = {{{', '.join(f'{ref!r}: {cls}' for ref, cls in asset_classes.items())}}}")
     lines.append("")
@@ -850,7 +850,7 @@ def content_contract_projection(contract: dict[str, Any]) -> str:
 
 def content_stubs_projection(contract: dict[str, Any]) -> str:
     lines = [
-        '"""Generated content source stubs. Do not edit; move needed functions into spec.py."""',
+        '"""Generated content resolver stubs. Do not edit; move needed functions into spec.py."""',
         "from __future__ import annotations",
         "",
         "from pyspec_contract.content import ContentContext, MediaAssetResult, media_asset, text_resource",
@@ -859,8 +859,8 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
         "",
     ]
     for ref, spec, class_name in _content_signature_items(contract, "text_resources"):
-        source_ref = spec.get("source_ref")
-        if not source_ref:
+        resolver_ref = spec.get("resolver_ref")
+        if not resolver_ref:
             continue
         lines.extend([
             f"@text_resource.implements(TextResource.{constant_name(ref)})",
@@ -869,8 +869,8 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
             "",
         ])
     for ref, spec, class_name in _content_signature_items(contract, "media_assets"):
-        source_ref = spec.get("source_ref")
-        if not source_ref:
+        resolver_ref = spec.get("resolver_ref")
+        if not resolver_ref:
             continue
         lines.extend([
             f"@media_asset.implements(MediaAsset.{constant_name(ref)})",

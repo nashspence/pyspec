@@ -370,14 +370,14 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
 
     if entity == "text_resource":
         item = {"placeholder": spec["placeholder"], "rationale": spec["rationale"]}
-        for field in ["max_chars", "intent", "args", "source_ref"]:
+        for field in ["max_chars", "intent", "args", "resolver_ref"]:
             if field in spec:
                 item[field] = spec[field]
         return item
 
     if entity == "media_asset":
         item = {"media_kind": spec["media_kind"], "placeholder": spec["placeholder"], "rationale": spec["rationale"]}
-        for field in ["asset_role", "alt_text", "args", "source_ref"]:
+        for field in ["asset_role", "alt_text", "args", "resolver_ref"]:
             if field in spec:
                 item[field] = spec[field]
         return item
@@ -934,14 +934,14 @@ def _validate_content_examples(contract: dict[str, Any]) -> None:
         ref
         for section in ["text_resources", "media_assets"]
         for ref, item in contract.get(section, {}).items()
-        if item.get("source_ref")
+        if item.get("resolver_ref")
     }
     declared_example_refs: set[str] = set()
     for ref, item in list(contract.get("text_resources", {}).items()) + list(contract.get("media_assets", {}).items()):
-        source_ref = item.get("source_ref")
-        if source_ref:
-            if source_ref != ref:
-                raise ContractError(f"Content source_ref for {ref} must equal the content id")
+        resolver_ref = item.get("resolver_ref")
+        if resolver_ref:
+            if resolver_ref != ref:
+                raise ContractError(f"Content resolver_ref for {ref} must equal the content id")
             if not item.get("args"):
                 # Arg-less resolvers are allowed, but declaring args is preferred for dynamic content.
                 pass

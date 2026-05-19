@@ -3132,7 +3132,7 @@ visual_audit:
       /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/label: V0011
       /media_assets/media_asset.project.detail.ready.priority_badge/placeholder/placeholder_symbol: V0011
       /media_assets/media_asset.project.detail.ready.priority_badge/rationale: V0011
-      /media_assets/media_asset.project.detail.ready.priority_badge/source_ref: V0011
+      /media_assets/media_asset.project.detail.ready.priority_badge/resolver_ref: V0011
       /media_assets/media_asset.project.list.empty.illustration/alt_text: V0020
       /media_assets/media_asset.project.list.empty.illustration/asset_role: V0020
       /media_assets/media_asset.project.list.empty.illustration/media_kind: V0020
@@ -3231,7 +3231,7 @@ visual_audit:
       /text_resources/text_resource.project.detail.ready.heading/max_chars: V0011
       /text_resources/text_resource.project.detail.ready.heading/placeholder: V0011
       /text_resources/text_resource.project.detail.ready.heading/rationale: V0011
-      /text_resources/text_resource.project.detail.ready.heading/source_ref: V0011
+      /text_resources/text_resource.project.detail.ready.heading/resolver_ref: V0011
       /text_resources/text_resource.project.list.empty.body/intent: V0020
       /text_resources/text_resource.project.list.empty.body/max_chars: V0020
       /text_resources/text_resource.project.list.empty.body/placeholder: V0020

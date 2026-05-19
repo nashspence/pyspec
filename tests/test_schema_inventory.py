@@ -117,7 +117,7 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
     "$defs.authored_content_example.properties.ref.oneOf",
     "$defs.content_example_item.properties.ref.oneOf",
-    "$defs.content_source_ref.oneOf",
+    "$defs.content_resolver_ref.oneOf",
     "$defs.given.properties.preconditions.items.oneOf",
     "$defs.json_value.oneOf",
     "$defs.schema.properties.additionalProperties.oneOf",

@@ -105,7 +105,7 @@ def _release_gate(contract: dict[str, Any]) -> None:
     placeholder_content = []
     for section in ["text_resources", "media_assets"]:
         for ref, item in contract.get(section, {}).items():
-            if not item.get("source_ref"):
+            if not item.get("resolver_ref"):
                 placeholder_content.append(ref)
     if placeholder_content:
         raise ContractError("Release gate requires final content resolvers for: " + ", ".join(sorted(placeholder_content)))

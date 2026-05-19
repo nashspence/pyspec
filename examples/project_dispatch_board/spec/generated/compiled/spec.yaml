@@ -1328,7 +1328,7 @@ media_assets:
       label: Project priority badge
       placeholder_symbol: square
     rationale: Selected project detail shows a dynamic priority badge resolved from project fixture data.
-    source_ref: media_asset.project.detail.ready.priority_badge
+    resolver_ref: media_asset.project.detail.ready.priority_badge
   media_asset.project.list.empty.illustration:
     alt_text: text_resource.project.list.empty.heading
     asset_role: empty_state
@@ -2626,7 +2626,7 @@ text_resources:
     max_chars: 80
     placeholder: Project detail
     rationale: Ready heading for the detail state machine.
-    source_ref: text_resource.project.detail.ready.heading
+    resolver_ref: text_resource.project.detail.ready.heading
   text_resource.project.list.empty.body:
     intent: instructional
     max_chars: 160

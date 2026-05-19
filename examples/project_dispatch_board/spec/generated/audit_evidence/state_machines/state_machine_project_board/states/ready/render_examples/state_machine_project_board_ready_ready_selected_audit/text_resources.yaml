@@ -15,7 +15,7 @@ text_resources:
     max_chars: 80
     placeholder: Project detail
     rationale: Ready heading for the detail state machine.
-    source_ref: text_resource.project.detail.ready.heading
+    resolver_ref: text_resource.project.detail.ready.heading
   text_resource.project.list.ready.heading:
     intent: neutral
     max_chars: 80

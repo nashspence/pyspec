@@ -139,11 +139,11 @@ composition_contracts:
 
 audit_contracts:
   text_resource: 'text_resource declares placeholder text for every rendered text ref.'
-  media_asset: 'media_asset declares media kind, asset role, placeholder visual intent, and source_ref when source-backed; the compiler emits generic SVG placeholder assets.'
+  media_asset: 'media_asset declares media kind, asset role, placeholder visual intent, and resolver_ref when resolver-backed; the compiler emits generic SVG placeholder assets.'
   viewport_profile: 'viewport_profile declares fixed HTML and/or Textual viewport profiles.'
   render_example: 'state-local render examples bind a state-machine state or composed state-machine instance vector to fixtures and contexts; render surfaces and artifacts are derived from the referenced states.'
-  content_example: 'content_example exercises every source_ref-backed text resource or media asset with deterministic args.'
-  final_content: 'text_resource or media_asset may declare args and source_ref; generated content stubs constrain spec/spec.py.'
+  content_example: 'content_example exercises every resolver_ref-backed text resource or media asset with deterministic args.'
+  final_content: 'text_resource or media_asset may declare args and resolver_ref; generated content stubs constrain spec/spec.py.'
   formats:
     external_interface: svg
     state_machine: svg

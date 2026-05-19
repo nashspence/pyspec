@@ -3775,8 +3775,8 @@ def content_args(contract: dict[str, Any], ref: str, item: dict[str, Any], recor
 
 def resolve_text_resource(root: Path, contract: dict[str, Any], ref: str, record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> str:
     item = contract["text_resources"][ref]
-    source_ref = item.get("source_ref")
-    if not source_ref:
+    resolver_ref = item.get("resolver_ref")
+    if not resolver_ref:
         text = item["placeholder"]
     else:
         try:
@@ -3785,25 +3785,25 @@ def resolve_text_resource(root: Path, contract: dict[str, Any], ref: str, record
             raise ContractError(str(exc)) from exc
     max_chars = item.get("max_chars")
     if max_chars is not None and len(text) > max_chars:
-        raise ContractError(f"Text source {ref} exceeds max_chars")
+        raise ContractError(f"Text resolver {ref} exceeds max_chars")
     if not text.strip():
-        raise ContractError(f"Text source {ref} returned empty text")
+        raise ContractError(f"Text resolver {ref} returned empty text")
     return text
 
 
 def resolve_asset_result(root: Path, contract: dict[str, Any], ref: str, record: dict[str, Any], context: dict[str, Any], namespace: dict[str, Any]) -> MediaAssetResult:
     item = contract["media_assets"][ref]
-    source_ref = item.get("source_ref")
-    if not source_ref:
+    resolver_ref = item.get("resolver_ref")
+    if not resolver_ref:
         return MediaAssetResult(mime_type="image/svg+xml", body=asset_placeholder_svg(item), alt=item["placeholder"]["label"])
     try:
         result = call_media_asset(root, ref, content_args(contract, ref, item, record, context, namespace), ContentContext(render_surface="audit"))
     except ContentError as exc:
         raise ContractError(str(exc)) from exc
     if result.mime_type != "image/svg+xml":
-        raise ContractError(f"Asset source {ref} must return image/svg+xml")
+        raise ContractError(f"Media asset resolver {ref} must return image/svg+xml")
     if not result.body.lstrip().startswith("<svg") or "</svg>" not in result.body:
-        raise ContractError(f"Asset source {ref} did not return SVG")
+        raise ContractError(f"Media asset resolver {ref} did not return SVG")
     return result
 
 
