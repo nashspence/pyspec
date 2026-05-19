@@ -576,7 +576,7 @@ def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
             "renderer_surface": _state_surface_ref(owner_id, state_name),
             "query_bindings": _compile_query_bindings(state.get("query_bindings", {}), scope="state"),
             "text_resources": [rules.text_resource_ref(subject, state_name, slot) for slot in state.get("text_slots", [])],
-            "media_assets": [rules.media_asset_ref(subject, state_name, slot) for slot in state.get("asset_slots", [])],
+            "media_assets": [rules.media_asset_ref(subject, state_name, slot) for slot in state.get("media_asset_slots", [])],
             "fields": state.get("field_slots", []),
             "command_bindings": copy.deepcopy(state.get("command_bindings", {})),
         }
@@ -2777,7 +2777,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     if not renderers:
         return
     text_slots = {ref.rsplit(".", 1)[-1] for ref in state["text_resources"]}
-    asset_slots = {ref.rsplit(".", 1)[-1] for ref in state["media_assets"]}
+    media_asset_slots = {ref.rsplit(".", 1)[-1] for ref in state["media_assets"]}
     field_slots = set(state.get("fields", []))
     command_bindings = set(state["command_bindings"])
     html_regions = set(renderer_html_regions(state))
@@ -2789,7 +2789,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
         if slot["region"] not in html_regions:
             raise ContractError(f"{owner_label}.{state_name} HTML slot references undeclared layout region: {slot['region']}")
         bind_kind, bind_value = _one(slot["binding"], f"{owner_label}.{state_name} html slot binding")
-        _validate_slot_binding(owner_label, state_name, "HTML slot", bind_kind, bind_value, text_slots, asset_slots, field_slots, command_bindings)
+        _validate_slot_binding(owner_label, state_name, "HTML slot", bind_kind, bind_value, text_slots, media_asset_slots, field_slots, command_bindings)
 
     for rule in renderer_html_style(state).get("rules", []):
         _validate_renderer_style_selector(
@@ -2797,7 +2797,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             state_name,
             rule["selector"],
             text_slots,
-            asset_slots,
+            media_asset_slots,
             field_slots,
             command_bindings,
             html_regions,
@@ -2810,12 +2810,12 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
     widget_ids = [widget["id"] for widget in widgets]
     if len(widget_ids) != len(set(widget_ids)):
         raise ContractError(f"{owner_label}.{state_name} Textual widgets contain duplicate ids")
-    widget_targets = {"text_slot": set(), "asset_slot": set(), "field_slot": set(), "command_binding": set()}
+    widget_targets = {"text_slot": set(), "media_asset_slot": set(), "field_slot": set(), "command_binding": set()}
     for widget in widgets:
         if widget["container"] not in textual_containers:
             raise ContractError(f"{owner_label}.{state_name} Textual widget references undeclared layout container: {widget['container']}")
         bind_kind, bind_value = _one(widget["binding"], f"{owner_label}.{state_name} textual widget binding")
-        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, text_slots, asset_slots, field_slots, command_bindings)
+        _validate_slot_binding(owner_label, state_name, "Textual widget", bind_kind, bind_value, text_slots, media_asset_slots, field_slots, command_bindings)
         if bind_kind in widget_targets:
             widget_targets[bind_kind].add(bind_value)
     for rule in renderer_textual_style(state).get("rules", []):
@@ -2825,7 +2825,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
             state_name,
             selector,
             text_slots,
-            asset_slots,
+            media_asset_slots,
             field_slots,
             command_bindings,
             textual_containers,
@@ -2834,7 +2834,7 @@ def _validate_presentation(contract: dict[str, Any], owner_label: str, field_nam
         )
         if widgets and selector.startswith("slot."):
             name = selector[len("slot."):]
-            if name not in widget_targets["text_slot"] and name not in widget_targets["asset_slot"] and name not in widget_targets["field_slot"]:
+            if name not in widget_targets["text_slot"] and name not in widget_targets["media_asset_slot"] and name not in widget_targets["field_slot"]:
                 raise ContractError(f"{owner_label}.{state_name} textual style selector has no matching Textual widget: {selector}")
         if widgets and selector.startswith("command_binding."):
             command_binding = selector[len("command_binding."):]
@@ -2849,14 +2849,14 @@ def _validate_slot_binding(
     bind_kind: str,
     bind_value: str,
     text_slots: set[str],
-    asset_slots: set[str],
+    media_asset_slots: set[str],
     field_slots: set[str],
     command_bindings: set[str],
 ) -> None:
     if bind_kind == "text_slot" and bind_value not in text_slots:
         raise ContractError(f"{owner_label}.{state_name} {label} text_slot binding is not declared: {bind_value}")
-    if bind_kind == "asset_slot" and bind_value not in asset_slots:
-        raise ContractError(f"{owner_label}.{state_name} {label} asset_slot binding is not declared: {bind_value}")
+    if bind_kind == "media_asset_slot" and bind_value not in media_asset_slots:
+        raise ContractError(f"{owner_label}.{state_name} {label} media_asset_slot binding is not declared: {bind_value}")
     if bind_kind == "command_binding" and bind_value not in command_bindings:
         raise ContractError(f"{owner_label}.{state_name} {label} command_binding binding is not declared: {bind_value}")
     if bind_kind == "field_slot" and bind_value not in field_slots:
@@ -2868,7 +2868,7 @@ def _validate_renderer_style_selector(
     state_name: str,
     selector: str,
     text_slots: set[str],
-    asset_slots: set[str],
+    media_asset_slots: set[str],
     field_slots: set[str],
     command_bindings: set[str],
     regions: set[str],
@@ -2878,7 +2878,7 @@ def _validate_renderer_style_selector(
     if selector.startswith("region.") or selector.startswith("container.") or selector.startswith("child_state_machine."):
         _validate_composition_selector(f"{owner_label}.{state_name}", selector, regions, mounts, label)
         return
-    _validate_style_selector(owner_label, state_name, selector, text_slots, asset_slots, field_slots, command_bindings, label)
+    _validate_style_selector(owner_label, state_name, selector, text_slots, media_asset_slots, field_slots, command_bindings, label)
 
 
 def _validate_style_selector(
@@ -2886,7 +2886,7 @@ def _validate_style_selector(
     state_name: str,
     selector: str,
     text_slots: set[str],
-    asset_slots: set[str],
+    media_asset_slots: set[str],
     field_slots: set[str],
     command_bindings: set[str],
     label: str,
@@ -2897,7 +2897,7 @@ def _validate_style_selector(
         return
     if selector.startswith("slot."):
         name = selector[len("slot."):]
-        if name not in text_slots and name not in asset_slots and name not in field_slots:
+        if name not in text_slots and name not in media_asset_slots and name not in field_slots:
             raise ContractError(f"{owner_label}.{state_name} {label} selector references undeclared slot: {selector}")
         return
     if selector.startswith("command_binding."):

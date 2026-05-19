@@ -2283,7 +2283,7 @@
       "type": "object"
     },
     "slot_binding": {
-      "description": "State-local slot binding. text_slot, asset_slot, and field_slot refer to local slots; command_binding binds a local command binding; literal binds fixed text.",
+      "description": "State-local slot binding. text_slot, media_asset_slot, and field_slot refer to local slots; command_binding binds a local command binding; literal binds fixed text.",
       "oneOf": [
         {
           "additionalProperties": false,
@@ -2301,13 +2301,13 @@
         {
           "additionalProperties": false,
           "properties": {
-            "asset_slot": {
+            "media_asset_slot": {
               "$ref": "#/$defs/slot_name",
-              "description": "Local asset slot name in the current state."
+              "description": "Local media asset slot name in the current state."
             }
           },
           "required": [
-            "asset_slot"
+            "media_asset_slot"
           ],
           "type": "object"
         },

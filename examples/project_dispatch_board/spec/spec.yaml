@@ -901,7 +901,7 @@ state_machines:
         - heading
         - body
       ready:
-        asset_slots:
+        media_asset_slots:
         - priority_badge
         text_slots:
         - heading
@@ -1164,7 +1164,7 @@ state_machines:
     initial_state: loading
     states:
       empty:
-        asset_slots:
+        media_asset_slots:
         - illustration
         text_slots:
         - heading

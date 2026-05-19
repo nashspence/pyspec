@@ -1058,7 +1058,7 @@ def _expected_textual_compose(state_machine: dict[str, Any]) -> list[tuple[str, 
 
 def _widget_label(widget: dict[str, Any]) -> str:
     binding = widget["binding"]
-    for key in ["text_slot", "asset_slot", "command_binding", "field_slot", "literal"]:
+    for key in ["text_slot", "media_asset_slot", "command_binding", "field_slot", "literal"]:
         if key in binding:
             return binding[key]
     return widget["id"]
@@ -1072,7 +1072,7 @@ def _textual_selector(state_machine: dict[str, Any], selector: str) -> str:
         slot = selector[len("slot."):]
         for widget in widgets:
             binding = widget["binding"]
-            if binding.get("text_slot") == slot or binding.get("asset_slot") == slot or binding.get("field_slot") == slot:
+            if binding.get("text_slot") == slot or binding.get("media_asset_slot") == slot or binding.get("field_slot") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
     if selector.startswith("command_binding."):

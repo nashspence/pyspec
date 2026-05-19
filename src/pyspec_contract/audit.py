@@ -3526,7 +3526,7 @@ def render_html_slot_runtime(root: Path, contract: dict[str, Any], state_machine
             attrs["aria-level"] = str(slot["level"])
         text = resolve_text_resource(root, contract, text_resource_ref, record, context, namespace)
         return [f"<{tag}{format_attrs(attrs)}>{html.escape(text)}</{tag}>"]
-    if kind == "asset_slot":
+    if kind == "media_asset_slot":
         media_asset_ref = slot_ref(state_machine, "asset", bind_value)
         attrs["data-asset"] = media_asset_ref
         asset_result = resolve_asset_result(root, contract, media_asset_ref, record, context, namespace)
@@ -3605,7 +3605,7 @@ def state_machine_textual_lines(root: Path, contract: dict[str, Any], state_mach
             if bind_kind == "text_slot":
                 ref = slot_ref(state_machine, "text", bind_value)
                 lines.append(("static", resolve_text_resource(root, contract, ref, record, context, namespace)))
-            elif bind_kind == "asset_slot":
+            elif bind_kind == "media_asset_slot":
                 ref = slot_ref(state_machine, "asset", bind_value)
                 lines.append(("static", resolve_asset_result(root, contract, ref, record, context, namespace).alt or contract["media_assets"][ref]["placeholder"]["label"]))
             elif bind_kind == "field_slot":

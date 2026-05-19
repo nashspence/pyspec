@@ -53,8 +53,8 @@ def widget_label(widget: dict) -> str:
     binding = widget["binding"]
     if "text_slot" in binding:
         return binding["text_slot"]
-    if "asset_slot" in binding:
-        return binding["asset_slot"]
+    if "media_asset_slot" in binding:
+        return binding["media_asset_slot"]
     if "command_binding" in binding:
         return binding["command_binding"]
     if "field_slot" in binding:

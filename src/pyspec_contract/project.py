@@ -495,8 +495,8 @@ def widget_label(widget: dict) -> str:
     binding = widget["binding"]
     if "text_slot" in binding:
         return binding["text_slot"]
-    if "asset_slot" in binding:
-        return binding["asset_slot"]
+    if "media_asset_slot" in binding:
+        return binding["media_asset_slot"]
     if "command_binding" in binding:
         return binding["command_binding"]
     if "field_slot" in binding:
@@ -562,7 +562,7 @@ def default_html_slots(state_machine: dict[str, Any]) -> list[dict[str, Any]]:
             item.update({"role": "heading", "level": 2})
         slots.append(item)
     for media_asset_ref in state_machine["slots"]["media_assets"]:
-        slots.append({"binding": {"asset_slot": media_asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
+        slots.append({"binding": {"media_asset_slot": media_asset_ref.rsplit(".", 1)[-1]}, "component": "image", "element": "img"})
     for field in state_machine["slots"].get("fields", []):
         slots.append({"binding": {"field_slot": field}, "component": "field", "element": "p"})
     for invocation_id in state_machine["slots"]["command_bindings"]:
@@ -630,7 +630,7 @@ def tcss_selector(state_machine: dict[str, Any], selector: str) -> str:
         slot = selector[len("slot."):]
         for widget in widgets:
             binding = widget["binding"]
-            if binding.get("text_slot") == slot or binding.get("asset_slot") == slot or binding.get("field_slot") == slot:
+            if binding.get("text_slot") == slot or binding.get("media_asset_slot") == slot or binding.get("field_slot") == slot:
                 return "#" + safe_id(widget["id"])
         return "#" + slot
     if selector.startswith("command_binding."):

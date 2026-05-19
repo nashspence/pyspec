@@ -109,3 +109,29 @@ def test_entity_type_ref_allows_dotted_domain_segments() -> None:
         assert not re.fullmatch(pattern, "entity_type."), schema_name
         assert not re.fullmatch(pattern, "entity_type.billing."), schema_name
         assert not re.fullmatch(pattern, "entity_type.billing..invoice"), schema_name
+
+
+def test_state_machine_media_asset_slot_vocabulary_is_canonical() -> None:
+    authored_schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+    ]
+    authored_schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in authored_schema_cases:
+        state_properties = schema["$defs"]["authored_state_machine_state"]["properties"]
+        assert "media_asset_slots" in state_properties, schema_name
+        assert "asset_slots" not in state_properties, schema_name
+
+    for schema_name, schema in [
+        *authored_schema_cases,
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]:
+        required_keys = {
+            tuple(branch.get("required", []))
+            for branch in schema["$defs"]["slot_binding"]["oneOf"]
+        }
+        assert ("media_asset_slot",) in required_keys, schema_name
+        assert ("asset_slot",) not in required_keys, schema_name
