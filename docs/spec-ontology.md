@@ -2,6 +2,36 @@
 
 This glossary is the vocabulary contract for the authored-source, layer-pruned authored-source, and compiled-output schemas. The authored schema describes sparse human-authored input. Layer-pruned authored schemas are generated from the same source schema and hide sections outside the active authoring layers. The compiled schema describes normalized output in `spec/generated/compiled/spec.yaml`, including generated references, derived domain events, derived HTML routes, generated `http_operation` OpenAPI projections, and expanded empty-collection states.
 
+## Ontology Goal and Change Principles
+
+The goal of this ontology is to provide a stable, low-overlap vocabulary for describing general software product specifications across authored-source, layer-pruned authored-source, compiled-output, projection, test, and audit schemas.
+
+The ontology should make product intent explicit without borrowing overloaded implementation vocabulary unless that vocabulary belongs to a formal projection layer. New terms should preserve clear boundaries between product-domain behavior, API/interface projections, state-machine behavior, workflow behavior, access-control policy, behavior scenarios, content resolution, and visual audit evidence.
+
+When modifying or extending the ontology:
+
+- Prefer stable formal domain language where a mature standard exists, such as JSON Schema for schemas, OpenAPI for HTTP API projections, AsyncAPI for integration-message projections, BPMN-like vocabulary for authored workflows, BDD/Gherkin vocabulary for behavior scenarios, JSON Pointer for compiled-document locations, and ABAC/XACML-style language for access-control policy.
+- Use standard terms only in the layer where they are standard. For example, `http_operation` belongs to OpenAPI projection vocabulary; internal product behavior should use `command` or `query`.
+- Avoid bare generic nouns when the same word is meaningful in multiple domains. Qualify terms by layer or role, such as `domain_event`, `integration_message`, `local_signal`, `data_refresh_signal`, `state_machine_state`, `renderer_surface`, or `compiled_json_pointer`.
+- Do not introduce synonyms for existing concepts. A new term must either represent a new concept, narrow an existing concept with an explicit qualifier, or replace an existing term through a documented rename.
+- A new top-level resource kind should have an independent lifecycle, reference namespace, authored/compiled schema shape, and projection or validation role. Otherwise, model it as a nested contract, local identifier, union reference, or derived compiled artifact.
+- Local identifiers must be named by scope, such as `workflow_activity_id`, `state_machine_state_id`, or `local_signal_sync_rule_id`, and must not look like global typed references.
+- Projection artifacts should use the vocabulary of the target projection layer, while authored product vocabulary should remain projection-neutral.
+- Compiled-only generated references should use qualified buckets that identify their layer or projection role, such as `http_operation`, `html_route`, `renderer_surface`, or `adapter_response_binding`.
+- Additions must update the ID namespace list, reference-type list, binding-root table, binding-expression namespace list, generated-artifact list, and schema-definition inventory when applicable.
+- If a term is intentionally non-canonical prose, it should not appear as a schema key, `$defs` name, reference namespace, generated reference bucket, or binding root.
+
+### New Vocabulary Checklist
+
+Before adding a new term, verify that:
+
+1. No existing canonical term already covers the concept.
+2. The term does not collide with a stable meaning in JSON Schema, OpenAPI, AsyncAPI, BPMN, BDD/Gherkin, JSON Pointer, access-control policy, state-machine terminology, or generated-code vocabulary.
+3. The term is qualified when it crosses a layer boundary.
+4. The term has exactly one canonical spelling.
+5. Any corresponding reference namespace, local id, binding root, generated reference bucket, or `$defs` entry is updated consistently.
+6. The authored-source meaning and compiled-output meaning are both clear.
+
 ## Terminology Boundaries
 
 - `domain_event`: a durable product-domain occurrence that happened. `domain_events` are emitted by successful command or entity_lifecycle_transition outcomes and may serve as workflow inputs.

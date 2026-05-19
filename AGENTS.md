@@ -1,0 +1,1 @@
+- pay strict attention to `docs/spec-ontology.md`
