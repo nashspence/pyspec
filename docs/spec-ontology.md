@@ -106,7 +106,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `Field-slot source resolution`: every field slot resolves to exactly one context field or query result binding. A bound entity_type or array item can feed field slots when the slot name exists on the result type; ambiguous or missing sources fail semantic validation.
 - `local_outcome_effect`: mapping from a command/query-binding outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
 - `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response mapping handling needs a real adapter response mapping or renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response mapping handling or `intentionally_unobservable` with rationale.
-- `Authored value`: explicit literal-or-fixture-reference value used in authored test, precondition, content-example, and render-example value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
+- `Authored value`: explicit literal-or-fixture-reference value used in authored behavior-scenario, precondition, assertion, content-example, and render-example value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
 - `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$trigger.payload`, and `$state_machine`; command domain-event payload mappings use `$command_input` and `$command_outcome`; external-interface response mappings use `$invocation_outcome`; adapter/delegation bindings use `$adapter_input` and `$adapter_response`; workflow activity bindings use `$workflow_input` and `$activity_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
 - `state_machine_trigger`: the current state-machine-local trigger, sourced from either a `local_signal` or `data_refresh_signal`.
 - `Actor/user binding source`: local command bindings should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$principal.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
@@ -258,7 +258,7 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 | CLI invoked response handlers | `$adapter_input`, `$invocation_outcome` |
 | CLI delegated response handlers | `$adapter_input`, `$adapter_response` |
 | Workflow activity `input_mapping` | `$workflow_input`, `$activity_outcome` |
-| Authored test/precondition/assertion/content-example/render-example value maps | `$fixture` |
+| Authored behavior-scenario/precondition/assertion/content-example/render-example value maps | `$fixture` |
 
 ## Visual Audit Coverage
 

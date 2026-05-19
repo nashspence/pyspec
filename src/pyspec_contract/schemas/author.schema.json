@@ -788,7 +788,7 @@
       "type": "object"
     },
     "authored_value": {
-      "description": "Explicit authored literal-or-binding-expression value used by tests, preconditions, and render example inputs.",
+      "description": "Explicit authored literal-or-binding-expression value used by behavior scenarios, preconditions, assertions, content examples, and render example inputs.",
       "oneOf": [
         {
           "additionalProperties": false,
