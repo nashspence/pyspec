@@ -5,7 +5,7 @@ access_policies:
     - query.project.list
     - query.project.read
     - command.project.submit
-    combining_algorithm: all_rules_must_apply
+    combining_algorithm: all_permit_rules_must_match
     environment: []
     rationale: Workspace members may create, read, list, and submit dispatch projects.
     resource:
@@ -21,7 +21,7 @@ access_policies:
     - command.project.approve
     - command.project.archive
     - command.project.send_approval_notice
-    combining_algorithm: all_rules_must_apply
+    combining_algorithm: all_permit_rules_must_match
     environment: []
     rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
     resource:

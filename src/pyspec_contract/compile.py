@@ -1356,9 +1356,9 @@ def _validate_access_policies(contract: dict[str, Any]) -> None:
         if not _access_policy_covers_resource(access_policies[policy_id], "external_interface", entry_id) and not _access_policy_covers_resource(access_policies[policy_id], invoked_kind, invoked_ref):
             raise ContractError(f"External interface {entry_id} access_policy {policy_id} must cover external interface or invoked resource")
     for policy_id, policy in access_policies.items():
-        rule_effects = {rule["effect"] for rule in policy.get("rules", [])}
-        if policy["combining_algorithm"] == "all_rules_must_apply" and len(rule_effects) != 1:
-            raise ContractError(f"Access policy {policy_id} combining_algorithm all_rules_must_apply requires all rule effects to match")
+        rule_effect = {rule["effect"] for rule in policy.get("rules", [])}
+        if policy["combining_algorithm"] == "all_permit_rules_must_match" and rule_effect != {"permit"}:
+            raise ContractError(f"Access policy {policy_id} combining_algorithm all_permit_rules_must_match requires rule_effect permit")
         if not policy["resource"] and not policy["action"]:
             raise ContractError(f"Access policy {policy_id} must cover at least one resource or action")
         for action in policy["action"]:

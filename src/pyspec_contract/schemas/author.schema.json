@@ -265,7 +265,7 @@
         },
         "combining_algorithm": {
           "enum": [
-            "all_rules_must_apply"
+            "all_permit_rules_must_match"
           ]
         }
       },

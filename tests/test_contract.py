@@ -397,7 +397,7 @@ def test_access_policies_require_explicit_conditions_and_support_value_equals() 
             "resource": [{"entity_type": ET("Ticket")}],
             "action": ["command.ticket.submit"],
             "environment": [],
-            "combining_algorithm": "all_rules_must_apply",
+            "combining_algorithm": "all_permit_rules_must_match",
             "rationale": "Explicit policy missing rules is invalid.",
         }
     }
@@ -429,10 +429,17 @@ def test_access_policies_reject_duplicated_rule_sets() -> None:
         "action": ["command.ticket.submit"],
         "environment": [],
         "rules": [{"condition": {"subject_has_role": "member"}, "effect": "permit"}],
-        "combining_algorithm": "all_rules_must_apply",
+        "combining_algorithm": "all_permit_rules_must_match",
         "rationale": "This should reuse the member submit policy instead.",
     }
     with pytest.raises(ContractError, match=r"reuse one access_policy with combined resource/action coverage"):
+        compile_author(author)
+
+
+def test_all_permit_rules_must_match_rejects_deny_rule_effects() -> None:
+    author = _authorized_transition_author()
+    author["access_policies"]["access_policy.ticket.submit"]["rules"][0]["effect"] = "deny"
+    with pytest.raises(ContractError, match=r"combining_algorithm all_permit_rules_must_match requires rule_effect permit"):
         compile_author(author)
 
 
@@ -453,7 +460,7 @@ def _authorized_transition_author() -> dict:
             "action": ["command.ticket.submit"],
             "environment": [],
             "rules": [{"condition": {"subject_has_role": "member"}, "effect": "permit"}],
-            "combining_algorithm": "all_rules_must_apply",
+            "combining_algorithm": "all_permit_rules_must_match",
             "rationale": "Members may submit tickets.",
         }
     }
@@ -2127,7 +2134,7 @@ def test_delegated_and_outer_access_policies_are_both_evaluated(tmp_path: Path) 
             {"condition": {"subject_has_role": "reviewer"}, "effect": "permit"},
             {"condition": {"input_present": "approved_by"}, "effect": "permit"},
         ],
-        "combining_algorithm": "all_rules_must_apply",
+        "combining_algorithm": "all_permit_rules_must_match",
         "rationale": "CLI approval requires reviewer role and an explicit approver argument.",
     }
     author["external_interfaces"]["external_interface.cli.project.approve"]["access_policy"] = outer_policy

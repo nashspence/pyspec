@@ -1326,7 +1326,7 @@ visual_audit:
         visual_evidence_set: V0001
         tokens:
         - combining_algorithm
-        - all_rules_must_apply
+        - all_permit_rules_must_match
       /access_policies/access_policy.project.member/rules/0/effect:
         visual_evidence_set: V0001
         tokens:
@@ -1355,7 +1355,7 @@ visual_audit:
         visual_evidence_set: V0002
         tokens:
         - combining_algorithm
-        - all_rules_must_apply
+        - all_permit_rules_must_match
       /access_policies/access_policy.project.reviewer/rules/0/effect:
         visual_evidence_set: V0002
         tokens:

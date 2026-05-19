@@ -6,7 +6,7 @@ from typing import Any, Mapping
 from pyspec_contract.io import read_json, read_yaml
 from pyspec_contract.behaviors import command_or_query_resource_kind, command_query_map
 from pyspec_contract.paths import COMPILED_SPEC_PATH, GENERATED_SPEC_DIR
-from pyspec_contract.runtime import fixture_namespace, resolve_binding, resolve_map
+from pyspec_contract.runtime import FixtureError, fixture_namespace, resolve_binding, resolve_map
 from pyspec_contract.targets import external_interface_state_machine_name, external_interface_adapter_pair, external_interface_invocation_input_mapping, external_interface_input_mapping, external_interface_output_responses, external_interface_invoked_ref_pair
 
 
@@ -44,13 +44,12 @@ def _workflow_sequence_flow_target_ref(sequence_flow: Mapping[str, Any]) -> tupl
 
 
 def _evaluate_access_policy_decision(policy: Mapping[str, Any], matched_environment: bool, matched_rules: bool) -> str:
+    if policy["combining_algorithm"] != "all_permit_rules_must_match":
+        return "indeterminate"
     if not (matched_environment and matched_rules):
         return "deny"
-    if policy["combining_algorithm"] == "all_rules_must_apply":
-        rule_effects = {rule["effect"] for rule in policy.get("rules", [])}
-        if len(rule_effects) == 1:
-            return next(iter(rule_effects))
-    return "indeterminate"
+    rule_effect = {rule["effect"] for rule in policy.get("rules", [])}
+    return "permit" if rule_effect == {"permit"} else "indeterminate"
 
 
 class ProductApp:
@@ -432,9 +431,12 @@ class ProductApp:
             invoked_kind, invoked_ref = external_interface_invoked_ref_pair(self.contract["external_interfaces"][resource_ref])
             if not _access_policy_covers_resource(policy, invoked_kind, invoked_ref):
                 return False
-        matched_environment = all(self._condition_matches(rule, input_values) for rule in policy.get("environment", []))
-        matched_rules = all(self._condition_matches(rule["condition"], input_values) for rule in policy.get("rules", []))
-        decision = _evaluate_access_policy_decision(policy, matched_environment, matched_rules)
+        try:
+            matched_environment = all(self._condition_matches(rule, input_values) for rule in policy.get("environment", []))
+            matched_rules = all(self._condition_matches(rule["condition"], input_values) for rule in policy.get("rules", []))
+            decision = _evaluate_access_policy_decision(policy, matched_environment, matched_rules)
+        except (FixtureError, KeyError, TypeError):
+            decision = "indeterminate"
         return decision == "permit"
 
     def _subject_available(self, policy: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
