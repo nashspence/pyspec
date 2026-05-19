@@ -281,6 +281,9 @@ The visual audit includes state-machine and composition diagrams, external-inter
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition guards.
 - `$signal.payload.<field>` reads the current state-machine local-signal payload in transition local_effects and sync sends.
 - `$state_context.<field>` reads current state-machine context in transition local_effects, command/query binding input mappings, and local_outcome_effect signal payload mappings.
+- `$principal.id` reads the authenticated principal id available to the current state-machine binding.
+- `$principal.roles[*]` reads the authenticated principal's role names when role data is available.
+- `$principal.<field>` is distinct from access-policy `subject`; policies evaluate subjects, while bindings read the concrete authenticated principal supplied by runtime context.
 - `$adapter_input.path_params.<field>` reads HTTP API or HTML route path parameters in external-interface invocation or delegation bindings.
 - `$adapter_input.query_params.<field>` reads HTTP API or HTML route query parameters in external-interface invocation or delegation bindings.
 - `$adapter_input.body.<field>` reads HTTP request body fields in external-interface invocation or delegation bindings.
