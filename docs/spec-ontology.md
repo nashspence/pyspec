@@ -504,8 +504,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:authorization_assertion --> `$defs/authorization_assertion`: access-policy contract component.
 - <!-- schema-def:access_policy_condition --> `$defs/access_policy_condition`: access-policy rule predicate component used by policy `environment` and `rules` lists.
 - <!-- schema-def:authorization_decision_assertion --> `$defs/authorization_decision_assertion`: access-policy contract component.
-- <!-- schema-def:subject --> `$defs/subject`: access-policy contract component.
-- <!-- schema-def:resource --> `$defs/resource`: access-policy contract component.
+- <!-- schema-def:access_policy_subject --> `$defs/access_policy_subject`: access-policy subject component used by policy `subject` fields.
+- <!-- schema-def:access_policy_resource --> `$defs/access_policy_resource`: access-policy resource component used by policy `resource` fields.
 - <!-- schema-def:html_css_class --> `$defs/html_css_class`: HTML renderer contract component.
 - <!-- schema-def:html_css_property --> `$defs/html_css_property`: HTML renderer contract component.
 - <!-- schema-def:html_css_value --> `$defs/html_css_value`: HTML renderer contract component.

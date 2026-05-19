@@ -299,7 +299,7 @@
         },
         "subject": {
           "items": {
-            "$ref": "#/$defs/subject"
+            "$ref": "#/$defs/access_policy_subject"
           },
           "minItems": 1,
           "type": "array",
@@ -307,7 +307,7 @@
         },
         "resource": {
           "items": {
-            "$ref": "#/$defs/resource"
+            "$ref": "#/$defs/access_policy_resource"
           },
           "minItems": 1,
           "type": "array",
@@ -2009,7 +2009,7 @@
       },
       "type": "object"
     },
-    "resource": {
+    "access_policy_resource": {
       "additionalProperties": false,
       "oneOf": [
         {
@@ -2780,7 +2780,7 @@
       ],
       "type": "object"
     },
-    "subject": {
+    "access_policy_subject": {
       "additionalProperties": false,
       "properties": {
         "kind": {

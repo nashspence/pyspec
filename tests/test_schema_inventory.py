@@ -31,8 +31,8 @@ DEPRECATED_REFERENCE_DEFINITION_NAMES = {
     "audit_profile_ref",
     "authored_audit_profile",
     "audit_" + "case_id",
-    "content_case_id",
-    "content_case_ref",
+    "content_" + "case_id",
+    "content_" + "case_ref",
     "content_example_id",
     "content_resolver_id",
     "authored_copy",
@@ -90,6 +90,8 @@ STALE_SCHEMA_DEFINITION_NAMES = {
     "workflow_" + "input_" + "bindings",
     "workflow_source",
     "workflow_" + "trigger_target",
+    "subject",
+    "resource",
 }
 ALLOWED_DUPLICATE_DEFINITION_GROUPS = {
     frozenset({"html_route_adapter", "webhook_adapter"}),
