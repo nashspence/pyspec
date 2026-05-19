@@ -1,6 +1,6 @@
 <svg width="830pt" height="218pt"
  viewBox="0.00 0.00 830.00 218.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: cecbd1a700961a59c501a3cda24449e5f235c5bdbd1c0758acaf6a759f15a56a -->
+<!-- pyspec-contract-input-sha256: e7d78f64f22b8eb78b75b35cb04405a21c75b50d2031b364bba37419868090ff -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 200)">
 <title>external_interface_external_interface_worker_project_approval_notice</title>
 <!-- external_interface_external_interface_worker_project_approval_notice -->
@@ -11,8 +11,8 @@
 <polygon fill="#ecfeff" stroke="transparent" points="1,-130 1,-161 235,-161 235,-130 1,-130"/>
 <text text-anchor="start" x="5" y="-147.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
 <text text-anchor="start" x="5" y="-136.6" font-family="Arial" font-size="8.00" fill="#64748b">worker external interface</text>
-<text text-anchor="start" x="5" y="-119" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Worker entry exposing the approval notice</text>
-<text text-anchor="start" x="5" y="-108" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">workflow.</text>
+<text text-anchor="start" x="5" y="-119" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Worker external_interface exposing the approval</text>
+<text text-anchor="start" x="5" y="-108" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">notice workflow.</text>
 <text text-anchor="start" x="6" y="-88" font-family="Arial" font-weight="bold" font-size="10.00">workflow:</text>
 <text text-anchor="start" x="52" y="-88" font-family="Arial" font-size="10.00">  workflow.project.approval_notice</text>
 <text text-anchor="start" x="6" y="-76" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>

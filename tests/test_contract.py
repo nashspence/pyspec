@@ -112,7 +112,7 @@ def test_canonical_top_level_sections_compile_without_compatibility_mirrors() ->
     assert "reference_index" in contract
     assert "application_" + "act" + "ions" not in contract
     assert "authorization" + "_policies" not in contract
-    assert "entry" + "_points" not in contract
+    assert "external_interface" + "_points" not in contract
     assert "assets" not in contract
     assert "render" + "_profiles" not in contract
     assert "refs" not in contract
@@ -548,7 +548,7 @@ def _derived_transition_author() -> dict:
                     "field": "status",
                     "initial_state": "draft",
                     "lifecycle_states": ["draft", "submitted"],
-                    "lifecycle_transitions": [{"triggered_by": "command.ticket.submit", "from": "draft", "to": "submitted"}],
+                    "lifecycle_transitions": [{"command": "command.ticket.submit", "from": "draft", "to": "submitted"}],
                 },
                 "rationale": "Ticket lifecycle owns entity_lifecycle_transitions.",
             },
@@ -660,7 +660,7 @@ def test_commands_reject_behavior_kind_field() -> None:
 
 def test_lifecycle_transition_must_reference_known_command() -> None:
     author = _derived_transition_author()
-    author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["lifecycle_transitions"][0]["triggered_by"] = "command.ticket.missing"
+    author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["lifecycle_transitions"][0]["command"] = "command.ticket.missing"
     with pytest.raises(
         ContractError,
         match=r"Entity type entity_type\.ticket entity_lifecycle_transition references unknown command command\.ticket\.missing",
@@ -1622,8 +1622,8 @@ def test_query_binding_load_policy_is_scope_sensitive() -> None:
 
 def test_query_binding_ids_cannot_shadow_state_machine_scope() -> None:
     author = _author()
-    list_fsm = _item(author, "state_machines", "state_machine.project.list")
-    list_fsm["states"]["ready"]["query_bindings"] = {
+    list_state_machine = _item(author, "state_machines", "state_machine.project.list")
+    list_state_machine["states"]["ready"]["query_bindings"] = {
         "list_projects": {
             "query": "query.project.list",
             "input_mapping": {"workspace_id": {"from": "$state_context.workspace_id"}},
@@ -1820,7 +1820,7 @@ def _api_only_author() -> dict:
                         "validation_failed": {"status": 422, "body": {"type": M("Problem"), "from": "$invocation_outcome.result"}},
                     },
                 },
-                "rationale": _rationale("HTTP create ticket entry"),
+                "rationale": _rationale("HTTP create ticket external_interface"),
             }
         },
     }
@@ -1868,7 +1868,7 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
         compile_author(author, layers=parse_layers("core,http"))
 
 
-def test_authoring_layers_reject_wrong_entry_renderer() -> None:
+def test_authoring_layers_reject_wrong_external_interface_renderer() -> None:
     from pyspec_contract.layers import parse_layers
 
     author = _api_only_author()
@@ -1883,14 +1883,14 @@ def test_authoring_layers_reject_wrong_entry_renderer() -> None:
         compile_author(author, layers=parse_layers("core,http"))
 
 
-def test_cli_state_machine_entry_must_provide_required_context_args() -> None:
+def test_cli_state_machine_external_interface_must_provide_required_context_args() -> None:
     author = _author()
     del author["external_interfaces"]["external_interface.cli.project.board"]["input_mapping"]["args"]
     with pytest.raises(ContractError, match=r"External interface external_interface.cli\.project\.board input\.args must include required state machine context inputs: \['workspace_id'\]"):
         compile_source(author)
 
 
-def test_entry_rejects_renderer_irrelevant_fields() -> None:
+def test_external_interface_rejects_renderer_irrelevant_fields() -> None:
     author = _author()
     author["external_interfaces"]["external_interface.html.project.board"]["input_mapping"]["args"] = {"workspace_id": P("ID")}
     with pytest.raises(ContractError, match=r"adapter html_route has unsupported input sections: \['args'\]"):
@@ -1915,7 +1915,7 @@ def test_cli_delegation_bindings_use_outer_input_shape() -> None:
         compile_source(author)
 
 
-def test_entry_target_bindings_must_exactly_match_target_input() -> None:
+def test_external_interface_target_bindings_must_exactly_match_target_input() -> None:
     author = _author()
     del author["external_interfaces"]["external_interface.api.project.create"]["input_mapping"]["bindings"]["title"]
     with pytest.raises(ContractError, match=r"External interface external_interface.api\.project\.create input_mapping\.bindings must exactly bind invoked input: missing: title"):
@@ -1941,7 +1941,7 @@ def test_command_query_outcomes_must_have_one_success_and_real_failure_result() 
         compile_source(author)
 
 
-def test_event_emits_must_map_declared_payload() -> None:
+def test_domain_event_emits_must_map_declared_payload() -> None:
     author = _author()
     author["commands"]["command.project.approve"]["emits_domain_events"][0]["payload_bindings"]["approved_by"] = {"from": "$command_outcome.result"}
     with pytest.raises(ContractError, match=r"emit domain_event.project\.approved mapping approved_by source .*\$command_outcome\.result.* type must be string"):
@@ -2182,22 +2182,22 @@ def test_delegated_and_outer_access_policies_are_both_evaluated(tmp_path: Path) 
     driver.then("behavior_scenario.project.approve.cli.success", behavior_scenario)
 
 
-def test_state_machine_entry_must_not_declare_output() -> None:
+def test_state_machine_external_interface_must_not_declare_output() -> None:
     author = _author()
-    entry = author["external_interfaces"]["external_interface.html.project.board"]
-    entry["output"] = {"status": 200}
+    external_interface = author["external_interfaces"]["external_interface.html.project.board"]
+    external_interface["output"] = {"status": 200}
     with pytest.raises(ContractError, match=r"Schema validation failed"):
         compile_source(author)
 
 
-def test_worker_entry_payload_must_match_trigger_domain_event_payload() -> None:
+def test_worker_external_interface_payload_must_match_trigger_domain_event_payload() -> None:
     author = _author()
     author["external_interfaces"]["external_interface.worker.project.approval_notice"]["input_mapping"]["payload"] = D("schema.project.notice_result")
     with pytest.raises(ContractError, match=r"External interface external_interface.worker\.project\.approval_notice input\.payload must be schema\.project\.approved, got schema\.project\.notice_result"):
         compile_source(author)
 
 
-def test_worker_entry_must_declare_realistic_dispositions() -> None:
+def test_worker_external_interface_must_declare_realistic_dispositions() -> None:
     author = _author()
     author["external_interfaces"]["external_interface.worker.project.approval_notice"]["output_mapping"]["ingress_responses"] = {"accepted": {"disposition": "acknowledge"}}
     with pytest.raises(ContractError, match=r"External interface external_interface.worker\.project\.approval_notice must declare at least one non-acknowledge ingress disposition"):
@@ -2257,9 +2257,9 @@ def test_workflow_sequence_flows_must_reference_known_outputs() -> None:
         compile_source(author)
 
 
-def test_cli_entry_cannot_target_raw_domain_event() -> None:
+def test_cli_external_interface_cannot_target_raw_domain_event() -> None:
     author = _author()
-    author["external_interfaces"]["external_interface.cli.project.event"] = {
+    author["external_interfaces"]["external_interface.cli.project.domain_event"] = {
         "rationale": _rationale("CLI domain-event publishing is intentionally not modeled"),
         "adapter": {"cli": {"cli_command": "project domain-event"}},
         "invokes": {"domain_event": {"ref": "domain_event.project.approved"}},
@@ -2268,28 +2268,28 @@ def test_cli_entry_cannot_target_raw_domain_event() -> None:
         compile_source(author)
 
 
-def test_state_machine_entry_target_must_declare_renderer() -> None:
+def test_state_machine_external_interface_target_must_declare_renderer() -> None:
     author = _author()
     del author["external_interfaces"]["external_interface.cli.project.board"]["invokes"]["state_machine"]["renderer"]
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
-def test_html_state_machine_entry_must_target_html_renderer() -> None:
+def test_html_state_machine_external_interface_must_target_html_renderer() -> None:
     author = _author()
     author["external_interfaces"]["external_interface.html.project.board"]["invokes"]["state_machine"]["renderer"] = "textual"
     with pytest.raises(ContractError, match=r"External interface external_interface.html\.project\.board cannot invoke state machine renderer 'textual'"):
         compile_source(author)
 
 
-def test_cli_state_machine_entry_renderer_must_be_declared_by_state_machine() -> None:
+def test_cli_state_machine_external_interface_renderer_must_be_declared_by_state_machine() -> None:
     author = _author()
     del author["state_machines"]["state_machine.project.board"]["states"]["ready"]["renderers"]["textual"]
     with pytest.raises(ContractError, match=r"External interface external_interface.cli\.project\.board invokes state machine state_machine\.project\.board renderer textual but that state machine does not declare it"):
         compile_source(author)
 
 
-def test_cli_state_machine_entry_can_launch_html_renderer() -> None:
+def test_cli_state_machine_external_interface_can_launch_html_renderer() -> None:
     author = _author()
     author["external_interfaces"]["external_interface.cli.project.board"]["invokes"]["state_machine"]["renderer"] = "html"
     compile_source(author)
@@ -2309,12 +2309,12 @@ def test_workflow_invocation_input_mapping_must_match_workflow_input() -> None:
         compile_source(author)
 
 
-def test_get_api_entry_must_provide_all_query_input_as_path_or_query_params() -> None:
+def test_get_api_external_interface_must_provide_all_query_input_as_path_or_query_params() -> None:
     author = _author()
-    entry = author["external_interfaces"]["external_interface.api.project.list"]
-    entry["adapter"]["http_api"]["path"] = "/projects"
-    entry["input_mapping"].pop("path_params")
-    entry["input_mapping"]["bindings"].pop("workspace_id")
+    external_interface = author["external_interfaces"]["external_interface.api.project.list"]
+    external_interface["adapter"]["http_api"]["path"] = "/projects"
+    external_interface["input_mapping"].pop("path_params")
+    external_interface["input_mapping"]["bindings"].pop("workspace_id")
     with pytest.raises(ContractError, match=r"API external interface external_interface.api\.project\.list GET must declare all command/query inputs as path_params or query_params: \['workspace_id'\]"):
         compile_source(author)
 

@@ -37,7 +37,7 @@ TARGET_LAYERS: dict[str, set[str]] = {
     "external_interface": set(),
 }
 
-ENTRY_ADAPTER_LAYER = {
+EXTERNAL_INTERFACE_ADAPTER_LAYER = {
     "http_api": "http",
     "html_route": "ui",
     "cli": "workflow",
@@ -146,7 +146,7 @@ def _validate_author_spec_layers(label: str, target: str, spec: dict[str, Any], 
             adapter_kind, _ = external_interface_adapter_pair(spec)
         except KeyError as exc:
             raise LayerError(f"{label} uses unsupported external interface adapter") from exc
-        required_layer = ENTRY_ADAPTER_LAYER.get(adapter_kind)
+        required_layer = EXTERNAL_INTERFACE_ADAPTER_LAYER.get(adapter_kind)
         if not required_layer:
             raise LayerError(f"{label} uses unsupported external interface adapter {adapter_kind!r}")
         _require_layers(label, f"external interface adapter {adapter_kind}", {required_layer}, layers)
@@ -198,7 +198,7 @@ class LayerError(ValueError):
 
 def _allowed_targets(layers: set[str]) -> set[str]:
     allowed = {target for target, required in TARGET_LAYERS.items() if target != "external_interface" and required.issubset(layers)}
-    if any(layer in layers for layer in ENTRY_ADAPTER_LAYER.values()):
+    if any(layer in layers for layer in EXTERNAL_INTERFACE_ADAPTER_LAYER.values()):
         allowed.add("external_interface")
     return allowed
 

@@ -487,7 +487,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
         return state_machine
 
     if entity == "external_interface":
-        entry: dict[str, Any] = {
+        external_interface: dict[str, Any] = {
             "adapter": spec["adapter"],
             "invokes": spec["invokes"],
             "input_mapping": copy.deepcopy(spec.get("input_mapping", {})),
@@ -495,32 +495,32 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "rationale": spec["rationale"],
         }
         if "access_policy" in spec:
-            entry["access_policy"] = copy.deepcopy(spec["access_policy"])
+            external_interface["access_policy"] = copy.deepcopy(spec["access_policy"])
         if spec.get("idempotent"):
-            entry["idempotent"] = True
+            external_interface["idempotent"] = True
         if spec.get("retryable"):
-            entry["retryable"] = True
-        adapter_kind, _ = external_interface_adapter_pair(entry)
-        invoked_kind, invoked = external_interface_invokes_pair(entry)
+            external_interface["retryable"] = True
+        adapter_kind, _ = external_interface_adapter_pair(external_interface)
+        invoked_kind, invoked = external_interface_invokes_pair(external_interface)
         if adapter_kind == "html_route" and invoked_kind == "state_machine":
-            entry["html_route"] = rules.html_route_ref(invoked["ref"])
+            external_interface["html_route"] = rules.html_route_ref(invoked["ref"])
         elif adapter_kind == "http_api" and invoked_kind in {"command", "query"}:
-            entry["http_operation"] = rules.http_operation_ref(invoked["ref"])
+            external_interface["http_operation"] = rules.http_operation_ref(invoked["ref"])
             if invoked["ref"] in _command_query_map(contract):
                 command_authorization = _command_query_map(contract)[invoked["ref"]].get("authorization")
                 if command_authorization:
-                    entry.setdefault("access_policy", copy.deepcopy(command_authorization["policy"]))
+                    external_interface.setdefault("access_policy", copy.deepcopy(command_authorization["policy"]))
         elif adapter_kind == "cli":
-            entry_id = spec["id"]
-            command_ref_source = entry_id[len("external_interface.cli."):] if invoked_kind == "external_interface" and entry_id.startswith("external_interface.cli.") else invoked["ref"]
-            entry["cli_command_ref"] = rules.cli_command_ref(command_ref_source)
+            external_interface_id = spec["id"]
+            command_ref_source = external_interface_id[len("external_interface.cli."):] if invoked_kind == "external_interface" and external_interface_id.startswith("external_interface.cli.") else invoked["ref"]
+            external_interface["cli_command_ref"] = rules.cli_command_ref(command_ref_source)
             if invoked_kind in {"command", "query"} and invoked["ref"] in _command_query_map(contract):
                 command_authorization = _command_query_map(contract)[invoked["ref"]].get("authorization")
                 if command_authorization:
-                    entry.setdefault("access_policy", copy.deepcopy(command_authorization["policy"]))
+                    external_interface.setdefault("access_policy", copy.deepcopy(command_authorization["policy"]))
         elif adapter_kind in {"worker", "scheduled"} and invoked_kind == "workflow":
-            entry["workflow_ref"] = rules.workflow_ref(invoked["ref"])
-        return entry
+            external_interface["workflow_ref"] = rules.workflow_ref(invoked["ref"])
+        return external_interface
 
     if entity == "workflow":
         return {
@@ -677,7 +677,7 @@ def _derive_command_entity_lifecycle_transitions(contract: dict[str, Any]) -> No
             continue
         field = entity_lifecycle["field"]
         for entity_lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
-            command_id = entity_lifecycle_transition["triggered_by"]
+            command_id = entity_lifecycle_transition["command"]
             if command_id in by_command:
                 raise ContractError(f"Command {command_id} is used by multiple entity_lifecycle_transitions")
             by_command[command_id] = {
@@ -705,17 +705,17 @@ def _derive_domain_events(contract: dict[str, Any]) -> dict[str, Any]:
             outcome = command["outcomes"].get(outcome_id)
             if not outcome:
                 raise ContractError(f"Command {command_id} emits_domain_events references unknown outcome {outcome_id}")
-            event_id = _emit_domain_event_id(emit)
+            domain_event_id = _emit_domain_event_id(emit)
             if outcome["kind"] != "success":
                 raise ContractError(f"Command {command_id} failure outcome {outcome_id} must not emit domain events")
-            payload_type = domain_events.get(event_id, {}).get("payload_schema", outcome["result"])
-            event = domain_events.setdefault(event_id, {
+            payload_type = domain_events.get(domain_event_id, {}).get("payload_schema", outcome["result"])
+            domain_event = domain_events.setdefault(domain_event_id, {
                 "emitted_by": [],
                 "payload_schema": payload_type,
                 "rationale": command["rationale"],
             })
-            _validate_emit_payload_mapping(contract, command_id, command, outcome_id, outcome, event_id, event["payload_schema"], emit)
-            event["emitted_by"].append(command_id)
+            _validate_emit_payload_mapping(contract, command_id, command, outcome_id, outcome, domain_event_id, domain_event["payload_schema"], emit)
+            domain_event["emitted_by"].append(command_id)
     return domain_events
 
 
@@ -769,28 +769,28 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
                         refs["local_signal_raise"].add(
                             _generated_command_local_signal_raise_ref(state_machine_id, state_name, invocation_id, outcome_id, kind, signal_id)
                         )
-    for entry_id, entry in contract["external_interfaces"].items():
-        target_kind, target_ref = external_interface_invoked_ref_pair(entry)
-        refs["external_interface_invocation"].add(_generated_external_interface_invocation_ref(entry_id, target_kind, target_ref))
+    for external_interface_id, external_interface in contract["external_interfaces"].items():
+        target_kind, target_ref = external_interface_invoked_ref_pair(external_interface)
+        refs["external_interface_invocation"].add(_generated_external_interface_invocation_ref(external_interface_id, target_kind, target_ref))
         if target_kind == "external_interface":
-            refs["external_interface_delegate"].add(_generated_external_interface_delegate_ref(entry_id, target_ref))
-        if external_interface_adapter_pair(entry)[0] == "cli":
-            for outcome_id, handler in sorted(external_interface_output_response_handlers(entry).items()):
-                refs["cli_response_handler"].add(_generated_cli_response_handler_ref(entry_id, outcome_id))
+            refs["external_interface_delegate"].add(_generated_external_interface_delegate_ref(external_interface_id, target_ref))
+        if external_interface_adapter_pair(external_interface)[0] == "cli":
+            for outcome_id, handler in sorted(external_interface_output_response_handlers(external_interface).items()):
+                refs["cli_response_handler"].add(_generated_cli_response_handler_ref(external_interface_id, outcome_id))
                 for stream_name in ("stdout", "stderr"):
                     output = handler.get(stream_name) or {}
                     bindings = output.get("bindings") or {}
                     for binding_name, binding in sorted(bindings.items()):
                         if _binding_references_root(binding, "adapter_response"):
-                            refs["adapter_response_binding"].add(_generated_adapter_response_binding_ref(entry_id, outcome_id, stream_name, binding_name))
+                            refs["adapter_response_binding"].add(_generated_adapter_response_binding_ref(external_interface_id, outcome_id, stream_name, binding_name))
         for ref_kind, field in [
             ("html_route", "html_route"),
             ("http_operation", "http_operation"),
             ("cli_command", "cli_command_ref"),
             ("workflow", "workflow_ref"),
         ]:
-            if field in entry:
-                refs[ref_kind].add(entry[field])
+            if field in external_interface:
+                refs[ref_kind].add(external_interface[field])
     for state_machine_id, state_machine in contract["state_machines"].items():
         if _state_machine_has_textual_screen(state_machine):
             refs["renderer_screen"].add(rules.renderer_screen_ref(state_machine_id))
@@ -799,20 +799,20 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     return {kind: sorted(values) for kind, values in sorted(refs.items()) if values}
 
 
-def _generated_external_interface_invocation_ref(entry_id: str, target_kind: str, target_ref: str) -> str:
-    return f"external_interface_invocation.{rules.resource_tail(entry_id)}.{target_kind}.{rules.resource_tail(target_ref)}"
+def _generated_external_interface_invocation_ref(external_interface_id: str, target_kind: str, target_ref: str) -> str:
+    return f"external_interface_invocation.{rules.resource_tail(external_interface_id)}.{target_kind}.{rules.resource_tail(target_ref)}"
 
 
-def _generated_external_interface_delegate_ref(entry_id: str, delegated_entry_id: str) -> str:
-    return f"external_interface_delegate.{rules.resource_tail(entry_id)}.to.{rules.resource_tail(delegated_entry_id)}"
+def _generated_external_interface_delegate_ref(external_interface_id: str, delegated_external_interface_id: str) -> str:
+    return f"external_interface_delegate.{rules.resource_tail(external_interface_id)}.to.{rules.resource_tail(delegated_external_interface_id)}"
 
 
-def _generated_cli_response_handler_ref(entry_id: str, outcome_id: str) -> str:
-    return f"cli_response_handler.{rules.resource_tail(entry_id)}.{outcome_id}"
+def _generated_cli_response_handler_ref(external_interface_id: str, outcome_id: str) -> str:
+    return f"cli_response_handler.{rules.resource_tail(external_interface_id)}.{outcome_id}"
 
 
-def _generated_adapter_response_binding_ref(entry_id: str, outcome_id: str, stream_name: str, binding_name: str) -> str:
-    return f"adapter_response_binding.{rules.resource_tail(entry_id)}.{outcome_id}.{stream_name}.{binding_name}"
+def _generated_adapter_response_binding_ref(external_interface_id: str, outcome_id: str, stream_name: str, binding_name: str) -> str:
+    return f"adapter_response_binding.{rules.resource_tail(external_interface_id)}.{outcome_id}.{stream_name}.{binding_name}"
 
 
 def _generated_command_binding_ref(state_machine_id: str, state_name: str, invocation_id: str) -> str:
@@ -885,7 +885,7 @@ def _semantic_validate(contract: dict[str, Any], used_preconditions: set[str], u
     _validate_external_interface_response_maps(contract)
     _validate_state_machines(contract)
     _validate_state_machine_signal_payload_consistency(contract)
-    _validate_entries(contract)
+    _validate_external_interfaces(contract)
     _validate_access_policies(contract)
     _validate_workflows(contract)
     _validate_fixtures(contract)
@@ -905,8 +905,8 @@ def _validate_text_assets(contract: dict[str, Any]) -> None:
         for state in owner.get("states", {}).values():
             used_text.update(state.get("text_resources", []))
             used_assets.update(state.get("media_assets", []))
-    for entry in contract.get("external_interfaces", {}).values():
-        for handler in external_interface_output_response_handlers(entry).values():
+    for external_interface in contract.get("external_interfaces", {}).values():
+        for handler in external_interface_output_response_handlers(external_interface).values():
             for stream in ("stdout", "stderr"):
                 output = handler.get(stream) or {}
                 if output.get("text"):
@@ -1109,9 +1109,9 @@ def _validate_entity_types(contract: dict[str, Any]) -> None:
         for entity_lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
             if entity_lifecycle_transition["from"] not in states or entity_lifecycle_transition["to"] not in states:
                 raise ContractError(f"Entity type {rid} entity_lifecycle_transition uses unknown lifecycle_state: {entity_lifecycle_transition}")
-            if entity_lifecycle_transition["triggered_by"] not in _command_query_map(contract):
+            if entity_lifecycle_transition["command"] not in _command_query_map(contract):
                 raise ContractError(
-                    f"Entity type {rid} entity_lifecycle_transition references unknown command {entity_lifecycle_transition['triggered_by']}"
+                    f"Entity type {rid} entity_lifecycle_transition references unknown command {entity_lifecycle_transition['command']}"
                 )
 
 
@@ -1136,8 +1136,8 @@ def _validate_type_references(contract: dict[str, Any]) -> None:
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
         for field_name, field in _state_machine_context(state_machine).items():
             _validate_type_reference(contract, f"State machine {state_machine_id} context {field_name}", field)
-    for event_id, event in contract.get("domain_events", {}).items():
-        _validate_type_reference(contract, f"domain_event {event_id} payload_schema", event["payload_schema"])
+    for domain_event_id, domain_event in contract.get("domain_events", {}).items():
+        _validate_type_reference(contract, f"domain_event {domain_event_id} payload_schema", domain_event["payload_schema"])
 
 
 def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) -> None:
@@ -1159,150 +1159,150 @@ def _validate_type_reference(contract: dict[str, Any], label: str, expr: Any) ->
 def _validate_commands(contract: dict[str, Any]) -> None:
     entity_types = contract["entity_types"]
     commands = _command_query_map(contract)
-    for cid, cap in commands.items():
-        _validate_command_relationships(cid, cap, entity_types)
-        _validate_command_authorization_outcomes(cid, cap)
-        entity_lifecycle_transition = cap.get("entity_lifecycle_transition")
+    for command_id, behavior in commands.items():
+        _validate_command_relationships(command_id, behavior, entity_types)
+        _validate_command_authorization_outcomes(command_id, behavior)
+        entity_lifecycle_transition = behavior.get("entity_lifecycle_transition")
         if entity_lifecycle_transition:
             entity_type_ref = entity_lifecycle_transition["entity_type"]
             entity_lifecycle = entity_types[entity_type_ref].get("entity_lifecycle")
             if not entity_lifecycle:
-                raise ContractError(f"Command {cid} declares entity_lifecycle_transition but {entity_type_ref} has no entity_lifecycle")
+                raise ContractError(f"Command {command_id} declares entity_lifecycle_transition but {entity_type_ref} has no entity_lifecycle")
             if not any(
-                transition["triggered_by"] == cid
+                transition["command"] == command_id
                 for transition in entity_lifecycle.get("lifecycle_transitions", [])
             ):
-                raise ContractError(f"entity_lifecycle_transition command {cid} must be referenced by entity_lifecycle declarations")
+                raise ContractError(f"entity_lifecycle_transition command {command_id} must be referenced by entity_lifecycle declarations")
             if entity_lifecycle_transition["field"] != entity_lifecycle["field"]:
-                raise ContractError(f"Command {cid} entity_lifecycle_transition field does not match entity_lifecycle")
+                raise ContractError(f"Command {command_id} entity_lifecycle_transition field does not match entity_lifecycle")
             if entity_lifecycle_transition["from"] not in entity_lifecycle["lifecycle_states"] or entity_lifecycle_transition["to"] not in entity_lifecycle["lifecycle_states"]:
-                raise ContractError(f"Command {cid} entity_lifecycle_transition references unknown lifecycle_state")
+                raise ContractError(f"Command {command_id} entity_lifecycle_transition references unknown lifecycle_state")
     for rid, entity_type in entity_types.items():
         entity_lifecycle = entity_type.get("entity_lifecycle")
         if not entity_lifecycle:
             continue
         for entity_lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
-            triggered_by = entity_lifecycle_transition["triggered_by"]
-            behavior = commands[triggered_by]
+            command = entity_lifecycle_transition["command"]
+            behavior = commands[command]
             if behavior["behavior_kind"] != "entity_lifecycle_transition":
                 raise ContractError(
-                    f"Entity type {rid} entity_lifecycle_transition {triggered_by} must reference an entity_lifecycle_transition command"
+                    f"Entity type {rid} entity_lifecycle_transition {command} must reference an entity_lifecycle_transition command"
                 )
             lifecycle_transition_not_allowed = behavior["outcomes"].get("lifecycle_transition_not_allowed")
             if not lifecycle_transition_not_allowed or lifecycle_transition_not_allowed["kind"] != "failure":
                 raise ContractError(
-                    f"entity_lifecycle_transition command {triggered_by} referenced by entity_lifecycle must declare lifecycle_transition_not_allowed failure outcome"
+                    f"entity_lifecycle_transition command {command} referenced by entity_lifecycle must declare lifecycle_transition_not_allowed failure outcome"
                 )
-            cap_transition = behavior.get("entity_lifecycle_transition")
-            if not cap_transition:
-                raise ContractError(f"entity_lifecycle_transition command {triggered_by} must be referenced by entity_lifecycle declarations")
+            behavior_transition = behavior.get("entity_lifecycle_transition")
+            if not behavior_transition:
+                raise ContractError(f"entity_lifecycle_transition command {command} must be referenced by entity_lifecycle declarations")
             if (
-                cap_transition["entity_type"] != rid
-                or cap_transition["from"] != entity_lifecycle_transition["from"]
-                or cap_transition["to"] != entity_lifecycle_transition["to"]
+                behavior_transition["entity_type"] != rid
+                or behavior_transition["from"] != entity_lifecycle_transition["from"]
+                or behavior_transition["to"] != entity_lifecycle_transition["to"]
             ):
-                raise ContractError(f"Entity type {rid} entity_lifecycle and command {triggered_by} disagree")
-    for event_id, event in contract["domain_events"].items():
-        for cap_id in event["emitted_by"]:
-            if cap_id not in commands:
-                raise ContractError(f"domain_event {event_id} emitted by unknown command {cap_id}")
+                raise ContractError(f"Entity type {rid} entity_lifecycle and command {command} disagree")
+    for domain_event_id, domain_event in contract["domain_events"].items():
+        for command_id in domain_event["emitted_by"]:
+            if command_id not in commands:
+                raise ContractError(f"domain_event {domain_event_id} emitted by unknown command {command_id}")
 
 
-def _validate_command_relationships(cid: str, cap: dict[str, Any], entity_types: dict[str, Any]) -> None:
-    _validate_command_query_outcomes(cid, cap)
+def _validate_command_relationships(command_id: str, behavior: dict[str, Any], entity_types: dict[str, Any]) -> None:
+    _validate_command_query_outcomes(command_id, behavior)
     for field in ["creates", "reads", "updates", "deletes"]:
-        for entity_type_id in cap.get(field, []):
+        for entity_type_id in behavior.get(field, []):
             if entity_type_id not in entity_types:
-                raise ContractError(f"Command {cid} {field} unknown entity_type {entity_type_id}")
+                raise ContractError(f"Command {command_id} {field} unknown entity_type {entity_type_id}")
 
-    if "entity_lifecycle_transition" in cap:
-        entity_type_ref = cap["entity_lifecycle_transition"]["entity_type"]
+    if "entity_lifecycle_transition" in behavior:
+        entity_type_ref = behavior["entity_lifecycle_transition"]["entity_type"]
         if entity_type_ref not in entity_types:
-            raise ContractError(f"Command {cid} entity_lifecycle_transition references unknown entity_type {entity_type_ref}")
+            raise ContractError(f"Command {command_id} entity_lifecycle_transition references unknown entity_type {entity_type_ref}")
 
-    behavior_kind = cap["behavior_kind"]
-    if behavior_kind != "query" and cap.get("retryable") and not cap.get("idempotent"):
-        raise ContractError(f"Command {cid} retryable requires idempotent true")
+    behavior_kind = behavior["behavior_kind"]
+    if behavior_kind != "query" and behavior.get("retryable") and not behavior.get("idempotent"):
+        raise ContractError(f"Command {command_id} retryable requires idempotent true")
     if behavior_kind == "query":
-        _reject_non_empty_relationships(cid, cap, {"creates", "updates", "deletes"})
-        if "entity_lifecycle_transition" in cap:
-            raise ContractError(f"Query command {cid} must not declare entity_lifecycle_transition")
-        emitting_outcomes = sorted(outcome_id for outcome_id, outcome in cap["outcomes"].items() if outcome.get("emits"))
+        _reject_non_empty_relationships(command_id, behavior, {"creates", "updates", "deletes"})
+        if "entity_lifecycle_transition" in behavior:
+            raise ContractError(f"Query command {command_id} must not declare entity_lifecycle_transition")
+        emitting_outcomes = sorted(outcome_id for outcome_id, outcome in behavior["outcomes"].items() if outcome.get("emits"))
         if emitting_outcomes:
-            raise ContractError(f"Query command {cid} must not emit domain events: {emitting_outcomes}")
-        _validate_query_success_result(cid, cap)
+            raise ContractError(f"Query command {command_id} must not emit domain events: {emitting_outcomes}")
+        _validate_query_success_result(command_id, behavior)
     elif behavior_kind == "command":
-        if "entity_lifecycle_transition" in cap:
-            raise ContractError(f"Only entity_lifecycle_transition commands may declare entity_lifecycle_transition: {cid}")
+        if "entity_lifecycle_transition" in behavior:
+            raise ContractError(f"Only entity_lifecycle_transition commands may declare entity_lifecycle_transition: {command_id}")
     elif behavior_kind == "entity_lifecycle_transition":
-        if "entity_lifecycle_transition" not in cap:
-            raise ContractError(f"entity_lifecycle_transition command {cid} must be referenced by entity_lifecycle declarations")
-        _reject_non_empty_relationships(cid, cap, {"creates", "reads", "updates", "deletes"})
-        _require_output_entity_type(cid, cap, cap["entity_lifecycle_transition"]["entity_type"])
+        if "entity_lifecycle_transition" not in behavior:
+            raise ContractError(f"entity_lifecycle_transition command {command_id} must be referenced by entity_lifecycle declarations")
+        _reject_non_empty_relationships(command_id, behavior, {"creates", "reads", "updates", "deletes"})
+        _require_output_entity_type(command_id, behavior, behavior["entity_lifecycle_transition"]["entity_type"])
     else:  # pragma: no cover - schema prevents this.
-        raise ContractError(f"Unsupported behavior_kind {behavior_kind}: {cid}")
+        raise ContractError(f"Unsupported behavior_kind {behavior_kind}: {command_id}")
 
 
-def _require_relationship(cid: str, cap: dict[str, Any], field: str) -> None:
-    if not cap.get(field):
-        raise ContractError(f"Command {cid} behavior_kind {cap['behavior_kind']} must declare {field}")
+def _require_relationship(command_id: str, behavior: dict[str, Any], field: str) -> None:
+    if not behavior.get(field):
+        raise ContractError(f"Command {command_id} behavior_kind {behavior['behavior_kind']} must declare {field}")
 
 
-def _require_exact_relationship(cid: str, cap: dict[str, Any], field: str, count: int) -> None:
-    _require_relationship(cid, cap, field)
-    actual = len(cap[field])
+def _require_exact_relationship(command_id: str, behavior: dict[str, Any], field: str, count: int) -> None:
+    _require_relationship(command_id, behavior, field)
+    actual = len(behavior[field])
     if actual != count:
-        raise ContractError(f"Command {cid} behavior_kind {cap['behavior_kind']} must declare exactly {count} {field}")
+        raise ContractError(f"Command {command_id} behavior_kind {behavior['behavior_kind']} must declare exactly {count} {field}")
 
 
-def _reject_non_empty_relationships(cid: str, cap: dict[str, Any], fields: set[str]) -> None:
-    extras = sorted(field for field in fields if cap.get(field))
+def _reject_non_empty_relationships(command_id: str, behavior: dict[str, Any], fields: set[str]) -> None:
+    extras = sorted(field for field in fields if behavior.get(field))
     if extras:
-        raise ContractError(f"Command {cid} behavior_kind {cap['behavior_kind']} does not support entity_changes: {extras}")
+        raise ContractError(f"Command {command_id} behavior_kind {behavior['behavior_kind']} does not support entity_changes: {extras}")
 
 
-def _require_output_entity_type(cid: str, cap: dict[str, Any], expected_entity_type: str) -> None:
-    if entity_type_id(_success_result_type(cap)) != expected_entity_type:
-        raise ContractError(f"Command {cid} success outcome result must be {expected_entity_type}")
+def _require_output_entity_type(command_id: str, behavior: dict[str, Any], expected_entity_type: str) -> None:
+    if entity_type_id(_success_result_type(behavior)) != expected_entity_type:
+        raise ContractError(f"Command {command_id} success outcome result must be {expected_entity_type}")
 
 
-def _validate_query_success_result(cid: str, cap: dict[str, Any]) -> None:
-    reads = cap.get("reads", [])
+def _validate_query_success_result(command_id: str, behavior: dict[str, Any]) -> None:
+    reads = behavior.get("reads", [])
     if len(reads) != 1:
         return
     expected_entity_type = reads[0]
-    result_type = _success_result_type(cap)
+    result_type = _success_result_type(behavior)
     if entity_type_id(result_type) == expected_entity_type or is_array_of_entity_type(result_type, expected_entity_type):
         return
     raise ContractError(
-        f"Command {cid} query success outcome result must be {expected_entity_type} "
+        f"Command {command_id} query success outcome result must be {expected_entity_type} "
         f"or {type_display(array_of({'$ref': expected_entity_type}))}"
     )
 
 
-def _validate_command_query_outcomes(cid: str, cap: dict[str, Any]) -> None:
-    outcomes = cap["outcomes"]
-    successes = _success_outcomes(cap)
-    failures = _failure_outcomes(cap)
+def _validate_command_query_outcomes(command_id: str, behavior: dict[str, Any]) -> None:
+    outcomes = behavior["outcomes"]
+    successes = _success_outcomes(behavior)
+    failures = _failure_outcomes(behavior)
     if len(successes) != 1:
-        raise ContractError(f"Command {cid} must declare exactly one success outcome")
+        raise ContractError(f"Command {command_id} must declare exactly one success outcome")
     if not failures:
-        raise ContractError(f"Command {cid} must declare at least one failure outcome")
+        raise ContractError(f"Command {command_id} must declare at least one failure outcome")
     unknown_kinds = sorted(
         f"{name}:{outcome['kind']}" for name, outcome in outcomes.items() if outcome["kind"] not in {"success", "failure"}
     )
     if unknown_kinds:
-        raise ContractError(f"Command {cid} has unsupported outcome kinds: {unknown_kinds}")
+        raise ContractError(f"Command {command_id} has unsupported outcome kinds: {unknown_kinds}")
     for outcome_id, outcome in outcomes.items():
         emits = outcome.get("emits", [])
         emit_ids = [_emit_domain_event_id(emit) for emit in emits]
         if len(emit_ids) != len(set(emit_ids)):
-            raise ContractError(f"Command {cid} outcome {outcome_id} emits duplicate domain events")
+            raise ContractError(f"Command {command_id} outcome {outcome_id} emits duplicate domain events")
         if outcome["kind"] == "failure":
             if emits:
-                raise ContractError(f"Command {cid} failure outcome {outcome_id} must not emit domain events")
+                raise ContractError(f"Command {command_id} failure outcome {outcome_id} must not emit domain events")
             if not is_problem_type(outcome["result"]):
-                raise ContractError(f"Command {cid} failure outcome {outcome_id} result must be Problem or a *Problem type")
+                raise ContractError(f"Command {command_id} failure outcome {outcome_id} result must be Problem or a *Problem type")
 
 
 def _validate_command_authorization_outcomes(command_id: str, command: dict[str, Any]) -> None:
@@ -1346,15 +1346,15 @@ def _validate_access_policies(contract: dict[str, Any]) -> None:
             raise ContractError(f"Command {command_id} authorization.policy references unknown access policy {policy_id}")
         if not _access_policy_covers_resource(access_policies[policy_id], "query" if command_id.startswith("query.") else "command", command_id):
             raise ContractError(f"Command {command_id} authorization.policy {policy_id} must cover command or query resource")
-    for entry_id, entry in external_interfaces.items():
-        policy_id = entry.get("access_policy")
+    for external_interface_id, external_interface in external_interfaces.items():
+        policy_id = external_interface.get("access_policy")
         if not policy_id:
             continue
         if policy_id not in access_policies:
-            raise ContractError(f"External interface {entry_id} references unknown access policy {policy_id}")
-        invoked_kind, invoked_ref = external_interface_invoked_ref_pair(entry)
-        if not _access_policy_covers_resource(access_policies[policy_id], "external_interface", entry_id) and not _access_policy_covers_resource(access_policies[policy_id], invoked_kind, invoked_ref):
-            raise ContractError(f"External interface {entry_id} access_policy {policy_id} must cover external interface or invoked resource")
+            raise ContractError(f"External interface {external_interface_id} references unknown access policy {policy_id}")
+        invoked_kind, invoked_ref = external_interface_invoked_ref_pair(external_interface)
+        if not _access_policy_covers_resource(access_policies[policy_id], "external_interface", external_interface_id) and not _access_policy_covers_resource(access_policies[policy_id], invoked_kind, invoked_ref):
+            raise ContractError(f"External interface {external_interface_id} access_policy {policy_id} must cover external interface or invoked resource")
     for policy_id, policy in access_policies.items():
         rule_effect = {rule["effect"] for rule in policy.get("rules", [])}
         if policy["combining_algorithm"] == "all_permit_rules_must_match" and rule_effect != {"permit"}:
@@ -1455,11 +1455,11 @@ def _validate_emit_payload_mapping(
     command: dict[str, Any],
     outcome_id: str,
     outcome: dict[str, Any],
-    event_id: str,
+    domain_event_id: str,
     event_payload: Any,
     emit: Any,
 ) -> None:
-    label = f"Command {command_id} outcome {outcome_id} emit {event_id}"
+    label = f"Command {command_id} outcome {outcome_id} emit {domain_event_id}"
     source_scopes: TypeScopes = {
         "command_input": _type_scope(_command_input(command)),
         "command_outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
@@ -1711,10 +1711,10 @@ def _command_authorization_outcomes(command: dict[str, Any]) -> set[str]:
 
 
 def _command_has_response_mapping_or_renderer_surface(contract: dict[str, Any], command_id: str, outcome_id: str) -> bool:
-    for entry_id in contract.get("external_interfaces", {}):
-        if _external_interface_effective_command_ref(contract, entry_id) != command_id:
+    for external_interface_id in contract.get("external_interfaces", {}):
+        if _external_interface_effective_command_ref(contract, external_interface_id) != command_id:
             continue
-        if outcome_id in _external_interface_named_response_outcomes(contract, entry_id):
+        if outcome_id in _external_interface_named_response_outcomes(contract, external_interface_id):
             return True
     return False
 
@@ -1723,16 +1723,16 @@ def _command_retryable(command: dict[str, Any]) -> bool:
     return command.get("behavior_kind") == "query" or bool(command.get("retryable"))
 
 
-def _external_interface_retryable(contract: dict[str, Any], entry_id: str) -> bool:
-    entry = contract["external_interfaces"][entry_id]
-    target_kind, target_ref = external_interface_invoked_ref_pair(entry)
+def _external_interface_retryable(contract: dict[str, Any], external_interface_id: str) -> bool:
+    external_interface = contract["external_interfaces"][external_interface_id]
+    target_kind, target_ref = external_interface_invoked_ref_pair(external_interface)
     if target_kind in {"command", "query"}:
-        return bool(entry.get("retryable")) and _command_retryable(_command_query_map(contract)[target_ref])
+        return bool(external_interface.get("retryable")) and _command_retryable(_command_query_map(contract)[target_ref])
     if target_kind == "external_interface":
-        return bool(entry.get("retryable")) and _external_interface_retryable(contract, target_ref)
+        return bool(external_interface.get("retryable")) and _external_interface_retryable(contract, target_ref)
     if target_kind == "workflow":
-        return bool(entry.get("retryable"))
-    return bool(entry.get("retryable"))
+        return bool(external_interface.get("retryable"))
+    return bool(external_interface.get("retryable"))
 
 
 def _local_outcome_effect_scopes(
@@ -2259,14 +2259,14 @@ def _lint_signal_names(state_machine_id: str, state_machine: dict[str, Any], loc
     data_refresh_signals = set(data_refresh_signal_specs)
     for name in sorted((local_signal_names | data_refresh_signals) & states):
         warnings.warn(
-            f"state machine {state_machine_id} signal {name!r} also names a state; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or command_failed",
+            f"state machine {state_machine_id} signal {name!r} also names a state; prefer occurrence-like names such as project_loaded, project_load_failed, collection_empty, or command_failed",
             ContractLintWarning,
             stacklevel=3,
         )
     for name, signal in sorted(data_refresh_signal_specs.items()):
         if name in {"ready", "error", "empty", "loaded"} and not signal.get("rationale"):
             warnings.warn(
-                f"state machine {state_machine_id} data-refresh signal {name!r} is state-like; prefer event-like names such as project_loaded, project_load_failed, collection_empty, or command_failed",
+                f"state machine {state_machine_id} data-refresh signal {name!r} is state-like; prefer occurrence-like names such as project_loaded, project_load_failed, collection_empty, or command_failed",
                 ContractLintWarning,
                 stacklevel=3,
             )
@@ -2274,7 +2274,7 @@ def _lint_signal_names(state_machine_id: str, state_machine: dict[str, Any], loc
         _, trigger_name = _signal_selector_key(transition["trigger"])
         if trigger_name == transition["to"]:
             warnings.warn(
-                f"state machine {state_machine_id} transition trigger {trigger_name!r} matches state; prefer an event-like trigger name",
+                f"state machine {state_machine_id} transition trigger {trigger_name!r} matches state; prefer an occurrence-like trigger name",
                 ContractLintWarning,
                 stacklevel=3,
             )
@@ -2307,9 +2307,9 @@ def _validate_state_machine_signal_payload_consistency(contract: dict[str, Any])
                         set(existing[2]) != set(payload)
                         or any(not type_equals(existing[2][key], payload[key]) for key in payload)
                     ):
-                        first_fsm, first_direction, first_payload = existing
+                        first_state_machine_id, first_direction, first_payload = existing
                         raise ContractError(
-                            f"state-machine signal {signal_key} payload_schema differs between {first_fsm}.{first_direction} "
+                            f"state-machine signal {signal_key} payload_schema differs between {first_state_machine_id}.{first_direction} "
                             f"and {state_machine_id}.{direction}: "
                             f"{ {key: type_display(value) for key, value in first_payload.items()} } vs "
                             f"{ {key: type_display(value) for key, value in payload.items()} }"
@@ -2734,11 +2734,11 @@ def _validate_sync_rules(
         source_id = rule["trigger"]["instance"]
         if source_id not in mounts:
             raise ContractError(f"composed state machine state {label} sync source instance is unknown: {source_id}")
-        source_fsm = contract["state_machines"][mounts[source_id]["state_machine"]]
+        source_state_machine = contract["state_machines"][mounts[source_id]["state_machine"]]
         signal_id = rule["trigger"]["local_signal"]
-        if ("local_signal", signal_id) not in _state_machine_emits(source_fsm):
+        if ("local_signal", signal_id) not in _state_machine_emits(source_state_machine):
             raise ContractError(f"composed state machine state {label} sync listens for signal the source does not emit: {signal_id}")
-        source_payload = _state_machine_signal_payload(source_fsm, "emits", {"local_signal": signal_id}, f"composed state machine state {label} sync trigger")
+        source_payload = _state_machine_signal_payload(source_state_machine, "emits", {"local_signal": signal_id}, f"composed state machine state {label} sync trigger")
         for effect in rule["local_effects"]:
             kind, body = _one(effect, f"composed state machine state {label} sync local_effect")
             if kind == "set":
@@ -2757,10 +2757,10 @@ def _validate_sync_rules(
                 target_id = body["instance"]
                 if target_id not in mounts:
                     raise ContractError(f"composed state machine state {label} sync sends to unknown instance: {target_id}")
-                target_fsm = contract["state_machines"][mounts[target_id]["state_machine"]]
-                if ("local_signal", body["local_signal"]) not in _state_machine_accepts(target_fsm):
+                target_state_machine = contract["state_machines"][mounts[target_id]["state_machine"]]
+                if ("local_signal", body["local_signal"]) not in _state_machine_accepts(target_state_machine):
                     raise ContractError(f"composed state machine state {label} sync sends local_signal the target does not accept: {body['local_signal']}")
-                target_payload = _state_machine_signal_payload(target_fsm, "accepts", {"local_signal": body["local_signal"]}, f"composed state machine state {label} sync send")
+                target_payload = _state_machine_signal_payload(target_state_machine, "accepts", {"local_signal": body["local_signal"]}, f"composed state machine state {label} sync send")
                 _validate_payload_bindings(
                     contract=contract,
                     label=f"composed state machine state {label} sync send {body['local_signal']} to {target_id} payload_bindings",
@@ -2935,70 +2935,70 @@ def _validate_composition_selector(state_machine_id: str, selector: str, regions
     raise ContractError(f"composed state machine {state_machine_id} {label} selector is not supported: {selector}")
 
 
-def _validate_entries(contract: dict[str, Any]) -> None:
+def _validate_external_interfaces(contract: dict[str, Any]) -> None:
     _validate_external_interface_delegation_graph(contract)
-    for eid, entry in contract["external_interfaces"].items():
-        adapter_kind, adapter = external_interface_adapter_pair(entry)
-        invoked_kind, invoked = external_interface_invokes_pair(entry)
+    for eid, external_interface in contract["external_interfaces"].items():
+        adapter_kind, adapter = external_interface_adapter_pair(external_interface)
+        invoked_kind, invoked = external_interface_invokes_pair(external_interface)
         kind = "state_machine" if invoked_kind == "state_machine" else invoked_kind
         value = invoked["ref"]
-        _validate_external_interface_fields(eid, entry, adapter_kind)
-        _validate_entry_input_shape(eid, entry, adapter_kind)
+        _validate_external_interface_fields(eid, external_interface, adapter_kind)
+        _validate_external_interface_input_shape(eid, external_interface, adapter_kind)
         if kind == "external_interface":
-            _validate_delegating_entry_adapter_surface(eid, entry, adapter_kind, adapter)
-            _validate_external_interface_delegate_target(contract, eid, entry, value)
+            _validate_delegating_external_interface_adapter_surface(eid, external_interface, adapter_kind, adapter)
+            _validate_external_interface_delegate_target(contract, eid, external_interface, value)
             if adapter_kind == "cli":
-                _validate_cli_delegated_response_handlers(contract, eid, entry, value)
+                _validate_cli_delegated_response_handlers(contract, eid, external_interface, value)
             continue
         if adapter_kind == "html_route":
             if kind != "state_machine" or value not in contract["state_machines"]:
                 raise ContractError(f"HTML external interface {eid} must invoke a known state machine")
-            _validate_state_machine_target_renderer(contract, eid, entry, value, allowed_renderers={"html"})
+            _validate_state_machine_target_renderer(contract, eid, external_interface, value, allowed_renderers={"html"})
             _require_adapter(adapter, eid, "path")
-            _validate_path_params(entry, eid)
-            declared = {**_entry_input_map(entry, "path_params"), **_entry_input_map(entry, "query_params")}
-            _validate_state_machine_entry_inputs(contract, eid, value, declared=declared, input_label="input")
-            _validate_target_bindings(contract, eid, entry, declared)
+            _validate_path_params(external_interface, eid)
+            declared = {**_external_interface_input_map(external_interface, "path_params"), **_external_interface_input_map(external_interface, "query_params")}
+            _validate_state_machine_external_interface_inputs(contract, eid, value, declared=declared, input_label="input")
+            _validate_target_bindings(contract, eid, external_interface, declared)
         elif adapter_kind == "http_api":
             if kind not in {"command", "query"} or value not in _command_query_map(contract):
                 raise ContractError(f"HTTP API external interface {eid} must invoke a known command")
             _require_adapter(adapter, eid, "method")
             _require_adapter(adapter, eid, "path")
-            _validate_path_params(entry, eid)
+            _validate_path_params(external_interface, eid)
             behavior = _command_query_map(contract)[value]
-            path_params = _entry_input_map(entry, "path_params")
-            query_params = _entry_input_map(entry, "query_params")
-            body = _entry_input_map(entry, "body")
-            _validate_api_entry_input(eid, entry, behavior, path_params, query_params, body)
-            _validate_target_bindings(contract, eid, entry, {**path_params, **query_params, **body})
-            _validate_api_external_interface_output_responses(eid, entry, behavior)
+            path_params = _external_interface_input_map(external_interface, "path_params")
+            query_params = _external_interface_input_map(external_interface, "query_params")
+            body = _external_interface_input_map(external_interface, "body")
+            _validate_api_external_interface_input(eid, external_interface, behavior, path_params, query_params, body)
+            _validate_target_bindings(contract, eid, external_interface, {**path_params, **query_params, **body})
+            _validate_api_external_interface_output_responses(eid, external_interface, behavior)
         elif adapter_kind == "cli":
             _require_adapter(adapter, eid, "cli_command")
-            args = _entry_input_map(entry, "args")
+            args = _external_interface_input_map(external_interface, "args")
             if kind in {"command", "query"}:
                 if value not in _command_query_map(contract):
                     raise ContractError(f"CLI external interface {eid} must invoke a known command")
                 behavior = _command_query_map(contract)[value]
-                _validate_exact_entry_inputs(eid, "input.args", args, _command_input(behavior))
-                _validate_target_bindings(contract, eid, entry, args)
-                _validate_cli_command_response_handlers(contract, eid, entry, behavior)
+                _validate_exact_external_interface_inputs(eid, "input.args", args, _command_input(behavior))
+                _validate_target_bindings(contract, eid, external_interface, args)
+                _validate_cli_command_response_handlers(contract, eid, external_interface, behavior)
             elif kind == "state_machine":
                 if value not in contract["state_machines"]:
                     raise ContractError(f"CLI external interface {eid} must invoke a known state machine")
-                _validate_state_machine_target_renderer(contract, eid, entry, value, allowed_renderers=set(STATE_MACHINE_RENDERERS))
-                _validate_state_machine_entry_inputs(contract, eid, value, declared=args, input_label="input.args")
-                _validate_target_bindings(contract, eid, entry, args)
-                target_renderer = external_interface_state_machine_renderer(entry)
+                _validate_state_machine_target_renderer(contract, eid, external_interface, value, allowed_renderers=set(STATE_MACHINE_RENDERERS))
+                _validate_state_machine_external_interface_inputs(contract, eid, value, declared=args, input_label="input.args")
+                _validate_target_bindings(contract, eid, external_interface, args)
+                target_renderer = external_interface_state_machine_renderer(external_interface)
                 assert target_renderer is not None
-                if external_interface_output_response_handlers(entry):
+                if external_interface_output_response_handlers(external_interface):
                     raise ContractError(f"CLI external interface {eid} targeting a state machine must not declare response_handlers")
             elif kind == "workflow":
                 if value not in contract["workflows"]:
                     raise ContractError(f"CLI external interface {eid} must invoke a known workflow")
-                _validate_workflow_entry_target_source(contract, eid, entry, value)
+                _validate_workflow_external_interface_target_source(contract, eid, external_interface, value)
                 if args:
                     raise ContractError(f"CLI external interface {eid} targeting a workflow must not declare input.args")
-                _validate_async_external_interface_output_responses(eid, entry, require_failure_disposition=False)
+                _validate_async_external_interface_output_responses(eid, external_interface, require_failure_disposition=False)
             else:
                 raise ContractError(f"CLI external interface {eid} cannot invoke raw {kind}")
         elif adapter_kind in {"worker", "scheduled"}:
@@ -3006,100 +3006,100 @@ def _validate_entries(contract: dict[str, Any]) -> None:
                 raise ContractError(f"{adapter_kind} external interface {eid} must invoke a known workflow")
             if adapter_kind == "scheduled":
                 _require_adapter(adapter, eid, "schedule_expression")
-                if external_interface_input_mapping(entry):
+                if external_interface_input_mapping(external_interface):
                     raise ContractError(f"Scheduled external interface {eid} must not declare input")
             else:
-                _validate_event_payload_entry_input(contract, eid, entry, value)
-            _validate_workflow_entry_target_source(contract, eid, entry, value)
-            _validate_async_external_interface_output_responses(eid, entry, require_failure_disposition=adapter_kind == "worker")
+                _validate_domain_event_payload_external_interface_input(contract, eid, external_interface, value)
+            _validate_workflow_external_interface_target_source(contract, eid, external_interface, value)
+            _validate_async_external_interface_output_responses(eid, external_interface, require_failure_disposition=adapter_kind == "worker")
         elif adapter_kind == "webhook":
             if kind != "workflow" or value not in contract["workflows"]:
                 raise ContractError(f"Webhook external interface {eid} must invoke a known workflow")
             _require_adapter(adapter, eid, "path")
-            _validate_path_params(entry, eid)
-            _validate_event_payload_entry_input(contract, eid, entry, value)
-            _validate_workflow_entry_target_source(contract, eid, entry, value)
-            _validate_webhook_external_interface_output_responses(eid, entry)
+            _validate_path_params(external_interface, eid)
+            _validate_domain_event_payload_external_interface_input(contract, eid, external_interface, value)
+            _validate_workflow_external_interface_target_source(contract, eid, external_interface, value)
+            _validate_webhook_external_interface_output_responses(eid, external_interface)
 
 
 def _validate_external_interface_delegation_graph(contract: dict[str, Any]) -> None:
     graph: dict[str, str] = {}
-    for entry_id, entry in contract.get("external_interfaces", {}).items():
-        target_kind, target_ref = external_interface_invoked_ref_pair(entry)
+    for external_interface_id, external_interface in contract.get("external_interfaces", {}).items():
+        target_kind, target_ref = external_interface_invoked_ref_pair(external_interface)
         if target_kind != "external_interface":
             continue
         if target_ref not in contract["external_interfaces"]:
-            raise ContractError(f"External interface {entry_id} delegates to unknown external interface {target_ref}")
-        if target_ref == entry_id:
-            raise ContractError(f"External interface {entry_id} must not delegate to itself")
-        graph[entry_id] = target_ref
+            raise ContractError(f"External interface {external_interface_id} delegates to unknown external interface {target_ref}")
+        if target_ref == external_interface_id:
+            raise ContractError(f"External interface {external_interface_id} must not delegate to itself")
+        graph[external_interface_id] = target_ref
 
     visiting: set[str] = set()
     visited: set[str] = set()
 
-    def visit(entry_id: str, path: list[str]) -> None:
-        if entry_id in visited or entry_id not in graph:
+    def visit(external_interface_id: str, path: list[str]) -> None:
+        if external_interface_id in visited or external_interface_id not in graph:
             return
-        if entry_id in visiting:
-            cycle_start = path.index(entry_id)
-            cycle = path[cycle_start:] + [entry_id]
+        if external_interface_id in visiting:
+            cycle_start = path.index(external_interface_id)
+            cycle = path[cycle_start:] + [external_interface_id]
             raise ContractError("External interface delegation cycle is invalid: " + " -> ".join(cycle))
-        visiting.add(entry_id)
-        visit(graph[entry_id], [*path, entry_id])
-        visiting.remove(entry_id)
-        visited.add(entry_id)
+        visiting.add(external_interface_id)
+        visit(graph[external_interface_id], [*path, external_interface_id])
+        visiting.remove(external_interface_id)
+        visited.add(external_interface_id)
 
-    for entry_id in graph:
-        visit(entry_id, [])
+    for external_interface_id in graph:
+        visit(external_interface_id, [])
 
 
 def _validate_external_interface_response_maps(contract: dict[str, Any]) -> None:
     """Validate synchronous invoked command/query response keys before local effects depend on them."""
-    for entry_id, entry in contract.get("external_interfaces", {}).items():
-        adapter_kind, _adapter = external_interface_adapter_pair(entry)
-        invoked_kind, invoked = external_interface_invokes_pair(entry)
+    for external_interface_id, external_interface in contract.get("external_interfaces", {}).items():
+        adapter_kind, _adapter = external_interface_adapter_pair(external_interface)
+        invoked_kind, invoked = external_interface_invokes_pair(external_interface)
         invoked_ref = invoked["ref"]
         if adapter_kind == "http_api" and invoked_kind in {"command", "query"} and invoked_ref in _command_query_map(contract):
-            _command_external_interface_output_responses(entry_id, entry, _command_query_map(contract)[invoked_ref])
+            _command_external_interface_output_responses(external_interface_id, external_interface, _command_query_map(contract)[invoked_ref])
         elif adapter_kind == "cli" and invoked_kind in {"command", "query"} and invoked_ref in _command_query_map(contract):
-            _command_external_interface_output_response_handlers(entry_id, entry, _command_query_map(contract)[invoked_ref])
+            _command_external_interface_output_response_handlers(external_interface_id, external_interface, _command_query_map(contract)[invoked_ref])
 
 
-def _validate_delegating_entry_adapter_surface(
-    entry_id: str,
-    entry: dict[str, Any],
+def _validate_delegating_external_interface_adapter_surface(
+    external_interface_id: str,
+    external_interface: dict[str, Any],
     adapter_kind: str,
     adapter: dict[str, Any],
 ) -> None:
     if adapter_kind == "html_route":
-        _require_adapter(adapter, entry_id, "path")
-        _validate_path_params(entry, entry_id)
+        _require_adapter(adapter, external_interface_id, "path")
+        _validate_path_params(external_interface, external_interface_id)
     elif adapter_kind == "http_api":
-        _require_adapter(adapter, entry_id, "method")
-        _require_adapter(adapter, entry_id, "path")
-        _validate_path_params(entry, entry_id)
+        _require_adapter(adapter, external_interface_id, "method")
+        _require_adapter(adapter, external_interface_id, "path")
+        _validate_path_params(external_interface, external_interface_id)
     elif adapter_kind == "cli":
-        _require_adapter(adapter, entry_id, "cli_command")
+        _require_adapter(adapter, external_interface_id, "cli_command")
     elif adapter_kind == "scheduled":
-        _require_adapter(adapter, entry_id, "schedule_expression")
-        if external_interface_input_mapping(entry):
-            raise ContractError(f"Scheduled external interface {entry_id} must not declare input")
+        _require_adapter(adapter, external_interface_id, "schedule_expression")
+        if external_interface_input_mapping(external_interface):
+            raise ContractError(f"Scheduled external interface {external_interface_id} must not declare input")
     elif adapter_kind == "webhook":
-        _require_adapter(adapter, entry_id, "path")
-        _validate_path_params(entry, entry_id)
+        _require_adapter(adapter, external_interface_id, "path")
+        _validate_path_params(external_interface, external_interface_id)
 
 
 def _validate_external_interface_delegate_target(
     contract: dict[str, Any],
-    entry_id: str,
-    entry: dict[str, Any],
-    delegated_entry_id: str,
+    external_interface_id: str,
+    external_interface: dict[str, Any],
+    delegated_external_interface_id: str,
 ) -> None:
-    delegated_entry = contract["external_interfaces"][delegated_entry_id]
-    bindings = external_interface_invocation_input_mapping(entry)
+    delegated_external_interface = contract["external_interfaces"][delegated_external_interface_id]
+    bindings = external_interface_invocation_input_mapping(external_interface)
     expected_input = {
         section: value
-        for section, value in external_interface_input_mapping(delegated_entry).items()
+        for section, value in external_interface_input_mapping(delegated_external_interface).items()
         if section not in {"bindings", "delegated_input"}
     }
     expected_sections = set(expected_input)
@@ -3113,18 +3113,18 @@ def _validate_external_interface_delegate_target(
         if extra:
             parts.append("extra sections: " + ", ".join(extra))
         raise ContractError(
-            f"External interface {entry_id} input_mapping.delegated_input must exactly bind delegated external interface input"
+            f"External interface {external_interface_id} input_mapping.delegated_input must exactly bind delegated external interface input"
             + (": " + "; ".join(parts) if parts else "")
         )
-    source_scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
+    source_scopes: TypeScopes = {"adapter_input": _external_interface_input_source_types(contract, external_interface)}
     for section, expected in expected_input.items():
         section_bindings = bindings.get(section)
-        label = f"External interface {entry_id} input_mapping.delegated_input.{section}"
+        label = f"External interface {external_interface_id} input_mapping.delegated_input.{section}"
         if section == "payload":
             _validate_delegated_payload_binding(contract, label, section_bindings, expected, source_scopes)
             continue
         if not isinstance(expected, dict):
-            raise ContractError(f"External interface {entry_id} delegated input section {section} must be an object-shaped adapter input")
+            raise ContractError(f"External interface {external_interface_id} delegated input section {section} must be an object-shaped adapter input")
         if not isinstance(section_bindings, dict):
             raise ContractError(f"{label} must declare field bindings")
         _validate_binding_map(contract, label, section_bindings, expected, source_scopes)
@@ -3176,7 +3176,7 @@ def _validate_binding_map(
             )
 
 
-def _validate_external_interface_fields(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
+def _validate_external_interface_fields(external_interface_id: str, external_interface: dict[str, Any], adapter_kind: str) -> None:
     allowed = {"adapter", "invokes", "input_mapping", "output_mapping", "rationale", "access_policy", "idempotent", "retryable"}
     generated = {
         "html_route": {"html_route"},
@@ -3187,12 +3187,12 @@ def _validate_external_interface_fields(entry_id: str, entry: dict[str, Any], ad
         "webhook": set(),
     }[adapter_kind]
     allowed.update(generated)
-    extra = sorted(set(entry) - allowed)
+    extra = sorted(set(external_interface) - allowed)
     if extra:
-        raise ContractError(f"External interface {entry_id} adapter {adapter_kind} has unsupported fields: {extra}")
+        raise ContractError(f"External interface {external_interface_id} adapter {adapter_kind} has unsupported fields: {extra}")
 
 
-def _validate_entry_input_shape(entry_id: str, entry: dict[str, Any], adapter_kind: str) -> None:
+def _validate_external_interface_input_shape(external_interface_id: str, external_interface: dict[str, Any], adapter_kind: str) -> None:
     allowed = {
         "html_route": {"path_params", "query_params"},
         "http_api": {"path_params", "query_params", "body"},
@@ -3201,18 +3201,18 @@ def _validate_entry_input_shape(entry_id: str, entry: dict[str, Any], adapter_ki
         "scheduled": set(),
         "webhook": {"path_params", "query_params", "payload"},
     }[adapter_kind]
-    input_spec = external_interface_input_mapping(entry)
+    input_spec = external_interface_input_mapping(external_interface)
     mapping_keys = {"bindings", "delegated_input"}
     extra = sorted(set(input_spec) - allowed - mapping_keys)
     if extra:
-        raise ContractError(f"External interface {entry_id} adapter {adapter_kind} has unsupported input sections: {extra}")
+        raise ContractError(f"External interface {external_interface_id} adapter {adapter_kind} has unsupported input sections: {extra}")
     seen: dict[str, Any] = {}
     for section in ("path_params", "query_params", "body", "args"):
-        for name, type_name in _entry_input_map(entry, section).items():
+        for name, type_name in _external_interface_input_map(external_interface, section).items():
             previous = seen.get(name)
             if previous and not type_equals(previous, type_name):
                 raise ContractError(
-                    f"External interface {entry_id} input field {name} has conflicting types: "
+                    f"External interface {external_interface_id} input field {name} has conflicting types: "
                     f"{type_display(previous)} vs {type_display(type_name)}"
                 )
             seen[name] = type_name
@@ -3220,19 +3220,19 @@ def _validate_entry_input_shape(entry_id: str, entry: dict[str, Any], adapter_ki
 
 def _validate_state_machine_target_renderer(
     contract: dict[str, Any],
-    entry_id: str,
-    entry: dict[str, Any],
+    external_interface_id: str,
+    external_interface: dict[str, Any],
     state_machine_id: str,
     *,
     allowed_renderers: set[str],
 ) -> None:
-    renderer = external_interface_state_machine_renderer(entry)
+    renderer = external_interface_state_machine_renderer(external_interface)
     if renderer is None:
-        raise ContractError(f"External interface {entry_id} state machine invocation must declare renderer")
+        raise ContractError(f"External interface {external_interface_id} state machine invocation must declare renderer")
     if renderer not in allowed_renderers:
-        raise ContractError(f"External interface {entry_id} cannot invoke state machine renderer {renderer!r}")
+        raise ContractError(f"External interface {external_interface_id} cannot invoke state machine renderer {renderer!r}")
     if not _state_machine_supports_renderer(contract["state_machines"][state_machine_id], renderer):
-        raise ContractError(f"External interface {entry_id} invokes state machine {state_machine_id} renderer {renderer} but that state machine does not declare it")
+        raise ContractError(f"External interface {external_interface_id} invokes state machine {state_machine_id} renderer {renderer} but that state machine does not declare it")
 
 
 def _state_machine_supports_renderer(state_machine: dict[str, Any], renderer: str) -> bool:
@@ -3243,10 +3243,10 @@ def _state_machine_supports_renderer(state_machine: dict[str, Any], renderer: st
     )
 
 
-def _validate_workflow_entry_target_source(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
-    bindings = external_interface_workflow_input_mapping(entry)
+def _validate_workflow_external_interface_target_source(contract: dict[str, Any], external_interface_id: str, external_interface: dict[str, Any], workflow_id: str) -> None:
+    bindings = external_interface_workflow_input_mapping(external_interface)
     if not bindings:
-        raise ContractError(f"External interface {entry_id} workflow invocation must declare input_mapping.bindings")
+        raise ContractError(f"External interface {external_interface_id} workflow invocation must declare input_mapping.bindings")
     expected = _workflow_input_payload_fields(contract, workflow_id, contract["workflows"][workflow_id])
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
@@ -3256,21 +3256,21 @@ def _validate_workflow_entry_target_source(contract: dict[str, Any], entry_id: s
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"External interface {entry_id} input_mapping.bindings must exactly bind workflow input" + (": " + "; ".join(parts) if parts else ""))
-    scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
+        raise ContractError(f"External interface {external_interface_id} input_mapping.bindings must exactly bind workflow input" + (": " + "; ".join(parts) if parts else ""))
+    scopes: TypeScopes = {"adapter_input": _external_interface_input_source_types(contract, external_interface)}
     for name, binding in bindings.items():
-        actual_type = _expression_type(contract, binding, scopes, f"External interface {entry_id} input_mapping.bindings.{name}")
+        actual_type = _expression_type(contract, binding, scopes, f"External interface {external_interface_id} input_mapping.bindings.{name}")
         expected_type = expected[name]
         if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
-                f"External interface {entry_id} input_mapping.bindings.{name} type mismatch: "
+                f"External interface {external_interface_id} input_mapping.bindings.{name} type mismatch: "
                 f"expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))} from {binding}"
             )
 
 
-def _validate_api_entry_input(
-    entry_id: str,
-    entry: dict[str, Any],
+def _validate_api_external_interface_input(
+    external_interface_id: str,
+    external_interface: dict[str, Any],
     behavior: dict[str, Any],
     path_params: dict[str, Any],
     query_params: dict[str, Any],
@@ -3280,49 +3280,49 @@ def _validate_api_entry_input(
     all_params = {**path_params, **query_params}
     all_input = {**all_params, **body}
     if set(path_params) - set(cap_input):
-        raise ContractError(f"API external interface {entry_id} input.path_params must be command/query input fields")
+        raise ContractError(f"API external interface {external_interface_id} input.path_params must be command/query input fields")
     if set(query_params) - set(cap_input):
-        raise ContractError(f"API external interface {entry_id} input.query_params must be command/query input fields")
+        raise ContractError(f"API external interface {external_interface_id} input.query_params must be command/query input fields")
     if set(body) - set(cap_input):
-        raise ContractError(f"API external interface {entry_id} input.body must be command/query input fields")
+        raise ContractError(f"API external interface {external_interface_id} input.body must be command/query input fields")
     if set(path_params) & set(query_params) or set(all_params) & set(body):
-        raise ContractError(f"API external interface {entry_id} input fields cannot appear in multiple input sections")
-    _validate_entry_input_types(entry_id, "input.path_params", path_params, cap_input)
-    _validate_entry_input_types(entry_id, "input.query_params", query_params, cap_input)
-    _validate_entry_input_types(entry_id, "input.body", body, cap_input)
-    method = (external_interface_method(entry) or "").lower()
+        raise ContractError(f"API external interface {external_interface_id} input fields cannot appear in multiple input sections")
+    _validate_external_interface_input_types(external_interface_id, "input.path_params", path_params, cap_input)
+    _validate_external_interface_input_types(external_interface_id, "input.query_params", query_params, cap_input)
+    _validate_external_interface_input_types(external_interface_id, "input.body", body, cap_input)
+    method = (external_interface_method(external_interface) or "").lower()
     if method in {"get", "delete"}:
         if body:
-            raise ContractError(f"API external interface {entry_id} {external_interface_method(entry)} must not declare input.body")
+            raise ContractError(f"API external interface {external_interface_id} {external_interface_method(external_interface)} must not declare input.body")
         if set(all_params) != set(cap_input):
             missing_params = sorted(set(cap_input) - set(all_params))
-            raise ContractError(f"API external interface {entry_id} {external_interface_method(entry)} must declare all command/query inputs as path_params or query_params: {missing_params}")
+            raise ContractError(f"API external interface {external_interface_id} {external_interface_method(external_interface)} must declare all command/query inputs as path_params or query_params: {missing_params}")
     missing = sorted(set(cap_input) - set(all_input))
     if missing:
-        raise ContractError(f"API external interface {entry_id} input must include every command/query input: {missing}")
+        raise ContractError(f"API external interface {external_interface_id} input must include every command/query input: {missing}")
 
 
-def _validate_event_payload_entry_input(contract: dict[str, Any], entry_id: str, entry: dict[str, Any], workflow_id: str) -> None:
+def _validate_domain_event_payload_external_interface_input(contract: dict[str, Any], external_interface_id: str, external_interface: dict[str, Any], workflow_id: str) -> None:
     trigger = contract["workflows"][workflow_id]["inputs"]
     if "domain_event" not in trigger:
         return
-    event_id = trigger["domain_event"]
-    event = contract["domain_events"].get(event_id)
-    if not event:
-        raise ContractError(f"External interface {entry_id} workflow invocation source references unknown domain event {event_id}")
-    payload_type = external_interface_input_mapping(entry).get("payload")
-    if not type_equals(payload_type, event["payload_schema"]):
-        raise ContractError(f"External interface {entry_id} input.payload must be {type_display(event['payload_schema'])}, got {type_display(payload_type)}")
+    domain_event_id = trigger["domain_event"]
+    domain_event = contract["domain_events"].get(domain_event_id)
+    if not domain_event:
+        raise ContractError(f"External interface {external_interface_id} workflow invocation source references unknown domain event {domain_event_id}")
+    payload_type = external_interface_input_mapping(external_interface).get("payload")
+    if not type_equals(payload_type, domain_event["payload_schema"]):
+        raise ContractError(f"External interface {external_interface_id} input.payload must be {type_display(domain_event['payload_schema'])}, got {type_display(payload_type)}")
 
 
 def _validate_target_bindings(
     contract: dict[str, Any],
-    entry_id: str,
-    entry: dict[str, Any],
+    external_interface_id: str,
+    external_interface: dict[str, Any],
     target_input_types: dict[str, Any],
 ) -> None:
-    kind, value = external_interface_invoked_ref_pair(entry)
-    bindings = external_interface_invocation_input_mapping(entry)
+    kind, value = external_interface_invoked_ref_pair(external_interface)
+    bindings = external_interface_invocation_input_mapping(external_interface)
     if kind in {"command", "query"}:
         expected = _command_input(_command_query_map(contract)[value])
     elif kind == "state_machine":
@@ -3330,7 +3330,7 @@ def _validate_target_bindings(
         expected = {name: context[name] for name in target_input_types}
     else:
         if bindings:
-            raise ContractError(f"External interface {entry_id} input_mapping.bindings is not supported for workflow invocations")
+            raise ContractError(f"External interface {external_interface_id} input_mapping.bindings is not supported for workflow invocations")
         return
     if set(bindings) != set(expected):
         missing = sorted(set(expected) - set(bindings))
@@ -3340,45 +3340,45 @@ def _validate_target_bindings(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"External interface {entry_id} input_mapping.bindings must exactly bind invoked input" + (": " + "; ".join(parts) if parts else ""))
-    source_scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
+        raise ContractError(f"External interface {external_interface_id} input_mapping.bindings must exactly bind invoked input" + (": " + "; ".join(parts) if parts else ""))
+    source_scopes: TypeScopes = {"adapter_input": _external_interface_input_source_types(contract, external_interface)}
     for target_name, source in bindings.items():
         actual_type = _expression_type(
             contract,
             source,
             source_scopes,
-            f"External interface {entry_id} input_mapping.bindings.{target_name}",
+            f"External interface {external_interface_id} input_mapping.bindings.{target_name}",
         )
         expected_type = expected[target_name]
         if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
-                f"External interface {entry_id} input_mapping.bindings.{target_name} type mismatch: "
+                f"External interface {external_interface_id} input_mapping.bindings.{target_name} type mismatch: "
                 f"expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))} from {source}"
             )
 
 
-def _validate_api_external_interface_output_responses(entry_id: str, entry: dict[str, Any], command: dict[str, Any]) -> None:
-    responses = _command_external_interface_output_responses(entry_id, entry, command)
+def _validate_api_external_interface_output_responses(external_interface_id: str, external_interface: dict[str, Any], command: dict[str, Any]) -> None:
+    responses = _command_external_interface_output_responses(external_interface_id, external_interface, command)
     statuses: dict[int, str] = {}
     for outcome_id, response in responses.items():
         outcome = command["outcomes"][outcome_id]
         if set(response) != {"status", "body"}:
-            raise ContractError(f"API external interface {entry_id} response {outcome_id} must declare exactly status and body")
+            raise ContractError(f"API external interface {external_interface_id} response {outcome_id} must declare exactly status and body")
         status = response["status"]
         if status in statuses:
             raise ContractError(
-                f"API external interface {entry_id} responses {statuses[status]} and {outcome_id} cannot share HTTP status {status}"
+                f"API external interface {external_interface_id} responses {statuses[status]} and {outcome_id} cannot share HTTP status {status}"
             )
         statuses[status] = outcome_id
         if outcome["kind"] == "success":
             expected = 201 if command.get("creates") else 200
             if status != expected:
-                raise ContractError(f"API external interface {entry_id} success response {outcome_id} status must be {expected}")
+                raise ContractError(f"API external interface {external_interface_id} success response {outcome_id} status must be {expected}")
         elif status < 400:
-            raise ContractError(f"API external interface {entry_id} failure response {outcome_id} status must be 4xx or 5xx")
+            raise ContractError(f"API external interface {external_interface_id} failure response {outcome_id} status must be 4xx or 5xx")
         body = response["body"]
         _validate_response_value(
-            f"API external interface {entry_id} response {outcome_id}.body",
+            f"API external interface {external_interface_id} response {outcome_id}.body",
             body,
             outcome["result"],
         )
@@ -3386,40 +3386,40 @@ def _validate_api_external_interface_output_responses(entry_id: str, entry: dict
 
 def _validate_cli_command_response_handlers(
     contract: dict[str, Any],
-    entry_id: str,
-    entry: dict[str, Any],
+    external_interface_id: str,
+    external_interface: dict[str, Any],
     command: dict[str, Any],
 ) -> None:
-    responses = _command_external_interface_output_response_handlers(entry_id, entry, command)
+    responses = _command_external_interface_output_response_handlers(external_interface_id, external_interface, command)
     exit_codes: dict[int, str] = {}
     for outcome_id, response in responses.items():
         outcome = command["outcomes"][outcome_id]
         _validate_cli_response_handler(
             contract,
-            entry_id,
+            external_interface_id,
             outcome_id,
             response,
             outcome_kind=outcome["kind"],
             source_scopes={
-                "adapter_input": _entry_input_source_types(contract, entry),
+                "adapter_input": _external_interface_input_source_types(contract, external_interface),
                 "invocation_outcome": _typed_source_paths(contract, ("result",), outcome["result"]),
             },
-            delegated_entry_id=None,
+            delegated_external_interface_id=None,
             retry_allowed=_command_retryable(command),
-            retry_error=f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires a query or retryable invoked behavior",
+            retry_error=f"CLI external interface {external_interface_id} response handler {outcome_id} retry_policy requires a query or retryable invoked behavior",
             exit_codes=exit_codes,
         )
 
 
 def _validate_cli_delegated_response_handlers(
     contract: dict[str, Any],
-    entry_id: str,
-    entry: dict[str, Any],
-    delegated_entry_id: str,
+    external_interface_id: str,
+    external_interface: dict[str, Any],
+    delegated_external_interface_id: str,
 ) -> None:
-    delegated_entry = contract["external_interfaces"][delegated_entry_id]
-    expected = _external_interface_named_response_outcomes(contract, delegated_entry_id)
-    handlers = external_interface_output_response_handlers(entry)
+    delegated_external_interface = contract["external_interfaces"][delegated_external_interface_id]
+    expected = _external_interface_named_response_outcomes(contract, delegated_external_interface_id)
+    handlers = external_interface_output_response_handlers(external_interface)
     if set(handlers) != expected:
         missing = sorted(expected - set(handlers))
         extra = sorted(set(handlers) - expected)
@@ -3429,35 +3429,35 @@ def _validate_cli_delegated_response_handlers(
         if extra:
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(
-            f"CLI external interface {entry_id} response_handlers must exactly map delegated external-interface outcomes"
+            f"CLI external interface {external_interface_id} response_handlers must exactly map delegated external-interface outcomes"
             + (": " + "; ".join(parts) if parts else "")
         )
     exit_codes: dict[int, str] = {}
-    outcome_kinds = _external_interface_outcome_kinds(contract, delegated_entry_id)
-    response_types = _external_interface_response_body_types(contract, delegated_entry_id)
-    retry_allowed = _external_interface_retryable(contract, delegated_entry_id)
+    outcome_kinds = _external_interface_outcome_kinds(contract, delegated_external_interface_id)
+    response_types = _external_interface_response_body_types(contract, delegated_external_interface_id)
+    retry_allowed = _external_interface_retryable(contract, delegated_external_interface_id)
     for outcome_id, handler in handlers.items():
         if handler.get("retry_policy") and not retry_allowed:
             raise ContractError(
-                f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires delegated external interface "
-                f"{delegated_entry_id} and its final invocation to be retryable or query"
+                f"CLI external interface {external_interface_id} response handler {outcome_id} retry_policy requires delegated external interface "
+                f"{delegated_external_interface_id} and its final invocation to be retryable or query"
             )
-        source_scopes: TypeScopes = {"adapter_input": _entry_input_source_types(contract, entry)}
+        source_scopes: TypeScopes = {"adapter_input": _external_interface_input_source_types(contract, external_interface)}
         response_type = response_types.get(outcome_id)
         if response_type is not None:
             source_scopes["adapter_response"] = _typed_source_paths(contract, ("body",), response_type)
         _validate_cli_response_handler(
             contract,
-            entry_id,
+            external_interface_id,
             outcome_id,
             handler,
             outcome_kind=outcome_kinds.get(outcome_id),
             source_scopes=source_scopes,
-            delegated_entry_id=delegated_entry_id,
+            delegated_external_interface_id=delegated_external_interface_id,
             retry_allowed=retry_allowed,
             retry_error=(
-                f"CLI external interface {entry_id} response handler {outcome_id} retry_policy requires delegated external interface "
-                f"{delegated_entry_id} and its final invocation to be retryable or query"
+                f"CLI external interface {external_interface_id} response handler {outcome_id} retry_policy requires delegated external interface "
+                f"{delegated_external_interface_id} and its final invocation to be retryable or query"
             ),
             exit_codes=exit_codes,
         )
@@ -3465,13 +3465,13 @@ def _validate_cli_delegated_response_handlers(
 
 def _validate_cli_response_handler(
     contract: dict[str, Any],
-    entry_id: str,
+    external_interface_id: str,
     outcome_id: str,
     handler: dict[str, Any],
     *,
     outcome_kind: str | None,
     source_scopes: TypeScopes,
-    delegated_entry_id: str | None,
+    delegated_external_interface_id: str | None,
     retry_allowed: bool,
     retry_error: str,
     exit_codes: dict[int, str],
@@ -3479,26 +3479,26 @@ def _validate_cli_response_handler(
     exit_code = handler["exit_code"]
     streams = [stream for stream in ("stdout", "stderr") if stream in handler]
     if len(streams) != 1:
-        raise ContractError(f"CLI external interface {entry_id} response handler {outcome_id} must declare exactly one of stdout or stderr")
+        raise ContractError(f"CLI external interface {external_interface_id} response handler {outcome_id} must declare exactly one of stdout or stderr")
     if outcome_kind == "success" and streams[0] != "stdout":
-        raise ContractError(f"CLI external interface {entry_id} success response handler {outcome_id} must declare stdout")
+        raise ContractError(f"CLI external interface {external_interface_id} success response handler {outcome_id} must declare stdout")
     if outcome_kind == "success" and exit_code != 0:
-        raise ContractError(f"CLI external interface {entry_id} success response handler {outcome_id} exit_code must be 0")
+        raise ContractError(f"CLI external interface {external_interface_id} success response handler {outcome_id} exit_code must be 0")
     if outcome_kind == "failure" and streams[0] != "stderr":
-        raise ContractError(f"CLI external interface {entry_id} failure response handler {outcome_id} must declare stderr")
+        raise ContractError(f"CLI external interface {external_interface_id} failure response handler {outcome_id} must declare stderr")
     if outcome_kind == "failure" and exit_code == 0:
-        raise ContractError(f"CLI external interface {entry_id} failure response handler {outcome_id} exit_code must be nonzero")
+        raise ContractError(f"CLI external interface {external_interface_id} failure response handler {outcome_id} exit_code must be nonzero")
     if handler.get("retry_policy") and not retry_allowed:
         raise ContractError(retry_error)
     if exit_code in exit_codes:
         raise ContractError(
-            f"CLI external interface {entry_id} response handlers {exit_codes[exit_code]} and {outcome_id} cannot share exit_code {exit_code}"
+            f"CLI external interface {external_interface_id} response handlers {exit_codes[exit_code]} and {outcome_id} cannot share exit_code {exit_code}"
         )
     exit_codes[exit_code] = outcome_id
     output = handler[streams[0]]
     text_resource_ref = output["text"]
     if text_resource_ref not in contract.get("text_resources", {}):
-        raise ContractError(f"CLI external interface {entry_id} response handler {outcome_id} references unknown text resource {text_resource_ref}")
+        raise ContractError(f"CLI external interface {external_interface_id} response handler {outcome_id} references unknown text resource {text_resource_ref}")
     bindings = output.get("bindings") or {}
     expected_text_args = contract["text_resources"][text_resource_ref].get("args", {})
     if set(bindings) != set(expected_text_args):
@@ -3510,21 +3510,21 @@ def _validate_cli_response_handler(
         if extra:
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(
-            f"CLI external interface {entry_id} response handler {outcome_id} bindings must match text args"
+            f"CLI external interface {external_interface_id} response handler {outcome_id} bindings must match text args"
             + (": " + "; ".join(parts) if parts else "")
         )
     for binding_name, binding in bindings.items():
-        actual_type = _expression_type(contract, binding, source_scopes, f"CLI external interface {entry_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name}")
+        actual_type = _expression_type(contract, binding, source_scopes, f"CLI external interface {external_interface_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name}")
         expected_type = expected_text_args[binding_name]
         if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
-                f"CLI external interface {entry_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name} "
+                f"CLI external interface {external_interface_id} response handler {outcome_id}.{streams[0]}.bindings.{binding_name} "
                 f"type mismatch: expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}"
             )
 
 
-def _command_external_interface_output_responses(entry_id: str, entry: dict[str, Any], command: dict[str, Any]) -> dict[str, Any]:
-    responses = external_interface_output_responses(entry)
+def _command_external_interface_output_responses(external_interface_id: str, external_interface: dict[str, Any], command: dict[str, Any]) -> dict[str, Any]:
+    responses = external_interface_output_responses(external_interface)
     if set(responses) != set(command["outcomes"]):
         missing = sorted(set(command["outcomes"]) - set(responses))
         extra = sorted(set(responses) - set(command["outcomes"]))
@@ -3533,12 +3533,12 @@ def _command_external_interface_output_responses(entry_id: str, entry: dict[str,
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"External interface {entry_id} responses must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"External interface {external_interface_id} responses must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
     return responses
 
 
-def _command_external_interface_output_response_handlers(entry_id: str, entry: dict[str, Any], command: dict[str, Any]) -> dict[str, Any]:
-    handlers = external_interface_output_response_handlers(entry)
+def _command_external_interface_output_response_handlers(external_interface_id: str, external_interface: dict[str, Any], command: dict[str, Any]) -> dict[str, Any]:
+    handlers = external_interface_output_response_handlers(external_interface)
     if set(handlers) != set(command["outcomes"]):
         missing = sorted(set(command["outcomes"]) - set(handlers))
         extra = sorted(set(handlers) - set(command["outcomes"]))
@@ -3547,19 +3547,19 @@ def _command_external_interface_output_response_handlers(entry_id: str, entry: d
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"External interface {entry_id} response_handlers must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"External interface {external_interface_id} response_handlers must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
     return handlers
 
 
-def _external_interface_named_response_outcomes(contract: dict[str, Any], entry_id: str) -> set[str]:
-    entry = contract["external_interfaces"][entry_id]
-    handlers = external_interface_output_response_handlers(entry)
+def _external_interface_named_response_outcomes(contract: dict[str, Any], external_interface_id: str) -> set[str]:
+    external_interface = contract["external_interfaces"][external_interface_id]
+    handlers = external_interface_output_response_handlers(external_interface)
     if handlers:
         return set(handlers)
-    responses = external_interface_output_responses(entry)
+    responses = external_interface_output_responses(external_interface)
     if responses:
         return set(responses)
-    target_kind, target_ref = external_interface_invoked_ref_pair(entry)
+    target_kind, target_ref = external_interface_invoked_ref_pair(external_interface)
     if target_kind in {"command", "query"}:
         return set(_command_query_map(contract)[target_ref]["outcomes"])
     if target_kind == "workflow":
@@ -3569,8 +3569,8 @@ def _external_interface_named_response_outcomes(contract: dict[str, Any], entry_
     return set()
 
 
-def _external_interface_outcome_kinds(contract: dict[str, Any], entry_id: str) -> dict[str, str]:
-    target_kind, target_ref = external_interface_invoked_ref_pair(contract["external_interfaces"][entry_id])
+def _external_interface_outcome_kinds(contract: dict[str, Any], external_interface_id: str) -> dict[str, str]:
+    target_kind, target_ref = external_interface_invoked_ref_pair(contract["external_interfaces"][external_interface_id])
     if target_kind in {"command", "query"}:
         return {name: outcome["kind"] for name, outcome in _command_query_map(contract)[target_ref]["outcomes"].items()}
     if target_kind == "workflow":
@@ -3580,9 +3580,9 @@ def _external_interface_outcome_kinds(contract: dict[str, Any], entry_id: str) -
     return {}
 
 
-def _external_interface_response_body_types(contract: dict[str, Any], entry_id: str) -> dict[str, Any]:
-    entry = contract["external_interfaces"][entry_id]
-    responses = external_interface_output_responses(entry)
+def _external_interface_response_body_types(contract: dict[str, Any], external_interface_id: str) -> dict[str, Any]:
+    external_interface = contract["external_interfaces"][external_interface_id]
+    responses = external_interface_output_responses(external_interface)
     result: dict[str, Any] = {}
     for outcome_id, response in responses.items():
         body = response.get("body")
@@ -3590,7 +3590,7 @@ def _external_interface_response_body_types(contract: dict[str, Any], entry_id: 
             result[outcome_id] = body["type"]
     if result:
         return result
-    target_kind, target_ref = external_interface_invoked_ref_pair(entry)
+    target_kind, target_ref = external_interface_invoked_ref_pair(external_interface)
     if target_kind in {"command", "query"}:
         return {name: outcome["result"] for name, outcome in _command_query_map(contract)[target_ref]["outcomes"].items()}
     if target_kind == "workflow":
@@ -3605,36 +3605,36 @@ def _validate_response_value(label: str, value: dict[str, Any], expected_type: A
         raise ContractError(f"{label} must expose $invocation_outcome.result as {type_display(expected_type)}")
 
 
-def _validate_async_external_interface_output_responses(entry_id: str, entry: dict[str, Any], *, require_failure_disposition: bool) -> None:
-    if "responses" in external_interface_output_mapping(entry):
-        raise ContractError(f"External interface {entry_id} async adapter must use output_mapping.ingress_responses, not responses")
-    responses = external_interface_output_responses(entry)
+def _validate_async_external_interface_output_responses(external_interface_id: str, external_interface: dict[str, Any], *, require_failure_disposition: bool) -> None:
+    if "responses" in external_interface_output_mapping(external_interface):
+        raise ContractError(f"External interface {external_interface_id} async adapter must use output_mapping.ingress_responses, not responses")
+    responses = external_interface_output_responses(external_interface)
     accepted = responses.get("accepted")
     if accepted != {"disposition": "acknowledge"}:
-        raise ContractError(f"External interface {entry_id} ingress_responses.accepted must declare disposition: acknowledge")
+        raise ContractError(f"External interface {external_interface_id} ingress_responses.accepted must declare disposition: acknowledge")
     failure_responses = {name: response for name, response in responses.items() if name != "accepted"}
     if require_failure_disposition and not failure_responses:
-        raise ContractError(f"External interface {entry_id} must declare at least one non-acknowledge ingress disposition such as retry, reject, or dead_letter")
+        raise ContractError(f"External interface {external_interface_id} must declare at least one non-acknowledge ingress disposition such as retry, reject, or dead_letter")
     for response_id, response in failure_responses.items():
         if set(response) != {"disposition", "problem"}:
-            raise ContractError(f"External interface {entry_id} ingress disposition {response_id} must declare exactly disposition and problem")
+            raise ContractError(f"External interface {external_interface_id} ingress disposition {response_id} must declare exactly disposition and problem")
         if response["disposition"] not in {"retry", "reject", "dead_letter"}:
-            raise ContractError(f"External interface {entry_id} ingress disposition {response_id} must be retry, reject, or dead_letter")
-        _validate_problem_type(f"External interface {entry_id} disposition {response_id} problem", response["problem"])
+            raise ContractError(f"External interface {external_interface_id} ingress disposition {response_id} must be retry, reject, or dead_letter")
+        _validate_problem_type(f"External interface {external_interface_id} disposition {response_id} problem", response["problem"])
     if require_failure_disposition and not any(response["disposition"] in {"reject", "dead_letter"} for response in failure_responses.values()):
-        raise ContractError(f"External interface {entry_id} must declare a reject or dead_letter ingress disposition for malformed or poison messages")
+        raise ContractError(f"External interface {external_interface_id} must declare a reject or dead_letter ingress disposition for malformed or poison messages")
 
 
-def _validate_webhook_external_interface_output_responses(entry_id: str, entry: dict[str, Any]) -> None:
-    if "responses" in external_interface_output_mapping(entry):
-        raise ContractError(f"Webhook external interface {entry_id} must use output_mapping.ingress_responses, not responses")
-    if external_interface_output_responses(entry) != {"accepted": {"status": 202}}:
-        raise ContractError(f"Webhook external interface {entry_id} ingress_responses.accepted.status must be 202")
+def _validate_webhook_external_interface_output_responses(external_interface_id: str, external_interface: dict[str, Any]) -> None:
+    if "responses" in external_interface_output_mapping(external_interface):
+        raise ContractError(f"Webhook external interface {external_interface_id} must use output_mapping.ingress_responses, not responses")
+    if external_interface_output_responses(external_interface) != {"accepted": {"status": 202}}:
+        raise ContractError(f"Webhook external interface {external_interface_id} ingress_responses.accepted.status must be 202")
 
 
-def _validate_state_machine_entry_inputs(
+def _validate_state_machine_external_interface_inputs(
     contract: dict[str, Any],
-    entry_id: str,
+    external_interface_id: str,
     state_machine_id: str,
     *,
     declared: dict[str, Any],
@@ -3644,15 +3644,15 @@ def _validate_state_machine_entry_inputs(
     state_machine_context = _state_machine_context(state_machine)
     extra = sorted(set(declared) - set(state_machine_context))
     if extra:
-        raise ContractError(f"External interface {entry_id} {input_label} must be declared state machine context fields: {extra}")
-    _validate_entry_input_types(entry_id, input_label, declared, state_machine_context)
-    required = _required_entry_state_machine_context(contract, state_machine_id)
+        raise ContractError(f"External interface {external_interface_id} {input_label} must be declared state machine context fields: {extra}")
+    _validate_external_interface_input_types(external_interface_id, input_label, declared, state_machine_context)
+    required = _required_external_interface_state_machine_context(contract, state_machine_id)
     missing = sorted(set(required) - set(declared))
     if missing:
-        raise ContractError(f"External interface {entry_id} {input_label} must include required state machine context inputs: {missing}")
+        raise ContractError(f"External interface {external_interface_id} {input_label} must include required state machine context inputs: {missing}")
 
 
-def _required_entry_state_machine_context(contract: dict[str, Any], state_machine_id: str) -> dict[str, Any]:
+def _required_external_interface_state_machine_context(contract: dict[str, Any], state_machine_id: str) -> dict[str, Any]:
     state_machine = contract["state_machines"][state_machine_id]
     required: dict[str, Any] = {
         name: field
@@ -3707,7 +3707,7 @@ def _add_query_context_requirements(
         for key in _context_roots_from_input_mapping(f"{label} query_binding {invocation_id}", invocation.get("input_mapping") or {}):
             if key not in context:
                 raise ContractError(f"{label} query_binding {invocation_id} references undeclared context field: {key}")
-            _add_required_entry_context(required, key, context[key], label)
+            _add_required_external_interface_context(required, key, context[key], label)
 
 
 def _add_mount_context_requirements(
@@ -3748,7 +3748,7 @@ def _add_mount_context_requirements(
                     f"composed state machine {state_machine_id}.{mount['id']} parent context {parent_key} type must be "
                     f"{type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}"
                 )
-            _add_required_entry_context(
+            _add_required_external_interface_context(
                 required,
                 parent_key,
                 parent_state_machine_context[parent_key],
@@ -3770,7 +3770,7 @@ def _context_roots_from_input_mapping(label: str, bindings: dict[str, Any]) -> s
     return roots
 
 
-def _add_required_entry_context(required: dict[str, Any], key: str, type_name: Any, label: str) -> None:
+def _add_required_external_interface_context(required: dict[str, Any], key: str, type_name: Any, label: str) -> None:
     existing = required.get(key)
     if existing and not type_equals(schema_without_null(_effective_type(existing)), schema_without_null(_effective_type(type_name))):
         raise ContractError(
@@ -3780,7 +3780,7 @@ def _add_required_entry_context(required: dict[str, Any], key: str, type_name: A
     required[key] = type_name
 
 
-def _validate_exact_entry_inputs(entry_id: str, field: str, actual: dict[str, Any], expected: dict[str, Any]) -> None:
+def _validate_exact_external_interface_inputs(external_interface_id: str, field: str, actual: dict[str, Any], expected: dict[str, Any]) -> None:
     if set(actual) != set(expected):
         missing = sorted(set(expected) - set(actual))
         extra = sorted(set(actual) - set(expected))
@@ -3789,31 +3789,31 @@ def _validate_exact_entry_inputs(entry_id: str, field: str, actual: dict[str, An
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"External interface {entry_id} {field} must exactly match invoked input" + (": " + "; ".join(parts) if parts else ""))
-    _validate_entry_input_types(entry_id, field, actual, expected)
+        raise ContractError(f"External interface {external_interface_id} {field} must exactly match invoked input" + (": " + "; ".join(parts) if parts else ""))
+    _validate_external_interface_input_types(external_interface_id, field, actual, expected)
 
 
-def _validate_entry_input_types(entry_id: str, field: str, actual: dict[str, Any], expected: dict[str, Any]) -> None:
+def _validate_external_interface_input_types(external_interface_id: str, field: str, actual: dict[str, Any], expected: dict[str, Any]) -> None:
     for name, type_name in actual.items():
         expected_type = expected.get(name)
         if not _type_assignable(type_name, expected_type):
             raise ContractError(
-                f"External interface {entry_id} {field}.{name} type mismatch: "
+                f"External interface {external_interface_id} {field}.{name} type mismatch: "
                 f"expected {type_display(_effective_type(expected_type))}, got {type_display(_effective_type(type_name))}"
             )
 
 
-def _entry_input_map(entry: dict[str, Any], section: str) -> dict[str, Any]:
-    value = external_interface_input_mapping(entry).get(section, {})
+def _external_interface_input_map(external_interface: dict[str, Any], section: str) -> dict[str, Any]:
+    value = external_interface_input_mapping(external_interface).get(section, {})
     return value if isinstance(value, dict) else {}
 
 
-def _entry_input_source_types(contract: dict[str, Any], entry: dict[str, Any]) -> TypeScope:
+def _external_interface_input_source_types(contract: dict[str, Any], external_interface: dict[str, Any]) -> TypeScope:
     source_types: TypeScope = {}
     for section in ("path_params", "query_params", "body", "args"):
-        for name, type_name in _entry_input_map(entry, section).items():
+        for name, type_name in _external_interface_input_map(external_interface, section).items():
             source_types[(section, name)] = type_name
-    payload = external_interface_input_mapping(entry).get("payload")
+    payload = external_interface_input_mapping(external_interface).get("payload")
     if payload is not None:
         source_types.update(_typed_source_paths(contract, ("payload",), payload))
     return source_types
@@ -3841,8 +3841,8 @@ def _typed_source_paths(contract: dict[str, Any], prefix: tuple[str, ...], type_
 
 
 def _merge_type_scopes(target: TypeScopes, source: TypeScopes) -> None:
-    for root, entries in source.items():
-        target.setdefault(root, {}).update(entries)
+    for root, paths in source.items():
+        target.setdefault(root, {}).update(paths)
 
 
 def _validate_mapping_to_type(
@@ -3874,23 +3874,23 @@ def _validate_mapping_to_type(
             )
 
 
-def _success_outcomes(cap: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    return {name: outcome for name, outcome in cap["outcomes"].items() if outcome["kind"] == "success"}
+def _success_outcomes(behavior: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {name: outcome for name, outcome in behavior["outcomes"].items() if outcome["kind"] == "success"}
 
 
-def _failure_outcomes(cap: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    return {name: outcome for name, outcome in cap["outcomes"].items() if outcome["kind"] == "failure"}
+def _failure_outcomes(behavior: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {name: outcome for name, outcome in behavior["outcomes"].items() if outcome["kind"] == "failure"}
 
 
-def _primary_success_outcome(cap: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-    successes = _success_outcomes(cap)
+def _primary_success_outcome(behavior: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    successes = _success_outcomes(behavior)
     if len(successes) != 1:
         raise ContractError("Command must declare exactly one success outcome")
     return next(iter(successes.items()))
 
 
-def _success_result_type(cap: dict[str, Any]) -> Any:
-    return _primary_success_outcome(cap)[1]["result"]
+def _success_result_type(behavior: dict[str, Any]) -> Any:
+    return _primary_success_outcome(behavior)[1]["result"]
 
 
 def _validate_workflows(contract: dict[str, Any]) -> None:
@@ -4296,27 +4296,27 @@ def _validate_behavior_scenario_when(contract: dict[str, Any], behavior_scenario
     if kind in {"open_external_interface", "call_external_interface"}:
         if ref not in contract["external_interfaces"]:
             raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown external interface {ref}")
-        entry = contract["external_interfaces"][ref]
-        adapter_kind, _ = external_interface_adapter_pair(entry)
-        entry_target_kind, _ = external_interface_invoked_ref_pair(entry)
-        if kind == "open_external_interface" and not (adapter_kind in {"html_route", "cli"} and entry_target_kind == "state_machine"):
+        external_interface = contract["external_interfaces"][ref]
+        adapter_kind, _ = external_interface_adapter_pair(external_interface)
+        external_interface_target_kind, _ = external_interface_invoked_ref_pair(external_interface)
+        if kind == "open_external_interface" and not (adapter_kind in {"html_route", "cli"} and external_interface_target_kind == "state_machine"):
             raise ContractError(f"Behavior scenario {behavior_scenario_id} open_external_interface must reference an HTML route or CLI state machine external interface")
         if kind == "call_external_interface" and not (adapter_kind in {"http_api", "cli"} and _external_interface_effective_command_ref(contract, ref)):
             raise ContractError(f"Behavior scenario {behavior_scenario_id} call_external_interface must reference an HTTP API or CLI command external interface")
-        _validate_behavior_scenario_entry_input(behavior_scenario_id, kind, body, entry)
+        _validate_behavior_scenario_external_interface_input(behavior_scenario_id, kind, body, external_interface)
     elif kind == "invoke_command":
         if ref not in _command_query_map(contract):
             raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown command {ref}")
     elif kind == "emit_domain_event":
         if ref not in contract["domain_events"]:
             raise ContractError(f"Behavior scenario {behavior_scenario_id} references unknown domain event {ref}")
-        _validate_behavior_scenario_event_payload(contract, behavior_scenario_id, ref, body.get("payload", {}))
+        _validate_behavior_scenario_domain_event_payload(contract, behavior_scenario_id, ref, body.get("payload", {}))
     _validate_behavior_scenario_outcome(contract, behavior_scenario_id, behavior_scenario)
 
 
-def _validate_behavior_scenario_event_payload(contract: dict[str, Any], behavior_scenario_id: str, event_id: str, payload: dict[str, Any]) -> None:
-    event = contract["domain_events"][event_id]
-    fields = object_fields_for_type(contract, event["payload_schema"])
+def _validate_behavior_scenario_domain_event_payload(contract: dict[str, Any], behavior_scenario_id: str, domain_event_id: str, payload: dict[str, Any]) -> None:
+    domain_event = contract["domain_events"][domain_event_id]
+    fields = object_fields_for_type(contract, domain_event["payload_schema"])
     if not fields:
         return
     expected = set(fields)
@@ -4330,13 +4330,13 @@ def _validate_behavior_scenario_event_payload(contract: dict[str, Any], behavior
         if extra:
             parts.append("extra: " + ", ".join(extra))
         raise ContractError(
-            f"Behavior scenario {behavior_scenario_id} emit_domain_event.payload must exactly match domain event {event_id} payload "
-            f"{type_display(event['payload_schema'])}" + (": " + "; ".join(parts) if parts else "")
+            f"Behavior scenario {behavior_scenario_id} emit_domain_event.payload must exactly match domain event {domain_event_id} payload "
+            f"{type_display(domain_event['payload_schema'])}" + (": " + "; ".join(parts) if parts else "")
         )
 
 
-def _validate_behavior_scenario_entry_input(behavior_scenario_id: str, kind: str, body: dict[str, Any], entry: dict[str, Any]) -> None:
-    expected = _entry_external_input_types(entry)
+def _validate_behavior_scenario_external_interface_input(behavior_scenario_id: str, kind: str, body: dict[str, Any], external_interface: dict[str, Any]) -> None:
+    expected = _external_interface_external_input_types(external_interface)
     actual = body.get("input", {})
     if set(actual) != set(expected):
         missing = sorted(set(expected) - set(actual))
@@ -4349,10 +4349,10 @@ def _validate_behavior_scenario_entry_input(behavior_scenario_id: str, kind: str
         raise ContractError(f"Behavior scenario {behavior_scenario_id} {kind}.input must exactly match external interface input" + (": " + "; ".join(parts) if parts else ""))
 
 
-def _entry_external_input_types(entry: dict[str, Any]) -> dict[str, Any]:
+def _external_interface_external_input_types(external_interface: dict[str, Any]) -> dict[str, Any]:
     fields: dict[str, Any] = {}
     for section in ("path_params", "query_params", "body", "args"):
-        fields.update(_entry_input_map(entry, section))
+        fields.update(_external_interface_input_map(external_interface, section))
     return fields
 
 
@@ -4375,11 +4375,11 @@ def _validate_behavior_scenario_system_under_test(contract: dict[str, Any], beha
     when_kind, when_body = _one(behavior_scenario["when"], f"behavior scenario {behavior_scenario_id} when")
     then = behavior_scenario["then"]
     command_ref = _behavior_scenario_command_ref(contract, when_kind, when_body)
-    entry_ref = when_body["ref"] if when_kind in {"open_external_interface", "call_external_interface"} else None
+    external_interface_ref = when_body["ref"] if when_kind in {"open_external_interface", "call_external_interface"} else None
     domain_event_ref = when_body["ref"] if when_kind == "emit_domain_event" else None
     state_machine_ref = _behavior_scenario_state_machine_ref(contract, when_kind, when_body)
 
-    if sut_kind == "external_interface" and entry_ref != sut_ref:
+    if sut_kind == "external_interface" and external_interface_ref != sut_ref:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.external_interface must match the external interface under test")
     if sut_kind in {"command", "query"} and command_ref != sut_ref:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.command must match the command under test")
@@ -4403,8 +4403,8 @@ def _behavior_scenario_command_ref(contract: dict[str, Any], when_kind: str, whe
     return None
 
 
-def _external_interface_effective_command_ref(contract: dict[str, Any], entry_id: str) -> str | None:
-    target_kind, target_ref = external_interface_invoked_ref_pair(contract["external_interfaces"][entry_id])
+def _external_interface_effective_command_ref(contract: dict[str, Any], external_interface_id: str) -> str | None:
+    target_kind, target_ref = external_interface_invoked_ref_pair(contract["external_interfaces"][external_interface_id])
     if target_kind in {"command", "query"}:
         return target_ref
     if target_kind == "external_interface":
@@ -4454,9 +4454,9 @@ def _validate_behavior_scenario_then(contract: dict[str, Any], behavior_scenario
             if key not in _state_machine_context(state_machine):
                 raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts undeclared state machine context {state_machine_id}.{key}")
     for field in ["enables", "forbids", "invoked"]:
-        for cap_id in then.get(field, []):
-            if cap_id not in _command_query_map(contract):
-                raise ContractError(f"Behavior scenario {behavior_scenario_id} {field} unknown command {cap_id}")
+        for behavior_ref in then.get(field, []):
+            if behavior_ref not in _command_query_map(contract):
+                raise ContractError(f"Behavior scenario {behavior_scenario_id} {field} unknown command {behavior_ref}")
     authorization_assertion = then.get("authorization") or {}
     for effect in ("allowed", "denied"):
         for assertion in authorization_assertion.get(effect, []):
@@ -4483,10 +4483,10 @@ def _validate_behavior_scenario_then(contract: dict[str, Any], behavior_scenario
     overlap = sorted(emitted & not_emitted)
     if overlap:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts domain events as both emitted and not_emitted: {overlap}")
-    for event_id in list(emitted) + list(not_emitted):
-        if event_id not in contract["domain_events"]:
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts unknown domain event {event_id}")
-    _validate_behavior_scenario_event_emissions(contract, behavior_scenario_id, behavior_scenario, emitted, not_emitted)
+    for domain_event_id in list(emitted) + list(not_emitted):
+        if domain_event_id not in contract["domain_events"]:
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts unknown domain event {domain_event_id}")
+    _validate_behavior_scenario_domain_event_emissions(contract, behavior_scenario_id, behavior_scenario, emitted, not_emitted)
     _validate_behavior_scenario_invocations(contract, behavior_scenario_id, behavior_scenario)
     workflow = then.get("workflow")
     if workflow and workflow["ref"] not in contract["workflows"]:
@@ -4525,7 +4525,7 @@ def _validate_authorization_denied_assertion_archetype_outcome(contract: dict[st
         )
 
 
-def _validate_behavior_scenario_event_emissions(
+def _validate_behavior_scenario_domain_event_emissions(
     contract: dict[str, Any],
     behavior_scenario_id: str,
     behavior_scenario: dict[str, Any],
@@ -4562,9 +4562,9 @@ def _validate_behavior_scenario_invocations(contract: dict[str, Any], behavior_s
     direct = _behavior_scenario_command_ref(contract, when_kind, when_body)
     expected = {direct} if direct else set()
     if when_kind == "emit_domain_event":
-        event_id = when_body["ref"]
+        domain_event_id = when_body["ref"]
         for workflow in contract["workflows"].values():
-            if workflow["inputs"] == {"domain_event": event_id}:
+            if workflow["inputs"] == {"domain_event": domain_event_id}:
                 expected.update(activity["command"] for activity in workflow["activities"])
     unexpected = sorted(invoked - expected)
     if unexpected:
@@ -4589,40 +4589,40 @@ def _validate_behavior_scenario_outcome(contract: dict[str, Any], behavior_scena
     when_kind, when_body = _one(behavior_scenario["when"], f"behavior scenario {behavior_scenario_id} when")
     then = behavior_scenario["then"]
     outcome_id = then.get("outcome")
-    cap: dict[str, Any] | None = None
-    entry: dict[str, Any] | None = None
+    behavior: dict[str, Any] | None = None
+    external_interface: dict[str, Any] | None = None
     if when_kind == "invoke_command":
-        cap = _command_query_map(contract)[when_body["ref"]]
+        behavior = _command_query_map(contract)[when_body["ref"]]
     elif when_kind == "call_external_interface":
-        entry = contract["external_interfaces"][when_body["ref"]]
+        external_interface = contract["external_interfaces"][when_body["ref"]]
         target_ref = _external_interface_effective_command_ref(contract, when_body["ref"])
         if target_ref:
-            cap = _command_query_map(contract)[target_ref]
-    if cap is None:
+            behavior = _command_query_map(contract)[target_ref]
+    if behavior is None:
         if outcome_id:
             raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts outcome but does not execute an command")
         return
     if not outcome_id:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} must assert an command outcome")
-    if outcome_id not in cap["outcomes"]:
+    if outcome_id not in behavior["outcomes"]:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts unknown outcome {outcome_id}")
-    if entry is None:
+    if external_interface is None:
         return
     if outcome_id not in _external_interface_named_response_outcomes(contract, when_body["ref"]):
         raise ContractError(f"Behavior scenario {behavior_scenario_id} outcome {outcome_id} is not mapped by external interface {when_body['ref']}")
     response_assertion = then.get("response")
     if response_assertion:
-        response = _external_interface_test_response_projection(entry, outcome_id)
+        response = _external_interface_test_response_projection(external_interface, outcome_id)
         for key in ("status", "exit_code"):
             if key in response_assertion and response.get(key) != response_assertion[key]:
                 raise ContractError(f"Behavior scenario {behavior_scenario_id} response.{key} does not match external interface response for outcome {outcome_id}")
 
 
-def _external_interface_test_response_projection(entry: dict[str, Any], outcome_id: str) -> dict[str, Any]:
-    responses = external_interface_output_responses(entry)
+def _external_interface_test_response_projection(external_interface: dict[str, Any], outcome_id: str) -> dict[str, Any]:
+    responses = external_interface_output_responses(external_interface)
     if outcome_id in responses:
         return responses[outcome_id]
-    handlers = external_interface_output_response_handlers(entry)
+    handlers = external_interface_output_response_handlers(external_interface)
     if outcome_id in handlers:
         return handlers[outcome_id]
     return {}
@@ -4803,13 +4803,13 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
                     "command_bindings": list(state["command_bindings"]),
                 }
         when_kind, when_body = _one(behavior_scenario["when"], "behavior scenario when")
-        cap_id = None
+        behavior_ref = None
         if when_kind == "invoke_command":
-            cap_id = when_body["ref"]
+            behavior_ref = when_body["ref"]
         elif when_kind == "call_external_interface":
-            cap_id = _external_interface_effective_command_ref(contract, when_body["ref"])
-        if cap_id:
-            assertions.setdefault("authorization", {"allowed": [{"command": cap_id}]})
+            behavior_ref = _external_interface_effective_command_ref(contract, when_body["ref"])
+        if behavior_ref:
+            assertions.setdefault("authorization", {"allowed": [{"command": behavior_ref}]})
         _expand_authorization_assertions(contract, assertions)
 
 
@@ -4937,12 +4937,12 @@ def _path_params(path: str | None) -> set[str]:
     return set(re.findall(r"{([a-z][a-z0-9_]*)}", path or ""))
 
 
-def _validate_path_params(entry: dict[str, Any], entry_id: str) -> None:
-    placeholders = _path_params(external_interface_path(entry))
-    declared = set(_entry_input_map(entry, "path_params"))
+def _validate_path_params(external_interface: dict[str, Any], external_interface_id: str) -> None:
+    placeholders = _path_params(external_interface_path(external_interface))
+    declared = set(_external_interface_input_map(external_interface, "path_params"))
     if placeholders != declared:
         raise ContractError(
-            f"External interface {entry_id} path params {sorted(placeholders)} must exactly match input.path_params {sorted(declared)}"
+            f"External interface {external_interface_id} path params {sorted(placeholders)} must exactly match input.path_params {sorted(declared)}"
         )
 
 

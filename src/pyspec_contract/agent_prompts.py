@@ -55,7 +55,7 @@ def active_prompt_layers(contract: dict[str, Any] | None = None, *, layers: str 
 
 def infer_contract_layers(contract: dict[str, Any]) -> set[str]:
     active = {"core"}
-    adapter_kinds = _entry_adapter_kinds(contract)
+    adapter_kinds = _external_interface_adapter_kinds(contract)
     if "http_api" in adapter_kinds:
         active.add("http")
     if _contract_has_eventing_projection(contract, adapter_kinds):
@@ -98,7 +98,7 @@ def _contract_has_ui(contract: dict[str, Any]) -> bool:
 
 
 def _contract_has_html(contract: dict[str, Any]) -> bool:
-    if "html_route" in _entry_adapter_kinds(contract):
+    if "html_route" in _external_interface_adapter_kinds(contract):
         return True
     if any("html_viewports" in profile for profile in (contract.get("viewport_profiles") or {}).values()):
         return True
@@ -127,10 +127,10 @@ def _contract_render_examples(contract: dict[str, Any]) -> list[dict[str, Any]]:
     return cases
 
 
-def _entry_adapter_kinds(contract: dict[str, Any]) -> set[str]:
+def _external_interface_adapter_kinds(contract: dict[str, Any]) -> set[str]:
     kinds: set[str] = set()
-    for entry in (contract.get("external_interfaces") or {}).values():
-        adapter = entry.get("adapter") or {}
+    for external_interface in (contract.get("external_interfaces") or {}).values():
+        adapter = external_interface.get("adapter") or {}
         kinds.update(adapter)
     return kinds
 

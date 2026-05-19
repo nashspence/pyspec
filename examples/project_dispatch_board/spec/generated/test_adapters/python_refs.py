@@ -34,6 +34,13 @@ class CliResponseHandler:
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_NOT_FOUND = 'cli_response_handler.cli.project.approve.not_found'
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_UNAVAILABLE = 'cli_response_handler.cli.project.approve.unavailable'
 
+class Command:
+    COMMAND_PROJECT_APPROVE = 'command.project.approve'
+    COMMAND_PROJECT_ARCHIVE = 'command.project.archive'
+    COMMAND_PROJECT_CREATE = 'command.project.create'
+    COMMAND_PROJECT_SEND_APPROVAL_NOTICE = 'command.project.send_approval_notice'
+    COMMAND_PROJECT_SUBMIT = 'command.project.submit'
+
 class CommandBinding:
     COMMAND_BINDING_PROJECT_DETAIL_READY_APPROVE = 'command_binding.project.detail.ready.approve'
     COMMAND_BINDING_PROJECT_DETAIL_READY_ARCHIVE = 'command_binding.project.detail.ready.archive'
@@ -67,15 +74,6 @@ class CommandBindingLocalOutcomeEffect:
     COMMAND_BINDING_LOCAL_OUTCOME_EFFECT_PROJECT_LIST_READY_SUBMIT_NOT_FOUND = 'command_binding_local_outcome_effect.project.list.ready.submit.not_found'
     COMMAND_BINDING_LOCAL_OUTCOME_EFFECT_PROJECT_LIST_READY_SUBMIT_SUBMITTED = 'command_binding_local_outcome_effect.project.list.ready.submit.submitted'
 
-class CommandQuery:
-    COMMAND_PROJECT_APPROVE = 'command.project.approve'
-    COMMAND_PROJECT_ARCHIVE = 'command.project.archive'
-    COMMAND_PROJECT_CREATE = 'command.project.create'
-    COMMAND_PROJECT_SEND_APPROVAL_NOTICE = 'command.project.send_approval_notice'
-    COMMAND_PROJECT_SUBMIT = 'command.project.submit'
-    QUERY_PROJECT_LIST = 'query.project.list'
-    QUERY_PROJECT_READ = 'query.project.read'
-
 class ContentExample:
     CONTENT_EXAMPLE_PROJECT_DETAIL_HEADING_HIGH_PRIORITY = 'content_example.project.detail.heading.high_priority'
     CONTENT_EXAMPLE_PROJECT_DETAIL_PRIORITY_BADGE_HIGH_PRIORITY = 'content_example.project.detail.priority_badge.high_priority'
@@ -86,7 +84,7 @@ class DomainEvent:
     DOMAIN_EVENT_PROJECT_CREATED = 'domain_event.project.created'
     DOMAIN_EVENT_PROJECT_SUBMITTED = 'domain_event.project.submitted'
 
-class EntryPoint:
+class ExternalInterface:
     EXTERNAL_INTERFACE_API_PROJECT_APPROVE = 'external_interface.api.project.approve'
     EXTERNAL_INTERFACE_API_PROJECT_CREATE = 'external_interface.api.project.create'
     EXTERNAL_INTERFACE_API_PROJECT_LIST = 'external_interface.api.project.list'
@@ -156,6 +154,10 @@ class Precondition:
     PRECONDITION_PROJECT_DRAFT = 'precondition.project.draft'
     PRECONDITION_PROJECT_SUBMITTED = 'precondition.project.submitted'
 
+class Query:
+    QUERY_PROJECT_LIST = 'query.project.list'
+    QUERY_PROJECT_READ = 'query.project.read'
+
 class QueryBinding:
     QUERY_BINDING_PROJECT_ACTIVITY_READY_READ_ACTIVITY = 'query_binding.project.activity.ready.read_activity'
     QUERY_BINDING_PROJECT_BOARD_LIST_BOARD = 'query_binding.project.board.list_board'
@@ -188,9 +190,6 @@ class QueryBindingLocalOutcomeEffect:
 class RenderExample:
     STATE_MACHINE_PROJECT_BOARD_READY_EMPTY_AUDIT = 'state_machine.project.board.ready.empty.audit'
     STATE_MACHINE_PROJECT_BOARD_READY_READY_SELECTED_AUDIT = 'state_machine.project.board.ready.ready_selected.audit'
-
-class RenderProfile:
-    VIEWPORT_PROFILE_DEFAULT = 'viewport_profile.default'
 
 class RendererScreen:
     RENDERER_SCREEN_PROJECT_BOARD = 'renderer_screen.project.board'
@@ -236,6 +235,9 @@ class TextResource:
     TEXT_RESOURCE_PROJECT_LIST_ERROR_HEADING = 'text_resource.project.list.error.heading'
     TEXT_RESOURCE_PROJECT_LIST_LOADING_MESSAGE = 'text_resource.project.list.loading.message'
     TEXT_RESOURCE_PROJECT_LIST_READY_HEADING = 'text_resource.project.list.ready.heading'
+
+class ViewportProfile:
+    VIEWPORT_PROFILE_DEFAULT = 'viewport_profile.default'
 
 class Workflow:
     WORKFLOW_PROJECT_APPROVAL_NOTICE = 'workflow.project.approval_notice'

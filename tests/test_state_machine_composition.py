@@ -22,15 +22,15 @@ def _item(author: dict, section: str, item_id: str) -> dict:
 
 def test_composed_state_machine_contract_is_closed_and_projected() -> None:
     contract = compile_source(_author())
-    list_fsm = contract["state_machines"]["state_machine.project.list"]
-    assert set(list_fsm) == {"entity_type", "context_schema", "query_bindings", "local_signals", "initial_state", "states", "transitions", "rationale"}
-    assert list_fsm["initial_state"] == "loading"
-    assert set(list_fsm["query_bindings"]) == {"list_projects"}
-    assert list_fsm["query_bindings"]["list_projects"]["query"] == "query.project.list"
-    assert list_fsm["states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]
-    detail_fsm = contract["state_machines"]["state_machine.project.detail"]
-    assert detail_fsm["query_bindings"] == {}
-    assert detail_fsm["states"]["loading"]["query_bindings"]["read_project"]["query"] == "query.project.read"
+    list_state_machine = contract["state_machines"]["state_machine.project.list"]
+    assert set(list_state_machine) == {"entity_type", "context_schema", "query_bindings", "local_signals", "initial_state", "states", "transitions", "rationale"}
+    assert list_state_machine["initial_state"] == "loading"
+    assert set(list_state_machine["query_bindings"]) == {"list_projects"}
+    assert list_state_machine["query_bindings"]["list_projects"]["query"] == "query.project.list"
+    assert list_state_machine["states"]["ready"]["fields"] == ["title", "customer", "priority", "status"]
+    detail_state_machine = contract["state_machines"]["state_machine.project.detail"]
+    assert detail_state_machine["query_bindings"] == {}
+    assert detail_state_machine["states"]["loading"]["query_bindings"]["read_project"]["query"] == "query.project.read"
     assert contract["state_machines"]["state_machine.project.activity"]["states"]["ready"]["query_bindings"]["read_activity"]["query"] == "query.project.read"
 
     state_machine = contract["state_machines"]["state_machine.project.board"]["states"]["ready"]

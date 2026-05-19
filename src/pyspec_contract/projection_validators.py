@@ -147,17 +147,17 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         raise ContractError("OpenAPI components do not exactly match contract schemas")
 
     expected_operations: dict[tuple[str, str], tuple[str, dict[str, Any], dict[str, Any]]] = {}
-    for entry_id, entry in sorted(contract["external_interfaces"].items()):
-        if external_interface_adapter_pair(entry)[0] != "http_api":
+    for external_interface_id, external_interface in sorted(contract["external_interfaces"].items()):
+        if external_interface_adapter_pair(external_interface)[0] != "http_api":
             continue
-        target_kind, cap_id = external_interface_invoked_ref_pair(entry)
+        target_kind, behavior_ref = external_interface_invoked_ref_pair(external_interface)
         if target_kind not in {"command", "query"}:
             continue
-        method = (external_interface_method(entry) or "").lower()
-        key = (external_interface_path(entry), method)
+        method = (external_interface_method(external_interface) or "").lower()
+        key = (external_interface_path(external_interface), method)
         if key in expected_operations:
-            raise ContractError(f"OpenAPI duplicate path/method binding in contract: {external_interface_path(entry)} {method}")
-        expected_operations[key] = (entry_id, entry, _command_query_map(contract)[cap_id])
+            raise ContractError(f"OpenAPI duplicate path/method binding in contract: {external_interface_path(external_interface)} {method}")
+        expected_operations[key] = (external_interface_id, external_interface, _command_query_map(contract)[behavior_ref])
 
     actual_operations: dict[tuple[str, str], dict[str, Any]] = {}
     for path, methods in doc["paths"].items():
@@ -176,33 +176,33 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         raise ContractError(_diff_message("OpenAPI operations", set(expected_operations), set(actual_operations)))
 
     seen_operation_ids: set[str] = set()
-    for (path, method), (entry_id, entry, cap) in expected_operations.items():
+    for (path, method), (external_interface_id, external_interface, behavior) in expected_operations.items():
         operation = actual_operations[(path, method)]
         unknown_keys = set(operation) - _OPENAPI_OPERATION_KEYS
         if unknown_keys:
             raise ContractError(f"OpenAPI {method.upper()} {path} has unsupported command/query keys: {sorted(unknown_keys)}")
-        target_kind, cap_id = external_interface_invoked_ref_pair(entry)
+        target_kind, behavior_ref = external_interface_invoked_ref_pair(external_interface)
         if operation.get("operationId") in seen_operation_ids:
             raise ContractError(f"OpenAPI operationId is duplicated: {operation.get('operationId')}")
         seen_operation_ids.add(operation.get("operationId"))
-        if operation.get("operationId") != cap_id:
-            raise ContractError(f"OpenAPI operationId must equal command/query id for {entry_id}")
-        if operation.get("x-external-interface") != entry_id or operation.get(f"x-{target_kind}") != cap_id:
-            raise ContractError(f"OpenAPI extensions do not point back to {entry_id}/{cap_id}")
-        expected_policy = (cap.get("authorization") or {}).get("policy")
+        if operation.get("operationId") != behavior_ref:
+            raise ContractError(f"OpenAPI operationId must equal command/query id for {external_interface_id}")
+        if operation.get("x-external-interface") != external_interface_id or operation.get(f"x-{target_kind}") != behavior_ref:
+            raise ContractError(f"OpenAPI extensions do not point back to {external_interface_id}/{behavior_ref}")
+        expected_policy = (behavior.get("authorization") or {}).get("policy")
         if expected_policy:
             if operation.get("x-access-policy") != expected_policy:
-                raise ContractError(f"OpenAPI access policy extension does not match command/query {cap_id}")
+                raise ContractError(f"OpenAPI access policy extension does not match command/query {behavior_ref}")
         elif "x-access-policy" in operation:
             raise ContractError(
-                f"OpenAPI access policy extension is not allowed for command/query without authentication {cap_id}"
+                f"OpenAPI access policy extension is not allowed for command/query without authentication {behavior_ref}"
             )
 
         placeholders = _path_params(path)
-        path_params = external_interface_input_mapping(entry).get("path_params", {})
-        query_params = external_interface_input_mapping(entry).get("query_params", {})
+        path_params = external_interface_input_mapping(external_interface).get("path_params", {})
+        query_params = external_interface_input_mapping(external_interface).get("query_params", {})
         if placeholders != set(path_params):
-            raise ContractError(f"OpenAPI path params for {entry_id} do not match declared path_params")
+            raise ContractError(f"OpenAPI path params for {external_interface_id} do not match declared path_params")
         expected_params = [
             {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
             for name, type_name in sorted(path_params.items())
@@ -211,29 +211,29 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             for name, type_name in sorted(query_params.items())
         ]
         if operation.get("parameters", []) != expected_params:
-            raise ContractError(f"OpenAPI parameters do not match external-interface path/query params for {entry_id}")
+            raise ContractError(f"OpenAPI parameters do not match external-interface path/query params for {external_interface_id}")
 
-        body_fields = external_interface_input_mapping(entry).get("body", {})
+        body_fields = external_interface_input_mapping(external_interface).get("body", {})
         if body_fields and method not in {"get", "delete"}:
             expected_body = {
                 "required": True,
                 "content": {"application/json": {"schema": object_json_schema(body_fields)}},
             }
             if operation.get("requestBody") != expected_body:
-                raise ContractError(f"OpenAPI requestBody does not match command/query input for {cap_id}")
+                raise ContractError(f"OpenAPI requestBody does not match command/query input for {behavior_ref}")
         elif "requestBody" in operation:
-            raise ContractError(f"OpenAPI requestBody is not allowed for {entry_id}")
+            raise ContractError(f"OpenAPI requestBody is not allowed for {external_interface_id}")
 
         expected_responses = {
             str(response["status"]): {
                 "description": humanize(outcome_id),
                 "content": {"application/json": {"schema": type_schema(response["body"]["type"])}},
             }
-            for outcome_id, response in sorted(external_interface_output_responses(entry).items())
+            for outcome_id, response in sorted(external_interface_output_responses(external_interface).items())
         }
         if operation.get("responses") != expected_responses:
-            raise ContractError(f"OpenAPI response schema does not match external-interface responses for {entry_id}")
-        _validate_refs_resolve(operation, doc, f"OpenAPI operation {entry_id}")
+            raise ContractError(f"OpenAPI response schema does not match external-interface responses for {external_interface_id}")
+        _validate_refs_resolve(operation, doc, f"OpenAPI operation {external_interface_id}")
 
     _validate_refs_resolve(doc["components"], doc, "OpenAPI components")
 
@@ -263,14 +263,14 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if components["schemas"] != components_projection(contract)["schemas"]:
         raise ContractError("AsyncAPI component schemas do not exactly match contract schemas")
 
-    expected_channels = {f"domain_event_{safe_id(event_id)}" for event_id in contract["domain_events"]}
+    expected_channels = {f"domain_event_{safe_id(domain_event_id)}" for domain_event_id in contract["domain_events"]}
     if set(channels) != expected_channels:
         raise ContractError(_diff_message("AsyncAPI channels", expected_channels, set(channels)))
-    expected_messages = {f"integration_message_{safe_id(event_id)}" for event_id in contract["domain_events"]}
+    expected_messages = {f"integration_message_{safe_id(domain_event_id)}" for domain_event_id in contract["domain_events"]}
     if set(components["messages"]) != expected_messages:
         raise ContractError(_diff_message("AsyncAPI messages", expected_messages, set(components["messages"])))
 
-    expected_operations = {f"send_{safe_id(event_id)}" for event_id in contract["domain_events"]}
+    expected_operations = {f"send_{safe_id(domain_event_id)}" for domain_event_id in contract["domain_events"]}
     for workflow_id, workflow in contract["workflows"].items():
         if "domain_event" in workflow["inputs"]:
             expected_operations.add(f"receive_{safe_id(workflow_id)}")
@@ -278,48 +278,48 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         raise ContractError(_diff_message("AsyncAPI operations", expected_operations, set(operations)))
 
     seen_addresses: set[str] = set()
-    for event_id, event in sorted(contract["domain_events"].items()):
-        key = safe_id(event_id)
+    for domain_event_id, domain_event in sorted(contract["domain_events"].items()):
+        key = safe_id(domain_event_id)
         channel_id = f"domain_event_{key}"
         message_id = f"integration_message_{key}"
         channel = channels[channel_id]
-        if channel.get("address") != event_id:
-            raise ContractError(f"AsyncAPI channel {channel_id} address must be {event_id}")
+        if channel.get("address") != domain_event_id:
+            raise ContractError(f"AsyncAPI channel {channel_id} address must be {domain_event_id}")
         if channel["address"] in seen_addresses:
             raise ContractError(f"AsyncAPI channel address is duplicated: {channel['address']}")
         seen_addresses.add(channel["address"])
-        if channel.get("x-domain-event") != event_id:
+        if channel.get("x-domain-event") != domain_event_id:
             raise ContractError(f"AsyncAPI channel {channel_id} missing x-domain-event")
         if channel.get("messages") != {message_id: {"$ref": f"#/components/messages/{message_id}"}}:
             raise ContractError(f"AsyncAPI channel {channel_id} message binding is malformed")
 
         message = components["messages"][message_id]
-        if message.get("name") != event_id:
-            raise ContractError(f"AsyncAPI message {message_id} name does not match event")
-        if message.get("payload") != type_schema(event["payload_schema"]):
-            raise ContractError(f"AsyncAPI message {message_id} payload does not match event payload")
-        if message.get("x-emitted-by") != sorted(event["emitted_by"]):
+        if message.get("name") != domain_event_id:
+            raise ContractError(f"AsyncAPI message {message_id} name does not match domain event")
+        if message.get("payload") != type_schema(domain_event["payload_schema"]):
+            raise ContractError(f"AsyncAPI message {message_id} payload does not match domain-event payload")
+        if message.get("x-emitted-by") != sorted(domain_event["emitted_by"]):
             raise ContractError(f"AsyncAPI message {message_id} emitted_by does not match contract")
 
         send = operations[f"send_{key}"]
         if send.get("action") != "send":
-            raise ContractError(f"AsyncAPI send operation for {event_id} must have action=send")
+            raise ContractError(f"AsyncAPI send operation for {domain_event_id} must have action=send")
         _expect_asyncapi_operation_channel(send, channel_id, message_id, f"send_{key}")
-        if send.get("x-emitted-by") != sorted(event["emitted_by"]):
-            raise ContractError(f"AsyncAPI send operation for {event_id} has wrong emitters")
+        if send.get("x-emitted-by") != sorted(domain_event["emitted_by"]):
+            raise ContractError(f"AsyncAPI send operation for {domain_event_id} has wrong emitters")
 
     for workflow_id, workflow in sorted(contract["workflows"].items()):
         if "domain_event" not in workflow["inputs"]:
             continue
-        event_id = workflow["inputs"]["domain_event"]
+        domain_event_id = workflow["inputs"]["domain_event"]
         op_id = f"receive_{safe_id(workflow_id)}"
         op = operations[op_id]
         if op.get("action") != "receive":
             raise ContractError(f"AsyncAPI receive operation {op_id} must have action=receive")
-        _expect_asyncapi_operation_channel(op, f"domain_event_{safe_id(event_id)}", f"integration_message_{safe_id(event_id)}", op_id)
+        _expect_asyncapi_operation_channel(op, f"domain_event_{safe_id(domain_event_id)}", f"integration_message_{safe_id(domain_event_id)}", op_id)
         if op.get("x-workflow") != workflow_id or op.get("x-contract-ref") != workflow["ref"]:
             raise ContractError(f"AsyncAPI receive operation {op_id} does not point to workflow")
-        expected_dispositions = _workflow_entry_dispositions(contract, workflow_id)
+        expected_dispositions = _workflow_external_interface_dispositions(contract, workflow_id)
         if expected_dispositions:
             if op.get("x-dispositions") != expected_dispositions:
                 raise ContractError(f"AsyncAPI receive operation {op_id} does not preserve worker dispositions")
@@ -329,21 +329,21 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     _validate_refs_resolve(doc, doc, "AsyncAPI document")
 
 
-def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
+def _workflow_external_interface_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
     dispositions: dict[str, Any] = {}
-    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
-        if external_interface_adapter_pair(entry)[0] not in {"worker", "scheduled"}:
+    for external_interface_id, external_interface in sorted(contract.get("external_interfaces", {}).items()):
+        if external_interface_adapter_pair(external_interface)[0] not in {"worker", "scheduled"}:
             continue
-        target_kind, target_ref = external_interface_invoked_ref_pair(entry)
+        target_kind, target_ref = external_interface_invoked_ref_pair(external_interface)
         if target_kind != "workflow" or target_ref != workflow_id:
             continue
-        entry_dispositions = {}
-        for response_id, response in sorted(external_interface_output_responses(entry).items()):
+        external_interface_dispositions = {}
+        for response_id, response in sorted(external_interface_output_responses(external_interface).items()):
             projected = dict(response)
             if "problem" in projected:
                 projected["problem"] = type_schema(projected["problem"])
-            entry_dispositions[response_id] = projected
-        dispositions[entry_id] = entry_dispositions
+            external_interface_dispositions[response_id] = projected
+        dispositions[external_interface_id] = external_interface_dispositions
     return dispositions
 
 
@@ -352,15 +352,15 @@ def validate_routes(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if doc["project"] != contract["project"]:
         raise ContractError("routes.json project does not match contract")
     expected = []
-    for entry_id, entry in sorted(contract["external_interfaces"].items()):
-        if external_interface_adapter_pair(entry)[0] == "html_route":
+    for external_interface_id, external_interface in sorted(contract["external_interfaces"].items()):
+        if external_interface_adapter_pair(external_interface)[0] == "html_route":
             expected.append({
-                "id": entry["html_route"],
-                "external_interface": entry_id,
-                "path": external_interface_path(entry),
-                "path_params": external_interface_input_mapping(entry).get("path_params", {}),
-                "query_params": external_interface_input_mapping(entry).get("query_params", {}),
-                "state_machine": external_interface_state_machine_name(entry),
+                "id": external_interface["html_route"],
+                "external_interface": external_interface_id,
+                "path": external_interface_path(external_interface),
+                "path_params": external_interface_input_mapping(external_interface).get("path_params", {}),
+                "query_params": external_interface_input_mapping(external_interface).get("query_params", {}),
+                "state_machine": external_interface_state_machine_name(external_interface),
             })
     if doc["routes"] != expected:
         raise ContractError("routes.json does not exactly match HTML external interfaces")
@@ -554,7 +554,7 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if len(by_id) != len(graph):
         raise ContractError("CWL $graph contains duplicate or missing ids")
     expected_ids = {f"#{safe_id(workflow_id)}" for workflow_id in contract["workflows"]}
-    expected_ids.update(f"#{safe_id(cap_id)}" for cap_id in _cwl_command_query_ids(contract))
+    expected_ids.update(f"#{safe_id(behavior_ref)}" for behavior_ref in _cwl_command_query_ids(contract))
     if set(by_id) != expected_ids:
         raise ContractError(_diff_message("CWL graph ids", expected_ids, set(by_id)))
 
@@ -581,9 +581,9 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             run_id = f"#{safe_id(activity['command'])}"
             if actual.get("run") != run_id or run_id not in by_id:
                 raise ContractError(f"CWL workflow {workflow_id} activity {activity['id']} references unknown run")
-            cap = _command_query_map(contract)[activity["command"]]
+            behavior = _command_query_map(contract)[activity["command"]]
             expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(activity["input_mapping"].items())}
-            expected_out = sorted(cap["outcomes"])
+            expected_out = sorted(behavior["outcomes"])
             sequence_flows = {
                 sequence_flow_id: sequence_flow
                 for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
@@ -593,28 +593,28 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
                 raise ContractError(f"CWL workflow {workflow_id} activity {activity['id']} malformed")
 
-    for cap_id in _cwl_command_query_ids(contract):
-        cap = _command_query_map(contract)[cap_id]
-        item = by_id[f"#{safe_id(cap_id)}"]
+    for behavior_ref in _cwl_command_query_ids(contract):
+        behavior = _command_query_map(contract)[behavior_ref]
+        item = by_id[f"#{safe_id(behavior_ref)}"]
         if set(item) != {"id", "class", "label", "baseCommand", "inputs", "outputs"}:
-            raise ContractError(f"CWL command/query node {cap_id} has unsupported keys")
-        if item.get("class") != "CommandLineTool" or item.get("label") != cap_id:
-            raise ContractError(f"CWL command/query node {cap_id} must be a labelled CommandLineTool")
-        if item.get("baseCommand") != ["contract-command-query", cap_id]:
-            raise ContractError(f"CWL command/query node {cap_id} baseCommand mismatch")
-        expected_inputs = {name: {"type": cwl_type(type_name)} for name, type_name in sorted(schema_properties(cap["input"]).items())}
+            raise ContractError(f"CWL command/query node {behavior_ref} has unsupported keys")
+        if item.get("class") != "CommandLineTool" or item.get("label") != behavior_ref:
+            raise ContractError(f"CWL command/query node {behavior_ref} must be a labelled CommandLineTool")
+        if item.get("baseCommand") != ["contract-command-query", behavior_ref]:
+            raise ContractError(f"CWL command/query node {behavior_ref} baseCommand mismatch")
+        expected_inputs = {name: {"type": cwl_type(type_name)} for name, type_name in sorted(schema_properties(behavior["input"]).items())}
         if item.get("inputs") != expected_inputs:
-            raise ContractError(f"CWL command/query node {cap_id} inputs mismatch")
+            raise ContractError(f"CWL command/query node {behavior_ref} inputs mismatch")
         expected_outputs = {
             outcome_id: {"type": cwl_type(outcome["result"])}
-            for outcome_id, outcome in sorted(cap["outcomes"].items())
+            for outcome_id, outcome in sorted(behavior["outcomes"].items())
         }
         if item.get("outputs") != expected_outputs:
-            raise ContractError(f"CWL command/query node {cap_id} outputs mismatch")
+            raise ContractError(f"CWL command/query node {behavior_ref} outputs mismatch")
         for parameter in list(item["inputs"].values()) + list(item["outputs"].values()):
             if set(parameter) != {"type"}:
-                raise ContractError(f"CWL command/query {cap_id} parameter has unsupported keys")
-            _validate_cwl_type(parameter["type"], f"CWL command/query {cap_id}")
+                raise ContractError(f"CWL command/query {behavior_ref} parameter has unsupported keys")
+            _validate_cwl_type(parameter["type"], f"CWL command/query {behavior_ref}")
 
 
 def _workflow_input_payload_type(contract: dict[str, Any], workflow: dict[str, Any]) -> str:
@@ -668,15 +668,15 @@ def validate_fixtures_and_behavior_scenarios(root: Path, contract: dict[str, Any
 def validate_access_policies_json(contract: dict[str, Any], doc: dict[str, Any]) -> None:
     if doc != access_policies_projection(contract):
         raise ContractError("access_policies.json does not match contract access policies")
-    for behavior_ref, authorization in doc["command_query_authorizations"].items():
-        if behavior_ref not in _command_query_map(contract):
-            raise ContractError(f"access_policies.json has unknown command/query authorization {behavior_ref}")
+    for command_ref, authorization in doc["command_authorizations"].items():
+        if command_ref not in contract.get("commands", {}):
+            raise ContractError(f"access_policies.json has unknown command authorization {command_ref}")
         access_policy = authorization["policy"]
         if access_policy not in doc["access_policies"]:
-            raise ContractError(f"access_policies.json command/query authorization references unknown access policy {access_policy}")
-    for entry_id, access_policy in doc["external_interface_access_policies"].items():
-        if entry_id not in contract["external_interfaces"]:
-            raise ContractError(f"access_policies.json has unknown external interface access policy {entry_id}")
+            raise ContractError(f"access_policies.json command authorization references unknown access policy {access_policy}")
+    for external_interface_id, access_policy in doc["external_interface_access_policies"].items():
+        if external_interface_id not in contract["external_interfaces"]:
+            raise ContractError(f"access_policies.json has unknown external interface access policy {external_interface_id}")
         if access_policy not in doc["access_policies"]:
             raise ContractError(f"access_policies.json external interface access policy references unknown access policy {access_policy}")
 
@@ -703,9 +703,9 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
         for state_name, state in state_machine.get("states", {}).items():
             if state.get("child_state_machines"):
                 _assert_svg(root / composition_file(state_machine_id, state_name), f"composition {state_machine_id}.{state_name}")
-    for entry_id, entry in contract.get("external_interfaces", {}).items():
-        adapter_kind, _ = external_interface_adapter_pair(entry)
-        _assert_svg(root / external_interface_flow_file(entry_id, adapter_kind), f"external interface {entry_id}")
+    for external_interface_id, external_interface in contract.get("external_interfaces", {}).items():
+        adapter_kind, _ = external_interface_adapter_pair(external_interface)
+        _assert_svg(root / external_interface_flow_file(external_interface_id, adapter_kind), f"external interface {external_interface_id}")
     for workflow_id in contract.get("workflows", {}):
         _assert_svg(root / workflow_flow_file(workflow_id), f"workflow {workflow_id}")
     for behavior_ref in _command_query_map(contract):
@@ -904,14 +904,15 @@ def validate_refs_py(root: Path, contract: dict[str, Any]) -> None:
     module = _load_generated_module(root / GENERATED_SPEC_DIR / "test_adapters" / "python_refs.py", "generated_refs")
     expected_groups: dict[str, list[str]] = {
         "MediaAsset": sorted(contract.get("media_assets", {})),
-        "RenderProfile": sorted(contract.get("viewport_profiles", {})),
+        "ViewportProfile": sorted(contract.get("viewport_profiles", {})),
         "ContentExample": sorted(contract.get("content_examples", {})),
-        "EntryPoint": sorted(contract["external_interfaces"]),
+        "ExternalInterface": sorted(contract["external_interfaces"]),
         "DomainEvent": sorted(contract["domain_events"]),
         "Precondition": sorted(contract.get("preconditions", {})),
         "Assertion": sorted(contract.get("assertions", {})),
         "Fixture": sorted(contract["fixtures"]),
-        "CommandQuery": sorted(_command_query_map(contract)),
+        "Command": sorted(contract.get("commands", {})),
+        "Query": sorted(contract.get("queries", {})),
         "StateMachine": sorted(contract.get("state_machines", {})),
         "TextResource": sorted(contract.get("text_resources", {})),
         "RenderExample": sorted(render_examples(contract)),

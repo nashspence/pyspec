@@ -950,15 +950,15 @@ entity_types:
       - approved
       - archived
       lifecycle_transitions:
-      - from: draft
+      - command: command.project.submit
+        from: draft
         to: submitted
-        triggered_by: command.project.submit
-      - from: submitted
+      - command: command.project.approve
+        from: submitted
         to: approved
-        triggered_by: command.project.approve
-      - from: approved
+      - command: command.project.archive
+        from: approved
         to: archived
-        triggered_by: command.project.archive
     name: Project
     rationale: A dispatch project is the durable work item displayed and acted on by the board.
     schema:
@@ -1234,7 +1234,7 @@ external_interfaces:
             backoff: exponential
           stderr:
             text: text_resource.project.approve.unavailable
-    rationale: CLI entry for approval automation.
+    rationale: CLI external_interface for approval automation.
   external_interface.cli.project.board:
     adapter:
       cli:
@@ -1270,7 +1270,7 @@ external_interfaces:
         ref: state_machine.project.board
         renderer: html
     output_mapping: {}
-    rationale: HTML entry for the dispatch board.
+    rationale: HTML external_interface for the dispatch board.
   external_interface.worker.project.approval_notice:
     adapter:
       worker: {}
@@ -1293,7 +1293,7 @@ external_interfaces:
           disposition: dead_letter
           problem:
             $ref: entity_type.problem
-    rationale: Worker entry exposing the approval notice workflow.
+    rationale: Worker external_interface exposing the approval notice workflow.
     workflow_ref: workflow.project.approval_notice
 fixtures:
   fixture.workspace.member:
@@ -1716,7 +1716,7 @@ state_machines:
                   reason: intentionally_unobservable
               authentication_required:
                 no_local_effect:
-                  rationale: The entry response mapping owns authentication_required display.
+                  rationale: The external_interface response mapping owns authentication_required display.
                   reason: intentionally_unobservable
               found:
                 no_local_effect:
@@ -1782,7 +1782,7 @@ state_machines:
               reason: handled_by_response_mapping
           authentication_required:
             no_local_effect:
-              rationale: The entry response mapping owns authentication_required display.
+              rationale: The external_interface response mapping owns authentication_required display.
               reason: handled_by_response_mapping
           listed:
             no_local_effect:

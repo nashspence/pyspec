@@ -70,8 +70,8 @@ def write_yaml(path: Path, data: Any, *, sort_keys: bool = True) -> None:
 def yaml_contains_anchors(path: Path) -> bool:
     """Return True if a YAML file contains actual YAML anchors or aliases."""
     with path.open("r", encoding="utf-8") as f:
-        for event in yaml.parse(f):
-            if getattr(event, "anchor", None):
+        for yaml_event in yaml.parse(f):
+            if getattr(yaml_event, "anchor", None):
                 return True
     return False
 

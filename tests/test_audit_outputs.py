@@ -120,9 +120,9 @@ def test_audit_coverage_index_maps_compiled_paths_to_evidence() -> None:
     assert "spec/generated/audit_evidence/commands/command_project_send_approval_notice/flow.svg" in visual_evidence_sets[notice_result_set]
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in visual_evidence_sets[notice_result_set]
     assert "/schemas/schema.project.notice_result/schema/properties/notice_id/type" not in text_witnesses
-    lifecycle_set = index["visual_audit"]["required"]["covered"]["/entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/triggered_by"]
+    lifecycle_set = index["visual_audit"]["required"]["covered"]["/entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/command"]
     assert "spec/generated/audit_evidence/commands/command_project_approve/flow.svg" in visual_evidence_sets[lifecycle_set]
-    assert "/entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/triggered_by" not in text_witnesses
+    assert "/entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/command" not in text_witnesses
     renderer_set = index["visual_audit"]["required"]["covered"]["/state_machines/state_machine.project.board/states/ready/renderers/html/layout/regions/aside/classes/0"]
     assert any(path.endswith(".screenshot.png") for path in visual_evidence_sets[renderer_set])
     assert index["render_presence"]["media_assets"]["not_rendered"] == []
@@ -240,10 +240,10 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "sent local signal" in composition
     assert "local signal sync" in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">nav mount</FONT>' in composition
-    board_fsm = state_machine_dot("state_machine.project.board", contract["state_machines"]["state_machine.project.board"], contract)
-    assert "<B>child_state_machines</B>" in board_fsm
-    assert '<FONT POINT-SIZE="10">nav</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;state_machine.project.list</FONT>' in board_fsm
-    assert "nav: state_machine.project.list" not in board_fsm
+    board_state_machine = state_machine_dot("state_machine.project.board", contract["state_machines"]["state_machine.project.board"], contract)
+    assert "<B>child_state_machines</B>" in board_state_machine
+    assert '<FONT POINT-SIZE="10">nav</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;state_machine.project.list</FONT>' in board_state_machine
+    assert "nav: state_machine.project.list" not in board_state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">emitted local signal</FONT>' in composition
     assert "access_policy.project.reviewer" in behavior
     assert 'graph [label="command.project.approve"' not in behavior
@@ -261,11 +261,11 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert behavior.index('"command_input_command_project_approve"') < behavior.index('"command_query_policy_access_policy_project_reviewer"')
     assert behavior.index('"command_query_policy_access_policy_project_reviewer"') < behavior.index('"command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status"')
     assert behavior.index('"command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status"') < behavior.index('"command_outcome_command_project_approve_approved"')
-    assert behavior.index('"command_outcome_command_project_approve_approved"') < behavior.index('"command_query_event_command_project_approve_domain_event_project_approved"')
+    assert behavior.index('"command_outcome_command_project_approve_approved"') < behavior.index('"command_domain_event_command_project_approve_domain_event_project_approved"')
     assert '"command_input_command_project_approve" -> "command_query_policy_access_policy_project_reviewer" [label="authorize"' in behavior
     assert '"command_query_policy_access_policy_project_reviewer" -> "command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status" [label="entity_lifecycle_transition"' in behavior
     assert '"command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status" -> "command_outcome_command_project_approve_approved" [label="success"' in behavior
-    assert '"command_outcome_command_project_approve_approved" -> "command_query_event_command_project_approve_domain_event_project_approved" [label="emit"' in behavior
+    assert '"command_outcome_command_project_approve_approved" -> "command_domain_event_command_project_approve_domain_event_project_approved" [label="emit"' in behavior
     assert "<B>access_policy:</B>" not in behavior
     assert "<B>creates:</B>" not in create_behavior
     assert "<B>kind:</B>" not in behavior
@@ -330,8 +330,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">invoked workflow</FONT>' in worker_external_interface
     assert "<B>integration message disposition</B>" not in worker_external_interface
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in worker_external_interface
-    worker_entry_card = worker_external_interface[worker_external_interface.index('"external_interface_external_interface_worker_project_approval_notice"') : worker_external_interface.index('"external_interface_invocation_workflow_project_approval_notice"')]
-    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in worker_entry_card
+    worker_external_interface_card = worker_external_interface[worker_external_interface.index('"external_interface_external_interface_worker_project_approval_notice"') : worker_external_interface.index('"external_interface_invocation_workflow_project_approval_notice"')]
+    assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in worker_external_interface_card
     worker_accepted_card = worker_external_interface[worker_external_interface.index('"external_interface_response_external_interface_worker_project_approval_notice_accepted"') : worker_external_interface.index('"external_interface_response_external_interface_worker_project_approval_notice_malformed"')]
     worker_malformed_card = worker_external_interface[worker_external_interface.index('"external_interface_response_external_interface_worker_project_approval_notice_malformed"') :]
     assert "<B>accepted</B>" in worker_accepted_card
@@ -341,10 +341,10 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "failure disposition" in worker_malformed_card
     assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in worker_malformed_card
     for external_interface_flow in (external_interface, cli_external_interface, cli_approve_external_interface, api_external_interface, worker_external_interface):
-        assert ('label="' + "entry" + '"') not in external_interface_flow
+        assert ('label="' + "external_interface" + '"') not in external_interface_flow
         assert 'label="exit"' not in external_interface_flow
-        assert ("entry" + "_start") not in external_interface_flow
-        assert ("entry" + "_exit") not in external_interface_flow
+        assert ("external_interface" + "_start") not in external_interface_flow
+        assert ("external_interface" + "_exit") not in external_interface_flow
         assert "external_interface_input" not in external_interface_flow
         assert "external data" not in external_interface_flow
     assert "<B>html renderer handoff</B>" not in external_interface
@@ -586,88 +586,88 @@ def test_audit_transition_rationale_renders_for_otherwise_sparse_card() -> None:
 
 
 def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
-    list_fsm = (ROOT / state_machine_graph_file("state_machine.project.list")).read_text(encoding="utf-8")
-    detail_fsm = (ROOT / state_machine_graph_file("state_machine.project.detail")).read_text(encoding="utf-8")
-    activity_fsm = (ROOT / state_machine_graph_file("state_machine.project.activity")).read_text(encoding="utf-8")
+    list_state_machine = (ROOT / state_machine_graph_file("state_machine.project.list")).read_text(encoding="utf-8")
+    detail_state_machine = (ROOT / state_machine_graph_file("state_machine.project.detail")).read_text(encoding="utf-8")
+    activity_state_machine = (ROOT / state_machine_graph_file("state_machine.project.activity")).read_text(encoding="utf-8")
     composition = (ROOT / composition_file("state_machine.project.board")).read_text(encoding="utf-8")
     api_external_interface = (ROOT / external_interface_flow_file("external_interface.api.project.create", "http_api")).read_text(encoding="utf-8")
     cli_approve_external_interface = (ROOT / external_interface_flow_file("external_interface.cli.project.approve", "cli")).read_text(encoding="utf-8")
     workflow = (ROOT / workflow_flow_file("workflow.project.approval_notice")).read_text(encoding="utf-8")
     approve_behavior = (ROOT / command_query_flow_file("command.project.approve")).read_text(encoding="utf-8")
-    assert "data_refresh_signal.projects_loaded" in list_fsm
-    assert "on data_refresh_signal.projects_loaded" not in list_fsm
-    assert "text_resource.project.list.ready.heading" in list_fsm
-    assert "media_asset.project.list.empty.illustration" in list_fsm
-    assert "emit:" in list_fsm
-    assert "local_signal.project_selected" in list_fsm
-    assert "payload:" in list_fsm
-    assert "emit local_signal.project_selected" not in list_fsm
-    assert "local_effects:" not in list_fsm
-    assert "application_" + "act" + "ion: query.project.list" not in list_fsm
-    assert "query_bindings:" in list_fsm
-    assert "list_projects" in list_fsm
-    assert "workspace_id: string" not in list_fsm
-    assert 'workspace_id</text>' in list_fsm
-    assert 'fill="#94a3b8">\xa0\xa0string</text>' in list_fsm
-    assert "query.project.list fields" in list_fsm
-    assert "title: Text" not in list_fsm
-    assert "status: enum" not in list_fsm
-    assert 'fill="#94a3b8">\xa0\xa0string</text>' in list_fsm
-    assert 'fill="#94a3b8">\xa0\xa0enum&lt;draft|submitted|approved|archived&gt;</text>' in list_fsm
-    assert "Project fields" not in list_fsm
-    assert "projection:" not in list_fsm
-    assert "entity_type:" not in list_fsm
-    assert "context:" not in list_fsm
-    assert "&#45; data_refresh_signal.projects_loaded" not in list_fsm
-    assert "&#45; text_resource.project" not in list_fsm
-    assert "&#45; none" not in list_fsm
-    assert ">rationale<" not in list_fsm
-    assert "loading &#45;&gt; empty" not in list_fsm
-    assert "(initial)" not in list_fsm
-    assert "initial:" not in list_fsm
-    assert "state machine html renderer" not in list_fsm
-    assert "declared, no arrow" not in list_fsm
-    assert "transition domain_events" not in list_fsm
-    assert "emitted domain_events" not in list_fsm
-    assert "$trigger.payload." not in list_fsm
-    assert "$domain_event." not in list_fsm
-    assert "text_resource.project.detail.ready.heading" in detail_fsm
-    assert "query.project.read fields" in detail_fsm
-    assert "array&lt;Project&gt;" in list_fsm
-    assert "query.project.read" in detail_fsm
-    assert 'fill="#94a3b8">\xa0\xa0Project</text>' in detail_fsm
-    assert "summary: Text" not in detail_fsm
-    assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_fsm
-    assert "command.project.approve" in detail_fsm
-    assert "command.project.archive" in detail_fsm
-    assert "command.project.approve:" in detail_fsm
-    assert "access_policy.project.reviewer" in detail_fsm
-    assert "query.project.read fields" in activity_fsm
-    assert "updated_at: Timestamp" not in activity_fsm
-    assert "assignee: Text" not in activity_fsm
-    assert 'fill="#94a3b8">\xa0\xa0string:date&#45;time</text>' in activity_fsm
-    assert "input:" in detail_fsm
-    assert "query_bindings:" in detail_fsm
-    assert "read_project" in detail_fsm
-    assert "project_id: string" not in detail_fsm
-    assert 'project_id</text>' in detail_fsm
-    assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_fsm
-    assert "application_" + "act" + "ion: query.project.read" not in detail_fsm
-    assert "set:" in detail_fsm
-    assert "project_id &lt;&#45; null" not in detail_fsm
-    assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_fsm
-    assert '\xa0←\xa0null</text>' in detail_fsm
-    assert "select_project_updates_state_machines" not in detail_fsm
-    assert "data_refresh_signal.project_loaded" not in activity_fsm
-    assert "input:" in activity_fsm
-    assert "query_bindings:" in activity_fsm
-    assert "read_activity" in activity_fsm
-    assert "project_id: string" not in activity_fsm
-    assert 'project_id</text>' in activity_fsm
-    assert 'fill="#94a3b8">\xa0\xa0string</text>' in activity_fsm
-    assert "set:" in activity_fsm
-    assert "project_id &lt;&#45; null" not in activity_fsm
-    assert '\xa0←\xa0null</text>' in activity_fsm
+    assert "data_refresh_signal.projects_loaded" in list_state_machine
+    assert "on data_refresh_signal.projects_loaded" not in list_state_machine
+    assert "text_resource.project.list.ready.heading" in list_state_machine
+    assert "media_asset.project.list.empty.illustration" in list_state_machine
+    assert "emit:" in list_state_machine
+    assert "local_signal.project_selected" in list_state_machine
+    assert "payload:" in list_state_machine
+    assert "emit local_signal.project_selected" not in list_state_machine
+    assert "local_effects:" not in list_state_machine
+    assert "application_" + "act" + "ion: query.project.list" not in list_state_machine
+    assert "query_bindings:" in list_state_machine
+    assert "list_projects" in list_state_machine
+    assert "workspace_id: string" not in list_state_machine
+    assert 'workspace_id</text>' in list_state_machine
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in list_state_machine
+    assert "query.project.list fields" in list_state_machine
+    assert "title: Text" not in list_state_machine
+    assert "status: enum" not in list_state_machine
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in list_state_machine
+    assert 'fill="#94a3b8">\xa0\xa0enum&lt;draft|submitted|approved|archived&gt;</text>' in list_state_machine
+    assert "Project fields" not in list_state_machine
+    assert "projection:" not in list_state_machine
+    assert "entity_type:" not in list_state_machine
+    assert "context:" not in list_state_machine
+    assert "&#45; data_refresh_signal.projects_loaded" not in list_state_machine
+    assert "&#45; text_resource.project" not in list_state_machine
+    assert "&#45; none" not in list_state_machine
+    assert ">rationale<" not in list_state_machine
+    assert "loading &#45;&gt; empty" not in list_state_machine
+    assert "(initial)" not in list_state_machine
+    assert "initial:" not in list_state_machine
+    assert "state machine html renderer" not in list_state_machine
+    assert "declared, no arrow" not in list_state_machine
+    assert "transition domain_events" not in list_state_machine
+    assert "emitted domain_events" not in list_state_machine
+    assert "$trigger.payload." not in list_state_machine
+    assert "$domain_event." not in list_state_machine
+    assert "text_resource.project.detail.ready.heading" in detail_state_machine
+    assert "query.project.read fields" in detail_state_machine
+    assert "array&lt;Project&gt;" in list_state_machine
+    assert "query.project.read" in detail_state_machine
+    assert 'fill="#94a3b8">\xa0\xa0Project</text>' in detail_state_machine
+    assert "summary: Text" not in detail_state_machine
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_state_machine
+    assert "command.project.approve" in detail_state_machine
+    assert "command.project.archive" in detail_state_machine
+    assert "command.project.approve:" in detail_state_machine
+    assert "access_policy.project.reviewer" in detail_state_machine
+    assert "query.project.read fields" in activity_state_machine
+    assert "updated_at: Timestamp" not in activity_state_machine
+    assert "assignee: Text" not in activity_state_machine
+    assert 'fill="#94a3b8">\xa0\xa0string:date&#45;time</text>' in activity_state_machine
+    assert "input:" in detail_state_machine
+    assert "query_bindings:" in detail_state_machine
+    assert "read_project" in detail_state_machine
+    assert "project_id: string" not in detail_state_machine
+    assert 'project_id</text>' in detail_state_machine
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_state_machine
+    assert "application_" + "act" + "ion: query.project.read" not in detail_state_machine
+    assert "set:" in detail_state_machine
+    assert "project_id &lt;&#45; null" not in detail_state_machine
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in detail_state_machine
+    assert '\xa0←\xa0null</text>' in detail_state_machine
+    assert "select_project_updates_state_machines" not in detail_state_machine
+    assert "data_refresh_signal.project_loaded" not in activity_state_machine
+    assert "input:" in activity_state_machine
+    assert "query_bindings:" in activity_state_machine
+    assert "read_activity" in activity_state_machine
+    assert "project_id: string" not in activity_state_machine
+    assert 'project_id</text>' in activity_state_machine
+    assert 'fill="#94a3b8">\xa0\xa0string</text>' in activity_state_machine
+    assert "set:" in activity_state_machine
+    assert "project_id &lt;&#45; null" not in activity_state_machine
+    assert '\xa0←\xa0null</text>' in activity_state_machine
     assert "emitted local signal" in composition
     assert "sent local signal" in composition
     assert "local_signal.project_select" in composition

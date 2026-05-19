@@ -40,7 +40,7 @@ def test_authorization_projection_validator_rejects_guard_drift() -> None:
     contract = _contract()
     access_policies = read_json(ROOT / "spec" / "generated" / "product_interfaces" / "access_policies.json")
     mutated = copy.deepcopy(access_policies)
-    mutated["command_query_authorizations"]["command.project.approve"]["policy"] = "access_policy.project.member"
+    mutated["command_authorizations"]["command.project.approve"]["policy"] = "access_policy.project.member"
     with pytest.raises(ContractError, match="access_policies.json"):
         validate_access_policies_json(contract, mutated)
 

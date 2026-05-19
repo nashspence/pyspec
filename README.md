@@ -53,7 +53,7 @@ spec/spec.yaml
   -> spec/generated/compiled/spec.yaml
   -> product interfaces and behavior projections required by positive declarations
   -> pytest-bdd adapter files derived from behavior/behavior_scenarios.yaml
-  -> audit evidence when state-machine view states declare render examples
+  -> audit evidence when state-machine states declare render examples
 ```
 
 The spec is progressive. If a concern is absent, it has no declaration and no generated projection. The spec does not contain storage implementation details, test-harness dispatch, dev-environment metadata, review state, release state, or schema-version chatter.
@@ -69,10 +69,10 @@ Common layer sets:
 ```text
 core
 core,http
-core,domain_events
+core,eventing
 core,workflow
 core,ui,textual
-core,ui,web
+core,ui,html
 full
 ```
 
@@ -109,8 +109,8 @@ spec/generated/
     http.openapi.yaml
     integration_messages.asyncapi.yaml
     workflow.cwl.yaml
-    web.routes.json
-    web.state_machines.json
+    html.routes.json
+    html.state_machines.json
     textual.projection.py
   behavior/
     fixtures.yaml
@@ -126,27 +126,29 @@ spec/generated/
     pytest_bdd_features/*.feature
   audit_evidence/
     coverage.yaml
-    entrypoints/<surface>/<entry>/
+    external_interfaces/<adapter>/<external_interface>/
       flow.svg
     workflows/<workflow>/
       flow.svg
-    application_actions/<application_action>/
+    commands/<command>/
+      flow.svg
+    queries/<query>/
       flow.svg
     state_machines/<state_machine>/
       state_machine.svg
-      view_states/<view_state>/
+      states/<state_machine_state>/
         composition.svg
-        text.yaml
+        text_resources.yaml
         fixtures.yaml
-        assets/*.svg
+        media_assets/*.svg
         renders/html.<profile>.<breakpoint>.source.html
         renders/html.<profile>.<breakpoint>.screenshot.png
         renders/textual.<profile>.<breakpoint>.source.py
         renders/textual.<profile>.<breakpoint>.capture.svg
         render_examples/<render_example>/
-          text.yaml
+          text_resources.yaml
           fixtures.yaml
-          assets/*.svg
+          media_assets/*.svg
           renders/html.<profile>.<breakpoint>.source.html
           renders/html.<profile>.<breakpoint>.screenshot.png
           renders/textual.<profile>.<breakpoint>.source.py
@@ -213,7 +215,7 @@ pyspec check examples/project_dispatch_board --layers full
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q -p pytest_bdd.plugin
 ```
 
-Graphviz is required for entrypoint, workflow, state-machine, and composition SVGs. The devcontainer includes it. If `dot` lives elsewhere:
+Graphviz is required for external-interface, command/query, workflow, state-machine, and composition SVGs. The devcontainer includes it. If `dot` lives elsewhere:
 
 ```bash
 export CONTRACT_AUDIT_GRAPHVIZ_DOT=/path/to/dot

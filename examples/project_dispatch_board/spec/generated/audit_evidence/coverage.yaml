@@ -436,15 +436,15 @@ visual_audit:
       /entity_types/entity_type.project/entity_lifecycle/lifecycle_states/1: V0013
       /entity_types/entity_type.project/entity_lifecycle/lifecycle_states/2: V0013
       /entity_types/entity_type.project/entity_lifecycle/lifecycle_states/3: V0013
+      /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/0/command: V0013
       /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/0/from: V0013
       /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/0/to: V0013
-      /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/0/triggered_by: V0013
+      /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/command: V0013
       /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/from: V0013
       /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/to: V0013
-      /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/1/triggered_by: V0013
+      /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/2/command: V0013
       /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/2/from: V0013
       /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/2/to: V0013
-      /entity_types/entity_type.project/entity_lifecycle/lifecycle_transitions/2/triggered_by: V0013
       /entity_types/entity_type.project/name: V0013
       /entity_types/entity_type.project/rationale: V0013
       /entity_types/entity_type.project/schema/additionalProperties: V0013

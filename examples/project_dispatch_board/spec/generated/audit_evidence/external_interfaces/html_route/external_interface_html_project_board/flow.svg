@@ -1,6 +1,6 @@
 <svg width="752pt" height="187pt"
  viewBox="0.00 0.00 752.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 108af8c5bf0f435167bc753be6340d4a8814077ae04b571d37da72a0c1b3aa58 -->
+<!-- pyspec-contract-input-sha256: f7f47d5a539c810d1ab1a8a58accb1011e43fde4cff40a5d2a48bc5528313cb0 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
 <title>external_interface_external_interface_html_project_board</title>
 <!-- external_interface_external_interface_html_project_board -->
@@ -11,7 +11,7 @@
 <polygon fill="#ecfeff" stroke="transparent" points="1.5,-101.5 1.5,-132.5 346.5,-132.5 346.5,-101.5 1.5,-101.5"/>
 <text text-anchor="start" x="5.5" y="-119.1" font-family="Arial" font-weight="bold" font-size="13.00">/workspaces/{workspace_id}/dispatch</text>
 <text text-anchor="start" x="5.5" y="-108.1" font-family="Arial" font-size="8.00" fill="#64748b">html_route external interface</text>
-<text text-anchor="start" x="5.5" y="-90.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTML entry for the dispatch board.</text>
+<text text-anchor="start" x="5.5" y="-90.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTML external_interface for the dispatch board.</text>
 <text text-anchor="start" x="6.5" y="-70.5" font-family="Arial" font-weight="bold" font-size="10.00">html_route:</text>
 <text text-anchor="start" x="60.5" y="-70.5" font-family="Arial" font-size="10.00">  html_route.project.board</text>
 <text text-anchor="start" x="5.5" y="-50.5" font-family="Arial" font-weight="bold" font-size="10.00">path params</text>

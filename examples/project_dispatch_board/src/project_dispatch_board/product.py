@@ -90,12 +90,12 @@ class ProductApp:
             elif kind == "present":
                 self.projects.append(self._project(self._resolve_map(body["values"])))
 
-    def open_web_entry(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
-        entry = self.contract["external_interfaces"][entry_id]
-        assert external_interface_adapter_pair(entry)[0] == "html_route"
-        state_machine_id = external_interface_state_machine_name(entry)
+    def open_web_external_interface(self, external_interface_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
+        external_interface = self.contract["external_interfaces"][external_interface_id]
+        assert external_interface_adapter_pair(external_interface)[0] == "html_route"
+        state_machine_id = external_interface_state_machine_name(external_interface)
         state_machine = self.contract["state_machines"][state_machine_id]
-        context = self._entry_target_input(entry, input_values)
+        context = self._external_interface_target_input(external_interface, input_values)
         workspace_id = context.get("workspace_id")
         matching = [p for p in self.projects if p.get("workspace_id") == workspace_id]
         parent_state_name = "ready" if "ready" in state_machine.get("states", {}) else next(iter(state_machine.get("states", {"ready": {}})))
@@ -200,17 +200,17 @@ class ProductApp:
             return refs
         return command_query_refs(self.rendered_state_machine)
 
-    def call_external_interface(self, entry_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
-        entry = self.contract["external_interfaces"][entry_id]
-        assert external_interface_adapter_pair(entry)[0] in {"http_api", "cli"}
-        target_input = self._entry_target_input(entry, input_values)
-        target_kind, behavior_ref = external_interface_invoked_ref_pair(entry)
+    def call_external_interface(self, external_interface_id: str, input_values: Mapping[str, Any]) -> dict[str, Any]:
+        external_interface = self.contract["external_interfaces"][external_interface_id]
+        assert external_interface_adapter_pair(external_interface)[0] in {"http_api", "cli"}
+        target_input = self._external_interface_target_input(external_interface, input_values)
+        target_kind, behavior_ref = external_interface_invoked_ref_pair(external_interface)
         assert target_kind in {"command", "query"}
-        access_policy = entry.get("access_policy")
+        access_policy = external_interface.get("access_policy")
         if access_policy:
-            self.authorization_decisions[("external_interface", entry_id, access_policy)] = self._evaluate_policy(access_policy, "external_interface", entry_id, target_input)
+            self.authorization_decisions[("external_interface", external_interface_id, access_policy)] = self._evaluate_policy(access_policy, "external_interface", external_interface_id, target_input)
         result = self.invoke_behavior(behavior_ref, target_input)
-        response = external_interface_output_responses(entry)[self.last_outcome]
+        response = external_interface_output_responses(external_interface)[self.last_outcome]
         if "status" in response:
             self.http_response = {"status": response["status"], "body": result}
         elif "stdout" in response:
@@ -219,13 +219,13 @@ class ProductApp:
             self.http_response = {"exit_code": response["exit_code"], "stderr": result}
         return self.http_response
 
-    def _entry_target_input(self, entry: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
+    def _external_interface_target_input(self, external_interface: Mapping[str, Any], input_values: Mapping[str, Any]) -> dict[str, Any]:
         namespace = {"adapter_input": {}}
         for section in ("path_params", "query_params", "body", "args"):
-            fields = external_interface_input_mapping(dict(entry)).get(section, {})
+            fields = external_interface_input_mapping(dict(external_interface)).get(section, {})
             if fields:
                 namespace["adapter_input"][section] = {name: input_values[name] for name in fields}
-        bindings = external_interface_invocation_input_mapping(dict(entry))
+        bindings = external_interface_invocation_input_mapping(dict(external_interface))
         return {name: resolve_binding(source, namespace) for name, source in bindings.items()}
 
     def invoke_behavior(self, behavior_ref: str, input_values: Mapping[str, Any]) -> Any:
@@ -277,10 +277,10 @@ class ProductApp:
             return {"ok": True, "sent": True, **values}
         raise AssertionError(f"Unsupported behavior: {behavior_ref}")
 
-    def emit_domain_event(self, event_id: str, payload: Mapping[str, Any]) -> None:
-        self._record_domain_event(event_id)
+    def emit_domain_event(self, domain_event_id: str, payload: Mapping[str, Any]) -> None:
+        self._record_domain_event(domain_event_id)
         for workflow_id, workflow in self.contract["workflows"].items():
-            if workflow["inputs"] == {"domain_event": event_id}:
+            if workflow["inputs"] == {"domain_event": domain_event_id}:
                 self.executed_workflows.append(workflow_id)
                 self.workflow_outcomes[workflow_id] = self._run_workflow(workflow, payload)
 
@@ -333,28 +333,28 @@ class ProductApp:
                 assert key in rendered_text
             for key in requires.get("media_assets", []):
                 assert key in rendered_assets
-            for cap in requires.get("command_bindings", []):
-                assert cap in rendered_command_bindings
-        for cap in assertions.get("enables", []):
-            assert cap in self._rendered_command_query_refs()
-        for cap in assertions.get("forbids", []):
-            assert cap not in self._rendered_command_query_refs()
+            for command_binding_id in requires.get("command_bindings", []):
+                assert command_binding_id in rendered_command_bindings
+        for behavior_ref in assertions.get("enables", []):
+            assert behavior_ref in self._rendered_command_query_refs()
+        for behavior_ref in assertions.get("forbids", []):
+            assert behavior_ref not in self._rendered_command_query_refs()
         exists = (assertions.get("entity") or {}).get("exists")
         if exists:
             where = self._resolve_map(exists["where"])
             assert any(_matches(project, where) for project in self.projects)
         domain_events = assertions.get("domain_events") or {}
-        for event_id in domain_events.get("emitted", []):
-            assert event_id in self.emitted_domain_events
-        for event_id in domain_events.get("not_emitted", []):
-            assert event_id not in self.emitted_domain_events
+        for domain_event_id in domain_events.get("emitted", []):
+            assert domain_event_id in self.emitted_domain_events
+        for domain_event_id in domain_events.get("not_emitted", []):
+            assert domain_event_id not in self.emitted_domain_events
         workflow = assertions.get("workflow")
         if workflow:
             assert (workflow["ref"] in self.executed_workflows) is workflow["executed"]
             if "outcome" in workflow:
                 assert self.workflow_outcomes.get(workflow["ref"]) == workflow["outcome"]
-        for cap in assertions.get("invoked", []):
-            assert cap in self.invoked_behaviors
+        for behavior_ref in assertions.get("invoked", []):
+            assert behavior_ref in self.invoked_behaviors
         response = assertions.get("response")
         if response:
             assert self.http_response is not None
@@ -395,8 +395,8 @@ class ProductApp:
                 return project
         raise AssertionError(f"Project not found: {project_id}")
 
-    def _record_domain_event(self, event_id: str) -> None:
-        self.emitted_domain_events.append(event_id)
+    def _record_domain_event(self, domain_event_id: str) -> None:
+        self.emitted_domain_events.append(domain_event_id)
 
     def _resolve_map(self, values: Mapping[str, Any]) -> dict[str, Any]:
         return resolve_map(values, self.fixtures)

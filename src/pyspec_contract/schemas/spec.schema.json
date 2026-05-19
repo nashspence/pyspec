@@ -994,14 +994,14 @@
                   "to": {
                     "type": "string"
                   },
-                  "triggered_by": {
+                  "command": {
                     "$ref": "#/$defs/command_ref"
                   }
                 },
                 "required": [
                   "from",
                   "to",
-                  "triggered_by"
+                  "command"
                 ],
                 "type": "object"
               },

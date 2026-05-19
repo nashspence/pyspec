@@ -1,6 +1,6 @@
 <svg width="1550pt" height="622pt"
  viewBox="0.00 0.00 1550.00 622.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 7526ea513550ebc62951c937054fc247a6a53a7198687256d7fd88cd2ba5e9ac -->
+<!-- pyspec-contract-input-sha256: 416fdf67805f2ad7b6923549039d4a20cf404d9d3daed02b202e222ad5284d27 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 604)">
 <title>command_command_project_submit</title>
 <!-- command_input_command_project_submit -->
@@ -171,14 +171,14 @@
 <!-- command_outcome_command_project_submit_authentication_required&#45;&gt;command_outcome_command_project_submit_lifecycle_transition_not_allowed -->
 <!-- command_outcome_command_project_submit_lifecycle_transition_not_allowed&#45;&gt;command_outcome_command_project_submit_not_found -->
 <!-- command_outcome_command_project_submit_not_found&#45;&gt;command_outcome_command_project_submit_submitted -->
-<!-- command_query_event_command_project_submit_domain_event_project_submitted -->
+<!-- command_domain_event_command_project_submit_domain_event_project_submitted -->
 <g id="node9" class="node">
-<title>command_query_event_command_project_submit_domain_event_project_submitted</title>
+<title>command_domain_event_command_project_submit_domain_event_project_submitted</title>
 <polygon fill="#ffffff" stroke="transparent" points="1297,0 1297,-101 1514,-101 1514,0 1297,0"/>
 <polygon fill="#4f46e5" stroke="transparent" points="1298.5,-91.5 1298.5,-99.5 1513.5,-99.5 1513.5,-91.5 1298.5,-91.5"/>
 <polygon fill="#eef2ff" stroke="transparent" points="1298.5,-60.5 1298.5,-91.5 1513.5,-91.5 1513.5,-60.5 1298.5,-60.5"/>
 <text text-anchor="start" x="1302.5" y="-78.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.submitted</text>
-<text text-anchor="start" x="1302.5" y="-67.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
+<text text-anchor="start" x="1302.5" y="-67.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted domain event</text>
 <text text-anchor="start" x="1302.5" y="-49.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Draft dispatch projects can be submitted for</text>
 <text text-anchor="start" x="1302.5" y="-38.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">review.</text>
 <text text-anchor="start" x="1302.5" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
@@ -186,9 +186,9 @@
 <text text-anchor="start" x="1336.5" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#4f46e5" points="1297,0 1297,-101 1514,-101 1514,0 1297,0"/>
 </g>
-<!-- command_outcome_command_project_submit_submitted&#45;&gt;command_query_event_command_project_submit_domain_event_project_submitted -->
+<!-- command_outcome_command_project_submit_submitted&#45;&gt;command_domain_event_command_project_submit_domain_event_project_submitted -->
 <g id="edge8" class="edge">
-<title>command_outcome_command_project_submit_submitted&#45;&gt;command_query_event_command_project_submit_domain_event_project_submitted</title>
+<title>command_outcome_command_project_submit_submitted&#45;&gt;command_domain_event_command_project_submit_domain_event_project_submitted</title>
 <path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1144.06,-50.5C1179.95,-50.5 1236.97,-50.5 1288.52,-50.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1288.74,-53.3 1296.74,-50.5 1288.74,-47.7 1288.74,-53.3"/>
 <text text-anchor="middle" x="1256.5" y="-53.5" font-family="Arial" font-size="10.00">emit</text>

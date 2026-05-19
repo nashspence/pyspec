@@ -128,13 +128,13 @@ entity_types:
       lifecycle_transitions:
       - from: draft
         to: submitted
-        triggered_by: command.project.submit
+        command: command.project.submit
       - from: submitted
         to: approved
-        triggered_by: command.project.approve
+        command: command.project.approve
       - from: approved
         to: archived
-        triggered_by: command.project.archive
+        command: command.project.archive
     schema:
       type: object
       properties:
@@ -577,7 +577,7 @@ state_machines:
               authentication_required:
                 no_local_effect:
                   reason: intentionally_unobservable
-                  rationale: The entry response mapping owns authentication_required display.
+                  rationale: The external_interface response mapping owns authentication_required display.
   state_machine.project.board:
     archetype: dashboard
     rationale: The dispatch board composes list, detail, and activity state machines through shared selected-project context_resource.
@@ -620,7 +620,7 @@ state_machines:
           authentication_required:
             no_local_effect:
               reason: handled_by_response_mapping
-              rationale: The entry response mapping owns authentication_required display.
+              rationale: The external_interface response mapping owns authentication_required display.
           unavailable:
             no_local_effect:
               reason: handled_by_response_mapping
@@ -1440,7 +1440,7 @@ external_interfaces:
     adapter:
       cli:
         cli_command: project approve
-    rationale: CLI entry for approval automation.
+    rationale: CLI external_interface for approval automation.
     invokes:
       external_interface:
         ref: external_interface.api.project.approve
@@ -1522,7 +1522,7 @@ external_interfaces:
     adapter:
       html_route:
         path: /workspaces/{workspace_id}/dispatch
-    rationale: HTML entry for the dispatch board.
+    rationale: HTML external_interface for the dispatch board.
     invokes:
       state_machine:
         ref: state_machine.project.board
@@ -1538,7 +1538,7 @@ external_interfaces:
   external_interface.worker.project.approval_notice:
     adapter:
       worker: {}
-    rationale: Worker entry exposing the approval notice workflow.
+    rationale: Worker external_interface exposing the approval notice workflow.
     invokes:
       workflow:
         ref: workflow.project.approval_notice

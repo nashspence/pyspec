@@ -58,7 +58,7 @@
       ]
     }
   },
-  "command_query_authorizations": {
+  "command_authorizations": {
     "command.project.approve": {
       "access_denied_as": "access_denied",
       "authentication_required_as": "authentication_required",

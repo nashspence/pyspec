@@ -125,9 +125,9 @@ def projection_files(contract: dict[str, Any], *, layers: str | set[str] | None 
 def _external_interfaces_with_adapter(contract: dict[str, Any], *adapters: str) -> list[dict[str, Any]]:
     wanted = set(adapters)
     return [
-        entry
-        for entry in contract.get("external_interfaces", {}).values()
-        if external_interface_adapter_pair(entry)[0] in wanted
+        external_interface
+        for external_interface in contract.get("external_interfaces", {}).values()
+        if external_interface_adapter_pair(external_interface)[0] in wanted
     ]
 
 
@@ -176,19 +176,19 @@ def _has_access_policies(contract: dict[str, Any]) -> bool:
 
 def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     paths: dict[str, Any] = {}
-    for entry_id, entry in sorted(contract["external_interfaces"].items()):
-        if external_interface_adapter_pair(entry)[0] != "http_api":
+    for external_interface_id, external_interface in sorted(contract["external_interfaces"].items()):
+        if external_interface_adapter_pair(external_interface)[0] != "http_api":
             continue
-        target_kind, cap_id = external_interface_invoked_ref_pair(entry)
+        target_kind, behavior_ref = external_interface_invoked_ref_pair(external_interface)
         if target_kind not in {"command", "query"}:
             continue
-        cap = _command_query_map(contract)[cap_id]
-        entry_input = external_interface_input_mapping(entry)
-        path_params = entry_input.get("path_params", {})
-        query_params = entry_input.get("query_params", {})
-        body_fields = entry_input.get("body", {})
+        behavior = _command_query_map(contract)[behavior_ref]
+        external_interface_input = external_interface_input_mapping(external_interface)
+        path_params = external_interface_input.get("path_params", {})
+        query_params = external_interface_input.get("query_params", {})
+        body_fields = external_interface_input.get("body", {})
         responses = {}
-        for outcome_id, response in sorted(external_interface_output_responses(entry).items()):
+        for outcome_id, response in sorted(external_interface_output_responses(external_interface).items()):
             response_status = str(response["status"])
             body_type = response["body"]["type"]
             responses[response_status] = {
@@ -196,9 +196,9 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
                 "content": {"application/json": {"schema": type_schema(body_type)}},
             }
         op: dict[str, Any] = {
-            "operationId": cap_id,
-            "x-external-interface": entry_id,
-            f"x-{target_kind}": cap_id,
+            "operationId": behavior_ref,
+            "x-external-interface": external_interface_id,
+            f"x-{target_kind}": behavior_ref,
             "parameters": [
                 {"name": name, "in": "path", "required": True, "schema": type_schema(type_name)}
                 for name, type_name in sorted(path_params.items())
@@ -208,15 +208,15 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             ],
             "responses": responses,
         }
-        if cap.get("authorization"):
-            op["x-access-policy"] = cap["authorization"]["policy"]
-        method = (external_interface_method(entry) or "").lower()
+        if behavior.get("authorization"):
+            op["x-access-policy"] = behavior["authorization"]["policy"]
+        method = (external_interface_method(external_interface) or "").lower()
         if body_fields and method not in {"get", "delete"}:
             op["requestBody"] = {
                 "required": True,
                 "content": {"application/json": {"schema": object_json_schema(body_fields)}}
             }
-        paths.setdefault(external_interface_path(entry), {})[method] = op
+        paths.setdefault(external_interface_path(external_interface), {})[method] = op
 
     components = components_projection(contract)
     return {
@@ -232,34 +232,34 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     asyncapi_operations: dict[str, Any] = {}
     messages: dict[str, Any] = {}
 
-    for event_id, event in sorted(contract["domain_events"].items()):
-        key = safe_id(event_id)
+    for domain_event_id, domain_event in sorted(contract["domain_events"].items()):
+        key = safe_id(domain_event_id)
         channel_id = f"domain_event_{key}"
         message_id = f"integration_message_{key}"
         channels[channel_id] = {
-            "address": event_id,
+            "address": domain_event_id,
             "messages": {message_id: {"$ref": f"#/components/messages/{message_id}"}},
-            "x-domain-event": event_id,
+            "x-domain-event": domain_event_id,
         }
         messages[message_id] = {
-            "name": event_id,
-            "title": humanize(event_id),
-            "payload": type_schema(event["payload_schema"]),
-            "x-emitted-by": sorted(event["emitted_by"]),
+            "name": domain_event_id,
+            "title": humanize(domain_event_id),
+            "payload": type_schema(domain_event["payload_schema"]),
+            "x-emitted-by": sorted(domain_event["emitted_by"]),
         }
         asyncapi_operations[f"send_{key}"] = {
             "action": "send",
             "channel": {"$ref": f"#/channels/{channel_id}"},
             "messages": [{"$ref": f"#/components/messages/{message_id}"}],
-            "x-emitted-by": sorted(event["emitted_by"]),
+            "x-emitted-by": sorted(domain_event["emitted_by"]),
         }
 
     for workflow_id, workflow in sorted(contract["workflows"].items()):
         trigger = workflow["inputs"]
         if "domain_event" not in trigger:
             continue
-        event_id = trigger["domain_event"]
-        key = safe_id(event_id)
+        domain_event_id = trigger["domain_event"]
+        key = safe_id(domain_event_id)
         asyncapi_operations[f"receive_{safe_id(workflow_id)}"] = {
             "action": "receive",
             "channel": {"$ref": f"#/channels/domain_event_{key}"},
@@ -267,7 +267,7 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "x-workflow": workflow_id,
             "x-contract-ref": workflow["ref"],
         }
-        dispositions = _workflow_entry_dispositions(contract, workflow_id)
+        dispositions = _workflow_external_interface_dispositions(contract, workflow_id)
         if dispositions:
             asyncapi_operations[f"receive_{safe_id(workflow_id)}"]["x-dispositions"] = dispositions
 
@@ -283,21 +283,21 @@ def asyncapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _workflow_entry_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
+def _workflow_external_interface_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
     dispositions: dict[str, Any] = {}
-    for entry_id, entry in sorted(contract.get("external_interfaces", {}).items()):
-        if external_interface_adapter_pair(entry)[0] not in {"worker", "scheduled"}:
+    for external_interface_id, external_interface in sorted(contract.get("external_interfaces", {}).items()):
+        if external_interface_adapter_pair(external_interface)[0] not in {"worker", "scheduled"}:
             continue
-        target_kind, target_ref = external_interface_invoked_ref_pair(entry)
+        target_kind, target_ref = external_interface_invoked_ref_pair(external_interface)
         if target_kind != "workflow" or target_ref != workflow_id:
             continue
-        entry_dispositions = {}
-        for response_id, response in sorted(external_interface_output_responses(entry).items()):
+        external_interface_dispositions = {}
+        for response_id, response in sorted(external_interface_output_responses(external_interface).items()):
             projected = dict(response)
             if "problem" in projected:
                 projected["problem"] = type_schema(projected["problem"])
-            entry_dispositions[response_id] = projected
-        dispositions[entry_id] = entry_dispositions
+            external_interface_dispositions[response_id] = projected
+        dispositions[external_interface_id] = external_interface_dispositions
     return dispositions
 
 
@@ -306,15 +306,15 @@ def routes_projection(contract: dict[str, Any]) -> dict[str, Any]:
         "project": contract["project"],
         "routes": [
             {
-                "id": entry["html_route"],
-                "external_interface": entry_id,
-                "path": external_interface_path(entry),
-                "path_params": external_interface_input_mapping(entry).get("path_params", {}),
-                "query_params": external_interface_input_mapping(entry).get("query_params", {}),
-                "state_machine": external_interface_state_machine_name(entry),
+                "id": external_interface["html_route"],
+                "external_interface": external_interface_id,
+                "path": external_interface_path(external_interface),
+                "path_params": external_interface_input_mapping(external_interface).get("path_params", {}),
+                "query_params": external_interface_input_mapping(external_interface).get("query_params", {}),
+                "state_machine": external_interface_state_machine_name(external_interface),
             }
-            for entry_id, entry in sorted(contract["external_interfaces"].items())
-            if external_interface_adapter_pair(entry)[0] == "html_route"
+            for external_interface_id, external_interface in sorted(contract["external_interfaces"].items())
+            if external_interface_adapter_pair(external_interface)[0] == "html_route"
         ],
     }
 
@@ -672,7 +672,7 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
     for workflow_id, workflow in sorted(contract["workflows"].items()):
         steps = {}
         for activity in workflow["activities"]:
-            cap = _command_query_map(contract)[activity["command"]]
+            behavior = _command_query_map(contract)[activity["command"]]
             sequence_flows = {
                 sequence_flow_id: sequence_flow
                 for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
@@ -682,7 +682,7 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
                 "doc": f"activity={activity['id']}; input_mapping={activity['input_mapping']}; sequence_flows={sequence_flows}",
                 "run": f"#{safe_id(activity['command'])}",
                 "in": {name: _workflow_cwl_source(source) for name, source in sorted(activity["input_mapping"].items())},
-                "out": sorted(cap["outcomes"]),
+                "out": sorted(behavior["outcomes"]),
             }
         workflow_input_payload_type = _workflow_input_payload_type(contract, workflow)
         graph.append({
@@ -701,17 +701,17 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             },
             "steps": steps,
         })
-    for cap_id in _cwl_command_query_ids(contract):
-        cap = _command_query_map(contract)[cap_id]
+    for behavior_ref in _cwl_command_query_ids(contract):
+        behavior = _command_query_map(contract)[behavior_ref]
         graph.append({
-            "id": f"#{safe_id(cap_id)}",
+            "id": f"#{safe_id(behavior_ref)}",
             "class": "CommandLineTool",
-            "label": cap_id,
-            "baseCommand": ["contract-command-query", cap_id],
-            "inputs": {name: {"type": cwl_type(type_name)} for name, type_name in sorted(schema_properties(cap["input"]).items())},
+            "label": behavior_ref,
+            "baseCommand": ["contract-command-query", behavior_ref],
+            "inputs": {name: {"type": cwl_type(type_name)} for name, type_name in sorted(schema_properties(behavior["input"]).items())},
             "outputs": {
                 outcome_id: {"type": cwl_type(outcome["result"])}
-                for outcome_id, outcome in sorted(cap["outcomes"].items())
+                for outcome_id, outcome in sorted(behavior["outcomes"].items())
             },
         })
     return {"cwlVersion": "v1.2", "$graph": graph}
@@ -723,9 +723,9 @@ def _cwl_command_query_ids(contract: dict[str, Any]) -> list[str]:
         for workflow in contract.get("workflows", {}).values()
         for activity in workflow.get("activities", [])
     }
-    for entry in contract.get("external_interfaces", {}).values():
-        adapter_kind, _ = external_interface_adapter_pair(entry)
-        target_kind, target_ref = external_interface_invoked_ref_pair(entry)
+    for external_interface in contract.get("external_interfaces", {}).values():
+        adapter_kind, _ = external_interface_adapter_pair(external_interface)
+        target_kind, target_ref = external_interface_invoked_ref_pair(external_interface)
         if adapter_kind == "cli" and target_kind in {"command", "query"}:
             command_query_refs.add(target_ref)
         elif adapter_kind == "cli" and target_kind == "external_interface":
@@ -735,8 +735,8 @@ def _cwl_command_query_ids(contract: dict[str, Any]) -> list[str]:
     return sorted(command_query_refs)
 
 
-def _external_interface_effective_command_query_ref(contract: dict[str, Any], entry_id: str) -> str | None:
-    target_kind, target_ref = external_interface_invoked_ref_pair(contract["external_interfaces"][entry_id])
+def _external_interface_effective_command_query_ref(contract: dict[str, Any], external_interface_id: str) -> str | None:
+    target_kind, target_ref = external_interface_invoked_ref_pair(contract["external_interfaces"][external_interface_id])
     if target_kind in {"command", "query"}:
         return target_ref
     if target_kind == "external_interface":
@@ -782,15 +782,15 @@ def access_policies_projection(contract: dict[str, Any]) -> dict[str, Any]:
     return {
         "project": contract["project"],
         "access_policies": contract.get("access_policies", {}),
-        "command_query_authorizations": {
-            behavior_ref: behavior["authorization"]
-            for behavior_ref, behavior in sorted(_command_query_map(contract).items())
-            if "authorization" in behavior
+        "command_authorizations": {
+            command_ref: command["authorization"]
+            for command_ref, command in sorted(contract.get("commands", {}).items())
+            if "authorization" in command
         },
         "external_interface_access_policies": {
-            entry_id: entry["access_policy"]
-            for entry_id, entry in sorted(contract.get("external_interfaces", {}).items())
-            if "access_policy" in entry
+            external_interface_id: external_interface["access_policy"]
+            for external_interface_id, external_interface in sorted(contract.get("external_interfaces", {}).items())
+            if "access_policy" in external_interface
         },
     }
 
@@ -886,9 +886,10 @@ def content_stubs_projection(contract: dict[str, Any]) -> str:
 def refs_py_projection(contract: dict[str, Any]) -> str:
     groups: dict[str, list[str]] = {
         "MediaAsset": sorted(contract.get("media_assets", {})),
-        "RenderProfile": sorted(contract.get("viewport_profiles", {})),
-        "EntryPoint": sorted(contract["external_interfaces"]),
-        "CommandQuery": sorted(_command_query_map(contract)),
+        "ViewportProfile": sorted(contract.get("viewport_profiles", {})),
+        "ExternalInterface": sorted(contract["external_interfaces"]),
+        "Command": sorted(contract.get("commands", {})),
+        "Query": sorted(contract.get("queries", {})),
         "TextResource": sorted(contract.get("text_resources", {})),
         "ContentExample": sorted(contract.get("content_examples", {})),
         "DomainEvent": sorted(contract["domain_events"]),
@@ -1008,9 +1009,9 @@ def components_projection(contract: dict[str, Any]) -> dict[str, Any]:
         for ref in referenced_named_types(entity_type["schema"]):
             if ref != rid and ref not in contract["entity_types"] and ref not in contract.get("schemas", {}):
                 opaque.add(ref)
-    for cap in _command_query_map(contract).values():
-        outcome_types = [outcome["result"] for outcome in cap["outcomes"].values()]
-        for type_name in [cap["input"], *outcome_types]:
+    for behavior in _command_query_map(contract).values():
+        outcome_types = [outcome["result"] for outcome in behavior["outcomes"].values()]
+        for type_name in [behavior["input"], *outcome_types]:
             for ref in referenced_named_types(type_name):
                 if ref not in components["schemas"] and ref not in contract["entity_types"] and ref not in contract.get("schemas", {}):
                     opaque.add(ref)

@@ -1,6 +1,6 @@
 <svg width="1321pt" height="482pt"
  viewBox="0.00 0.00 1321.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 247b0a48fb8863b9940d06f4ccbbb21eeae6b235a7b86599694b3cd838d917b0 -->
+<!-- pyspec-contract-input-sha256: 692550941c158983c2599551441974e4a3bae73bf312faf764e94c86f3db72c5 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
 <title>command_command_project_create</title>
 <!-- command_input_command_project_create -->
@@ -173,23 +173,23 @@
 <!-- command_outcome_command_project_create_access_denied&#45;&gt;command_outcome_command_project_create_authentication_required -->
 <!-- command_outcome_command_project_create_authentication_required&#45;&gt;command_outcome_command_project_create_created -->
 <!-- command_outcome_command_project_create_created&#45;&gt;command_outcome_command_project_create_validation_failed -->
-<!-- command_query_event_command_project_create_domain_event_project_created -->
+<!-- command_domain_event_command_project_create_domain_event_project_created -->
 <g id="node8" class="node">
-<title>command_query_event_command_project_create_domain_event_project_created</title>
+<title>command_domain_event_command_project_create_domain_event_project_created</title>
 <polygon fill="#ffffff" stroke="transparent" points="1081,-115.5 1081,-205.5 1285,-205.5 1285,-115.5 1081,-115.5"/>
 <polygon fill="#4f46e5" stroke="transparent" points="1082,-196.5 1082,-204.5 1284,-204.5 1284,-196.5 1082,-196.5"/>
 <polygon fill="#eef2ff" stroke="transparent" points="1082,-165.5 1082,-196.5 1284,-196.5 1284,-165.5 1082,-165.5"/>
 <text text-anchor="start" x="1086" y="-183.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.created</text>
-<text text-anchor="start" x="1086" y="-172.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
+<text text-anchor="start" x="1086" y="-172.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted domain event</text>
 <text text-anchor="start" x="1086" y="-154.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Members can create a new dispatch project.</text>
 <text text-anchor="start" x="1086" y="-135.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
 <text text-anchor="start" x="1086" y="-124.5" font-family="Arial" font-size="10.00">payload</text>
 <text text-anchor="start" x="1120" y="-124.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#4f46e5" points="1081,-115.5 1081,-205.5 1285,-205.5 1285,-115.5 1081,-115.5"/>
 </g>
-<!-- command_outcome_command_project_create_created&#45;&gt;command_query_event_command_project_create_domain_event_project_created -->
+<!-- command_outcome_command_project_create_created&#45;&gt;command_domain_event_command_project_create_domain_event_project_created -->
 <g id="edge6" class="edge">
-<title>command_outcome_command_project_create_created&#45;&gt;command_query_event_command_project_create_domain_event_project_created</title>
+<title>command_outcome_command_project_create_created&#45;&gt;command_domain_event_command_project_create_domain_event_project_created</title>
 <path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M953.65,-160.5C984.05,-160.5 1029.95,-160.5 1072.64,-160.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1072.85,-163.3 1080.85,-160.5 1072.85,-157.7 1072.85,-163.3"/>
 <text text-anchor="middle" x="1040.5" y="-163.5" font-family="Arial" font-size="10.00">emit</text>

@@ -1,6 +1,6 @@
 <svg width="1555pt" height="607pt"
  viewBox="0.00 0.00 1555.00 607.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: f60eab3c1203b95f33e6f1f4f5242b13b6e59ec6f7bc686f7932e7f574ee0074 -->
+<!-- pyspec-contract-input-sha256: 0045868a7e6f3d4e2307f7f9e6c9c8dfae229251b8e02c4ea47329135125079b -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 589)">
 <title>command_command_project_archive</title>
 <!-- command_input_command_project_archive -->
@@ -168,23 +168,23 @@
 </g>
 <!-- command_outcome_command_project_archive_access_denied&#45;&gt;command_outcome_command_project_archive_archived -->
 <!-- command_outcome_command_project_archive_archived&#45;&gt;command_outcome_command_project_archive_authentication_required -->
-<!-- command_query_event_command_project_archive_domain_event_project_archived -->
+<!-- command_domain_event_command_project_archive_domain_event_project_archived -->
 <g id="node9" class="node">
-<title>command_query_event_command_project_archive_domain_event_project_archived</title>
+<title>command_domain_event_command_project_archive_domain_event_project_archived</title>
 <polygon fill="#ffffff" stroke="transparent" points="1310,-365.5 1310,-455.5 1519,-455.5 1519,-365.5 1310,-365.5"/>
 <polygon fill="#4f46e5" stroke="transparent" points="1311.5,-446.5 1311.5,-454.5 1518.5,-454.5 1518.5,-446.5 1311.5,-446.5"/>
 <polygon fill="#eef2ff" stroke="transparent" points="1311.5,-415.5 1311.5,-446.5 1518.5,-446.5 1518.5,-415.5 1311.5,-415.5"/>
 <text text-anchor="start" x="1315.5" y="-433.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.archived</text>
-<text text-anchor="start" x="1315.5" y="-422.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
+<text text-anchor="start" x="1315.5" y="-422.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted domain event</text>
 <text text-anchor="start" x="1315.5" y="-404.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approved dispatch projects can be archived.</text>
 <text text-anchor="start" x="1315.5" y="-385.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
 <text text-anchor="start" x="1315.5" y="-374.5" font-family="Arial" font-size="10.00">payload</text>
 <text text-anchor="start" x="1349.5" y="-374.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#4f46e5" points="1310,-365.5 1310,-455.5 1519,-455.5 1519,-365.5 1310,-365.5"/>
 </g>
-<!-- command_outcome_command_project_archive_archived&#45;&gt;command_query_event_command_project_archive_domain_event_project_archived -->
+<!-- command_outcome_command_project_archive_archived&#45;&gt;command_domain_event_command_project_archive_domain_event_project_archived -->
 <g id="edge5" class="edge">
-<title>command_outcome_command_project_archive_archived&#45;&gt;command_query_event_command_project_archive_domain_event_project_archived</title>
+<title>command_outcome_command_project_archive_archived&#45;&gt;command_domain_event_command_project_archive_domain_event_project_archived</title>
 <path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1155.7,-410.5C1191.61,-410.5 1249.62,-410.5 1301.52,-410.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1301.79,-413.3 1309.79,-410.5 1301.79,-407.7 1301.79,-413.3"/>
 <text text-anchor="middle" x="1269.5" y="-413.5" font-family="Arial" font-size="10.00">emit</text>

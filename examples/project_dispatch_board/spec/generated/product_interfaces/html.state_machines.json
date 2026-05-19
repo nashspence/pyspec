@@ -321,7 +321,7 @@
             },
             "authentication_required": {
               "no_local_effect": {
-                "rationale": "The entry response mapping owns authentication_required display.",
+                "rationale": "The external_interface response mapping owns authentication_required display.",
                 "reason": "intentionally_unobservable"
               }
             },
