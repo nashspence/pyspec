@@ -665,7 +665,7 @@ commands:
         project_id:
           from: $command_input.project_id
     entity_changes:
-      lifecycle_transition:
+      entity_lifecycle_transition:
         entity_type: entity_type.project
         field: status
         from: submitted
@@ -695,11 +695,11 @@ commands:
         kind: failure
         result:
           $ref: entity_type.problem
-      not_found:
+      lifecycle_transition_not_allowed:
         kind: failure
         result:
           $ref: entity_type.problem
-      transition_not_allowed:
+      not_found:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -719,7 +719,7 @@ commands:
       outcome: archived
       payload_source: $command_outcome.result
     entity_changes:
-      lifecycle_transition:
+      entity_lifecycle_transition:
         entity_type: entity_type.project
         field: status
         from: approved
@@ -745,11 +745,11 @@ commands:
         kind: failure
         result:
           $ref: entity_type.problem
-      not_found:
+      lifecycle_transition_not_allowed:
         kind: failure
         result:
           $ref: entity_type.problem
-      transition_not_allowed:
+      not_found:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -849,7 +849,7 @@ commands:
       outcome: submitted
       payload_source: $command_outcome.result
     entity_changes:
-      lifecycle_transition:
+      entity_lifecycle_transition:
         entity_type: entity_type.project
         field: status
         from: draft
@@ -871,6 +871,10 @@ commands:
         kind: failure
         result:
           $ref: entity_type.problem
+      lifecycle_transition_not_allowed:
+        kind: failure
+        result:
+          $ref: entity_type.problem
       not_found:
         kind: failure
         result:
@@ -879,10 +883,6 @@ commands:
         kind: success
         result:
           $ref: entity_type.project
-      transition_not_allowed:
-        kind: failure
-        result:
-          $ref: entity_type.problem
     rationale: Draft dispatch projects can be submitted for review.
 content_examples:
   content_example.project.detail.heading.high_priority:
@@ -1047,18 +1047,18 @@ external_interfaces:
             type:
               $ref: entity_type.problem
           status: 401
+        lifecycle_transition_not_allowed:
+          body:
+            from: $invocation_outcome.result
+            type:
+              $ref: entity_type.problem
+          status: 409
         not_found:
           body:
             from: $invocation_outcome.result
             type:
               $ref: entity_type.problem
           status: 404
-        transition_not_allowed:
-          body:
-            from: $invocation_outcome.result
-            type:
-              $ref: entity_type.problem
-          status: 409
         unavailable:
           body:
             from: $invocation_outcome.result
@@ -1213,6 +1213,13 @@ external_interfaces:
               message:
                 from: $adapter_response.body.message
             text: text_resource.project.approve.authentication_required
+        lifecycle_transition_not_allowed:
+          exit_code: 2
+          stderr:
+            bindings:
+              message:
+                from: $adapter_response.body.message
+            text: text_resource.project.approve.lifecycle_transition_not_allowed
         not_found:
           exit_code: 3
           stderr:
@@ -1220,13 +1227,6 @@ external_interfaces:
               message:
                 from: $adapter_response.body.message
             text: text_resource.project.approve.not_found
-        transition_not_allowed:
-          exit_code: 2
-          stderr:
-            bindings:
-              message:
-                from: $adapter_response.body.message
-            text: text_resource.project.approve.transition_not_allowed
         unavailable:
           exit_code: 75
           retry_policy:
@@ -1461,8 +1461,8 @@ reference_index:
   - adapter_response_binding.cli.project.approve.access_denied.stderr.message
   - adapter_response_binding.cli.project.approve.approved.stdout.project_id
   - adapter_response_binding.cli.project.approve.authentication_required.stderr.message
+  - adapter_response_binding.cli.project.approve.lifecycle_transition_not_allowed.stderr.message
   - adapter_response_binding.cli.project.approve.not_found.stderr.message
-  - adapter_response_binding.cli.project.approve.transition_not_allowed.stderr.message
   cli_command:
   - cli_command.project.approve
   - cli_command.project.board
@@ -1470,8 +1470,8 @@ reference_index:
   - cli_response_handler.cli.project.approve.access_denied
   - cli_response_handler.cli.project.approve.approved
   - cli_response_handler.cli.project.approve.authentication_required
+  - cli_response_handler.cli.project.approve.lifecycle_transition_not_allowed
   - cli_response_handler.cli.project.approve.not_found
-  - cli_response_handler.cli.project.approve.transition_not_allowed
   - cli_response_handler.cli.project.approve.unavailable
   command_binding:
   - command_binding.project.detail.ready.approve
@@ -1483,14 +1483,14 @@ reference_index:
   - command_binding_local_outcome_effect.project.detail.ready.approve.access_denied
   - command_binding_local_outcome_effect.project.detail.ready.approve.approved
   - command_binding_local_outcome_effect.project.detail.ready.approve.authentication_required
+  - command_binding_local_outcome_effect.project.detail.ready.approve.lifecycle_transition_not_allowed
   - command_binding_local_outcome_effect.project.detail.ready.approve.not_found
-  - command_binding_local_outcome_effect.project.detail.ready.approve.transition_not_allowed
   - command_binding_local_outcome_effect.project.detail.ready.approve.unavailable
   - command_binding_local_outcome_effect.project.detail.ready.archive.access_denied
   - command_binding_local_outcome_effect.project.detail.ready.archive.archived
   - command_binding_local_outcome_effect.project.detail.ready.archive.authentication_required
+  - command_binding_local_outcome_effect.project.detail.ready.archive.lifecycle_transition_not_allowed
   - command_binding_local_outcome_effect.project.detail.ready.archive.not_found
-  - command_binding_local_outcome_effect.project.detail.ready.archive.transition_not_allowed
   - command_binding_local_outcome_effect.project.list.empty.create.access_denied
   - command_binding_local_outcome_effect.project.list.empty.create.authentication_required
   - command_binding_local_outcome_effect.project.list.empty.create.created
@@ -1501,9 +1501,9 @@ reference_index:
   - command_binding_local_outcome_effect.project.list.ready.create.validation_failed
   - command_binding_local_outcome_effect.project.list.ready.submit.access_denied
   - command_binding_local_outcome_effect.project.list.ready.submit.authentication_required
+  - command_binding_local_outcome_effect.project.list.ready.submit.lifecycle_transition_not_allowed
   - command_binding_local_outcome_effect.project.list.ready.submit.not_found
   - command_binding_local_outcome_effect.project.list.ready.submit.submitted
-  - command_binding_local_outcome_effect.project.list.ready.submit.transition_not_allowed
   external_interface_delegate:
   - external_interface_delegate.cli.project.approve.to.api.project.approve
   external_interface_invocation:
@@ -1526,28 +1526,28 @@ reference_index:
   - local_signal_raise.project.detail.loading.query_binding.read_project.found.data_refresh_signal.project_loaded
   - local_signal_raise.project.detail.loading.query_binding.read_project.not_found.data_refresh_signal.project_load_failed
   - local_signal_raise.project.detail.ready.command_binding.approve.approved.data_refresh_signal.project_changed
-  - local_signal_raise.project.detail.ready.command_binding.approve.transition_not_allowed.local_signal.show_transition_not_allowed
-  - local_signal_raise.project.detail.ready.command_binding.archive.access_denied.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.detail.ready.command_binding.approve.lifecycle_transition_not_allowed.local_signal.show_lifecycle_transition_not_allowed
+  - local_signal_raise.project.detail.ready.command_binding.archive.access_denied.local_signal.show_lifecycle_transition_not_allowed
   - local_signal_raise.project.detail.ready.command_binding.archive.archived.data_refresh_signal.project_changed
-  - local_signal_raise.project.detail.ready.command_binding.archive.authentication_required.local_signal.show_transition_not_allowed
-  - local_signal_raise.project.detail.ready.command_binding.archive.not_found.local_signal.show_transition_not_allowed
-  - local_signal_raise.project.detail.ready.command_binding.archive.transition_not_allowed.local_signal.show_transition_not_allowed
-  - local_signal_raise.project.detail.ready.query_binding.read_project.access_denied.local_signal.show_transition_not_allowed
-  - local_signal_raise.project.detail.ready.query_binding.read_project.authentication_required.local_signal.show_transition_not_allowed
-  - local_signal_raise.project.detail.ready.query_binding.read_project.not_found.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.detail.ready.command_binding.archive.authentication_required.local_signal.show_lifecycle_transition_not_allowed
+  - local_signal_raise.project.detail.ready.command_binding.archive.lifecycle_transition_not_allowed.local_signal.show_lifecycle_transition_not_allowed
+  - local_signal_raise.project.detail.ready.command_binding.archive.not_found.local_signal.show_lifecycle_transition_not_allowed
+  - local_signal_raise.project.detail.ready.query_binding.read_project.access_denied.local_signal.show_lifecycle_transition_not_allowed
+  - local_signal_raise.project.detail.ready.query_binding.read_project.authentication_required.local_signal.show_lifecycle_transition_not_allowed
+  - local_signal_raise.project.detail.ready.query_binding.read_project.not_found.local_signal.show_lifecycle_transition_not_allowed
   - local_signal_raise.project.list.empty.command_binding.create.created.data_refresh_signal.projects_changed
-  - local_signal_raise.project.list.empty.command_binding.create.validation_failed.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.list.empty.command_binding.create.validation_failed.local_signal.show_lifecycle_transition_not_allowed
   - local_signal_raise.project.list.query_binding.list_projects.access_denied.data_refresh_signal.project_list_failed
   - local_signal_raise.project.list.query_binding.list_projects.authentication_required.data_refresh_signal.project_list_failed
   - local_signal_raise.project.list.query_binding.list_projects.listed.data_refresh_signal.project_collection_empty
   - local_signal_raise.project.list.query_binding.list_projects.listed.data_refresh_signal.projects_loaded
   - local_signal_raise.project.list.query_binding.list_projects.unavailable.data_refresh_signal.project_list_failed
   - local_signal_raise.project.list.ready.command_binding.create.created.data_refresh_signal.projects_changed
-  - local_signal_raise.project.list.ready.command_binding.submit.access_denied.local_signal.show_transition_not_allowed
-  - local_signal_raise.project.list.ready.command_binding.submit.authentication_required.local_signal.show_transition_not_allowed
-  - local_signal_raise.project.list.ready.command_binding.submit.not_found.local_signal.show_transition_not_allowed
+  - local_signal_raise.project.list.ready.command_binding.submit.access_denied.local_signal.show_lifecycle_transition_not_allowed
+  - local_signal_raise.project.list.ready.command_binding.submit.authentication_required.local_signal.show_lifecycle_transition_not_allowed
+  - local_signal_raise.project.list.ready.command_binding.submit.lifecycle_transition_not_allowed.local_signal.show_lifecycle_transition_not_allowed
+  - local_signal_raise.project.list.ready.command_binding.submit.not_found.local_signal.show_lifecycle_transition_not_allowed
   - local_signal_raise.project.list.ready.command_binding.submit.submitted.data_refresh_signal.projects_changed
-  - local_signal_raise.project.list.ready.command_binding.submit.transition_not_allowed.local_signal.show_transition_not_allowed
   media_asset:
   - media_asset.project.detail.ready.priority_badge
   - media_asset.project.list.empty.illustration
@@ -1603,9 +1603,9 @@ reference_index:
   - text_resource.project.activity.ready.heading
   - text_resource.project.approve.access_denied
   - text_resource.project.approve.authentication_required
+  - text_resource.project.approve.lifecycle_transition_not_allowed
   - text_resource.project.approve.not_found
   - text_resource.project.approve.success
-  - text_resource.project.approve.transition_not_allowed
   - text_resource.project.approve.unavailable
   - text_resource.project.detail.error.body
   - text_resource.project.detail.error.heading
@@ -2023,7 +2023,7 @@ state_machines:
               properties: {}
               required: []
               type: object
-          show_transition_not_allowed:
+          show_lifecycle_transition_not_allowed:
             payload_schema:
               additionalProperties: false
               properties:
@@ -2110,16 +2110,16 @@ state_machines:
                 no_local_effect:
                   rationale: The response mapping reports authentication failure without a local transition.
                   reason: handled_by_response_surface
+              lifecycle_transition_not_allowed:
+                raise:
+                  local_signal: show_lifecycle_transition_not_allowed
+                  payload_bindings:
+                    message:
+                      from: $command_outcome.result.message
               not_found:
                 no_local_effect:
                   rationale: The response mapping reports a missing project without a local transition.
                   reason: handled_by_response_surface
-              transition_not_allowed:
-                raise:
-                  local_signal: show_transition_not_allowed
-                  payload_bindings:
-                    message:
-                      from: $command_outcome.result.message
               unavailable:
                 no_local_effect:
                   rationale: The response mapping reports temporary unavailability without a local transition.
@@ -2132,7 +2132,7 @@ state_machines:
             local_effects:
               access_denied:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
@@ -2141,19 +2141,19 @@ state_machines:
                   data_refresh_signal: project_changed
               authentication_required:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
+                  payload_bindings:
+                    message:
+                      from: $command_outcome.result.message
+              lifecycle_transition_not_allowed:
+                raise:
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
               not_found:
                 raise:
-                  local_signal: show_transition_not_allowed
-                  payload_bindings:
-                    message:
-                      from: $command_outcome.result.message
-              transition_not_allowed:
-                raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
@@ -2175,13 +2175,13 @@ state_machines:
             local_effects:
               access_denied:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $query_outcome.result.message
               authentication_required:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $query_outcome.result.message
@@ -2194,7 +2194,7 @@ state_machines:
                     from: $query_outcome.result
               not_found:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $query_outcome.result.message
@@ -2232,7 +2232,7 @@ state_machines:
       rationale: Invalid detail commands move the detail panel into its displayable error state.
       to: error
       trigger:
-        local_signal: show_transition_not_allowed
+        local_signal: show_lifecycle_transition_not_allowed
   state_machine.project.list:
     context_schema:
       additionalProperties: false
@@ -2285,7 +2285,7 @@ state_machines:
               required:
               - project_id
               type: object
-          show_transition_not_allowed:
+          show_lifecycle_transition_not_allowed:
             payload_schema:
               additionalProperties: false
               properties:
@@ -2379,7 +2379,7 @@ state_machines:
                   data_refresh_signal: projects_changed
               validation_failed:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
@@ -2444,31 +2444,31 @@ state_machines:
             local_effects:
               access_denied:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
               authentication_required:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
+                  payload_bindings:
+                    message:
+                      from: $command_outcome.result.message
+              lifecycle_transition_not_allowed:
+                raise:
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
               not_found:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
               submitted:
                 raise:
                   data_refresh_signal: projects_changed
-              transition_not_allowed:
-                raise:
-                  local_signal: show_transition_not_allowed
-                  payload_bindings:
-                    message:
-                      from: $command_outcome.result.message
         fields:
         - title
         - customer
@@ -2504,7 +2504,7 @@ state_machines:
       rationale: Invalid create attempts move the list into its displayable error state.
       to: error
       trigger:
-        local_signal: show_transition_not_allowed
+        local_signal: show_lifecycle_transition_not_allowed
     - from: ready
       local_effects:
       - emit:
@@ -2529,7 +2529,7 @@ state_machines:
       rationale: Invalid list queries move the list into its displayable error state.
       to: error
       trigger:
-        local_signal: show_transition_not_allowed
+        local_signal: show_lifecycle_transition_not_allowed
 text_resources:
   text_resource.project.activity.empty.body:
     intent: instructional
@@ -2562,6 +2562,14 @@ text_resources:
     max_chars: 120
     placeholder: 'Sign in before approving: {message}'
     rationale: CLI approval authentication_required message.
+  text_resource.project.approve.lifecycle_transition_not_allowed:
+    args:
+      message:
+        type: string
+    intent: error
+    max_chars: 120
+    placeholder: 'Cannot approve project: {message}'
+    rationale: CLI approval invalid-state message.
   text_resource.project.approve.not_found:
     args:
       message:
@@ -2578,14 +2586,6 @@ text_resources:
     max_chars: 120
     placeholder: Approved project {project_id}
     rationale: CLI approval success message.
-  text_resource.project.approve.transition_not_allowed:
-    args:
-      message:
-        type: string
-    intent: error
-    max_chars: 120
-    placeholder: 'Cannot approve project: {message}'
-    rationale: CLI approval invalid-state message.
   text_resource.project.approve.unavailable:
     intent: error
     max_chars: 120

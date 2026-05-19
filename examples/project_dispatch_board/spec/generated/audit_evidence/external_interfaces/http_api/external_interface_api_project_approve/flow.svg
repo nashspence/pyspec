@@ -1,6 +1,6 @@
-<svg width="816pt" height="723pt"
- viewBox="0.00 0.00 816.00 723.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: ea16a8bdec5b4d4b568ec36ea7fc99df035bb33582e54e30a2623417e0817914 -->
+<svg width="857pt" height="723pt"
+ viewBox="0.00 0.00 857.00 723.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 630d6292ae9bd4b54b5cc680cf6131f147820b3775fc94d10419e9983a564ecc -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 705)">
 <title>external_interface_external_interface_api_project_approve</title>
 <!-- external_interface_external_interface_api_project_approve -->
@@ -38,7 +38,7 @@
 <text text-anchor="start" x="308.5" y="-375.6" font-family="Arial" font-size="8.00" fill="#64748b">invoked command</text>
 <text text-anchor="start" x="308.5" y="-358" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Reviewers can approve submitted dispatch projects.</text>
 <text text-anchor="start" x="309.5" y="-338" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
-<text text-anchor="start" x="333.5" y="-338" font-family="Arial" font-size="10.00">  lifecycle_transition</text>
+<text text-anchor="start" x="333.5" y="-338" font-family="Arial" font-size="10.00">  entity_lifecycle_transition</text>
 <text text-anchor="start" x="308.5" y="-318" font-family="Arial" font-weight="bold" font-size="10.00">authorization</text>
 <text text-anchor="start" x="308.5" y="-306" font-family="Arial" font-size="10.00">policy: access_policy.project.reviewer</text>
 <text text-anchor="start" x="308.5" y="-295" font-family="Arial" font-size="10.00">authentication_required_as: authentication_required</text>
@@ -54,139 +54,139 @@
 <!-- external_interface_response_external_interface_api_project_approve_access_denied -->
 <g id="node3" class="node">
 <title>external_interface_response_external_interface_api_project_approve_access_denied</title>
-<polygon fill="#ffffff" stroke="transparent" points="603,-595 603,-687 780,-687 780,-595 603,-595"/>
-<polygon fill="#dc2626" stroke="transparent" points="604.5,-678 604.5,-686 779.5,-686 779.5,-678 604.5,-678"/>
-<polygon fill="#fef2f2" stroke="transparent" points="604.5,-647 604.5,-678 779.5,-678 779.5,-647 604.5,-647"/>
-<text text-anchor="start" x="608.5" y="-664.6" font-family="Arial" font-weight="bold" font-size="13.00">access_denied</text>
-<text text-anchor="start" x="608.5" y="-653.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
-<text text-anchor="start" x="609.5" y="-635" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
-<text text-anchor="start" x="640.5" y="-635" font-family="Arial" font-size="10.00">  403</text>
-<text text-anchor="start" x="608.5" y="-615" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
-<text text-anchor="start" x="608.5" y="-604" font-family="Arial" font-size="10.00">body</text>
-<text text-anchor="start" x="630.5" y="-604" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="665.5" y="-604" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
-<polygon fill="none" stroke="#dc2626" points="603,-595 603,-687 780,-687 780,-595 603,-595"/>
+<polygon fill="#ffffff" stroke="transparent" points="623.5,-595 623.5,-687 800.5,-687 800.5,-595 623.5,-595"/>
+<polygon fill="#dc2626" stroke="transparent" points="625,-678 625,-686 800,-686 800,-678 625,-678"/>
+<polygon fill="#fef2f2" stroke="transparent" points="625,-647 625,-678 800,-678 800,-647 625,-647"/>
+<text text-anchor="start" x="629" y="-664.6" font-family="Arial" font-weight="bold" font-size="13.00">access_denied</text>
+<text text-anchor="start" x="629" y="-653.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
+<text text-anchor="start" x="630" y="-635" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
+<text text-anchor="start" x="661" y="-635" font-family="Arial" font-size="10.00">  403</text>
+<text text-anchor="start" x="629" y="-615" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="629" y="-604" font-family="Arial" font-size="10.00">body</text>
+<text text-anchor="start" x="651" y="-604" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="686" y="-604" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
+<polygon fill="none" stroke="#dc2626" points="623.5,-595 623.5,-687 800.5,-687 800.5,-595 623.5,-595"/>
 </g>
 <!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_access_denied -->
 <g id="edge2" class="edge">
 <title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_access_denied</title>
-<path fill="none" stroke="#3f3f46" d="M464.71,-409.6C498.11,-460.38 548.46,-530.17 603,-582 605.76,-584.62 608.65,-587.21 611.63,-589.75"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="609.9,-591.95 617.85,-594.88 613.46,-587.63 609.9,-591.95"/>
+<path fill="none" stroke="#3f3f46" d="M462.54,-409.73C495.21,-461.42 545.61,-532.34 603,-582 607.33,-585.75 611.94,-589.36 616.72,-592.82"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="615.18,-595.16 623.34,-597.44 618.39,-590.57 615.18,-595.16"/>
 </g>
 <!-- external_interface_response_external_interface_api_project_approve_approved -->
 <g id="node4" class="node">
 <title>external_interface_response_external_interface_api_project_approve_approved</title>
-<polygon fill="#ffffff" stroke="transparent" points="605.5,-476 605.5,-568 777.5,-568 777.5,-476 605.5,-476"/>
-<polygon fill="#16a34a" stroke="transparent" points="606.5,-559 606.5,-567 776.5,-567 776.5,-559 606.5,-559"/>
-<polygon fill="#f0fdf4" stroke="transparent" points="606.5,-528 606.5,-559 776.5,-559 776.5,-528 606.5,-528"/>
-<text text-anchor="start" x="610.5" y="-545.6" font-family="Arial" font-weight="bold" font-size="13.00">approved</text>
-<text text-anchor="start" x="610.5" y="-534.6" font-family="Arial" font-size="8.00" fill="#64748b">success response</text>
-<text text-anchor="start" x="611.5" y="-516" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
-<text text-anchor="start" x="642.5" y="-516" font-family="Arial" font-size="10.00">  200</text>
-<text text-anchor="start" x="610.5" y="-496" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
-<text text-anchor="start" x="610.5" y="-485" font-family="Arial" font-size="10.00">body</text>
-<text text-anchor="start" x="632.5" y="-485" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<text text-anchor="start" x="662.5" y="-485" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
-<polygon fill="none" stroke="#16a34a" points="605.5,-476 605.5,-568 777.5,-568 777.5,-476 605.5,-476"/>
+<polygon fill="#ffffff" stroke="transparent" points="626,-476 626,-568 798,-568 798,-476 626,-476"/>
+<polygon fill="#16a34a" stroke="transparent" points="627,-559 627,-567 797,-567 797,-559 627,-559"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="627,-528 627,-559 797,-559 797,-528 627,-528"/>
+<text text-anchor="start" x="631" y="-545.6" font-family="Arial" font-weight="bold" font-size="13.00">approved</text>
+<text text-anchor="start" x="631" y="-534.6" font-family="Arial" font-size="8.00" fill="#64748b">success response</text>
+<text text-anchor="start" x="632" y="-516" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
+<text text-anchor="start" x="663" y="-516" font-family="Arial" font-size="10.00">  200</text>
+<text text-anchor="start" x="631" y="-496" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="631" y="-485" font-family="Arial" font-size="10.00">body</text>
+<text text-anchor="start" x="653" y="-485" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<text text-anchor="start" x="683" y="-485" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
+<polygon fill="none" stroke="#16a34a" points="626,-476 626,-568 798,-568 798,-476 626,-476"/>
 </g>
 <!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_approved -->
 <g id="edge3" class="edge">
 <title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_approved</title>
-<path fill="none" stroke="#3f3f46" d="M522.92,-409.65C553.39,-430.08 586.4,-452.21 615,-471.39"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="613.59,-473.81 621.8,-475.94 616.71,-469.16 613.59,-473.81"/>
+<path fill="none" stroke="#3f3f46" d="M519.83,-409.69C546.46,-427.5 575.59,-446.39 603,-463 608.2,-466.15 613.59,-469.33 619.04,-472.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="617.66,-474.93 625.99,-476.49 620.45,-470.08 617.66,-474.93"/>
 </g>
 <!-- external_interface_response_external_interface_api_project_approve_authentication_required -->
 <g id="node5" class="node">
 <title>external_interface_response_external_interface_api_project_approve_authentication_required</title>
-<polygon fill="#ffffff" stroke="transparent" points="603,-357 603,-449 780,-449 780,-357 603,-357"/>
-<polygon fill="#dc2626" stroke="transparent" points="604.5,-440 604.5,-448 779.5,-448 779.5,-440 604.5,-440"/>
-<polygon fill="#fef2f2" stroke="transparent" points="604.5,-409 604.5,-440 779.5,-440 779.5,-409 604.5,-409"/>
-<text text-anchor="start" x="608.5" y="-426.6" font-family="Arial" font-weight="bold" font-size="13.00">authentication_required</text>
-<text text-anchor="start" x="608.5" y="-415.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
-<text text-anchor="start" x="609.5" y="-397" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
-<text text-anchor="start" x="640.5" y="-397" font-family="Arial" font-size="10.00">  401</text>
-<text text-anchor="start" x="608.5" y="-377" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
-<text text-anchor="start" x="608.5" y="-366" font-family="Arial" font-size="10.00">body</text>
-<text text-anchor="start" x="630.5" y="-366" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="665.5" y="-366" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
-<polygon fill="none" stroke="#dc2626" points="603,-357 603,-449 780,-449 780,-357 603,-357"/>
+<polygon fill="#ffffff" stroke="transparent" points="623.5,-357 623.5,-449 800.5,-449 800.5,-357 623.5,-357"/>
+<polygon fill="#dc2626" stroke="transparent" points="625,-440 625,-448 800,-448 800,-440 625,-440"/>
+<polygon fill="#fef2f2" stroke="transparent" points="625,-409 625,-440 800,-440 800,-409 625,-409"/>
+<text text-anchor="start" x="629" y="-426.6" font-family="Arial" font-weight="bold" font-size="13.00">authentication_required</text>
+<text text-anchor="start" x="629" y="-415.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
+<text text-anchor="start" x="630" y="-397" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
+<text text-anchor="start" x="661" y="-397" font-family="Arial" font-size="10.00">  401</text>
+<text text-anchor="start" x="629" y="-377" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="629" y="-366" font-family="Arial" font-size="10.00">body</text>
+<text text-anchor="start" x="651" y="-366" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="686" y="-366" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
+<polygon fill="none" stroke="#dc2626" points="623.5,-357 623.5,-449 800.5,-449 800.5,-357 623.5,-357"/>
 </g>
 <!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_authentication_required -->
 <g id="edge4" class="edge">
 <title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_authentication_required</title>
-<path fill="none" stroke="#3f3f46" d="M542.16,-369.67C559.64,-373.59 577.46,-377.6 594.4,-381.4"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="594.22,-384.23 602.64,-383.26 595.45,-378.77 594.22,-384.23"/>
+<path fill="none" stroke="#3f3f46" d="M542.1,-367.75C566.56,-372.86 592.02,-378.17 615.53,-383.08"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="615.02,-385.83 623.42,-384.72 616.16,-380.35 615.02,-385.83"/>
+</g>
+<!-- external_interface_response_external_interface_api_project_approve_lifecycle_transition_not_allowed -->
+<g id="node6" class="node">
+<title>external_interface_response_external_interface_api_project_approve_lifecycle_transition_not_allowed</title>
+<polygon fill="#ffffff" stroke="transparent" points="603,-238 603,-330 821,-330 821,-238 603,-238"/>
+<polygon fill="#dc2626" stroke="transparent" points="604,-321 604,-329 820,-329 820,-321 604,-321"/>
+<polygon fill="#fef2f2" stroke="transparent" points="604,-290 604,-321 820,-321 820,-290 604,-290"/>
+<text text-anchor="start" x="608" y="-307.6" font-family="Arial" font-weight="bold" font-size="13.00">lifecycle_transition_not_allowed</text>
+<text text-anchor="start" x="608" y="-296.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
+<text text-anchor="start" x="609" y="-278" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
+<text text-anchor="start" x="640" y="-278" font-family="Arial" font-size="10.00">  409</text>
+<text text-anchor="start" x="608" y="-258" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="608" y="-247" font-family="Arial" font-size="10.00">body</text>
+<text text-anchor="start" x="630" y="-247" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="665" y="-247" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
+<polygon fill="none" stroke="#dc2626" points="603,-238 603,-330 821,-330 821,-238 603,-238"/>
+</g>
+<!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_lifecycle_transition_not_allowed -->
+<g id="edge5" class="edge">
+<title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_lifecycle_transition_not_allowed</title>
+<path fill="none" stroke="#3f3f46" d="M542.1,-318.66C559.53,-315.08 577.48,-311.4 594.87,-307.83"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="595.54,-310.55 602.81,-306.2 594.41,-305.07 595.54,-310.55"/>
 </g>
 <!-- external_interface_response_external_interface_api_project_approve_not_found -->
-<g id="node6" class="node">
+<g id="node7" class="node">
 <title>external_interface_response_external_interface_api_project_approve_not_found</title>
-<polygon fill="#ffffff" stroke="transparent" points="603,-238 603,-330 780,-330 780,-238 603,-238"/>
-<polygon fill="#dc2626" stroke="transparent" points="604.5,-321 604.5,-329 779.5,-329 779.5,-321 604.5,-321"/>
-<polygon fill="#fef2f2" stroke="transparent" points="604.5,-290 604.5,-321 779.5,-321 779.5,-290 604.5,-290"/>
-<text text-anchor="start" x="608.5" y="-307.6" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
-<text text-anchor="start" x="608.5" y="-296.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
-<text text-anchor="start" x="609.5" y="-278" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
-<text text-anchor="start" x="640.5" y="-278" font-family="Arial" font-size="10.00">  404</text>
-<text text-anchor="start" x="608.5" y="-258" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
-<text text-anchor="start" x="608.5" y="-247" font-family="Arial" font-size="10.00">body</text>
-<text text-anchor="start" x="630.5" y="-247" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="665.5" y="-247" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
-<polygon fill="none" stroke="#dc2626" points="603,-238 603,-330 780,-330 780,-238 603,-238"/>
+<polygon fill="#ffffff" stroke="transparent" points="623.5,-119 623.5,-211 800.5,-211 800.5,-119 623.5,-119"/>
+<polygon fill="#dc2626" stroke="transparent" points="625,-202 625,-210 800,-210 800,-202 625,-202"/>
+<polygon fill="#fef2f2" stroke="transparent" points="625,-171 625,-202 800,-202 800,-171 625,-171"/>
+<text text-anchor="start" x="629" y="-188.6" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
+<text text-anchor="start" x="629" y="-177.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
+<text text-anchor="start" x="630" y="-159" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
+<text text-anchor="start" x="661" y="-159" font-family="Arial" font-size="10.00">  404</text>
+<text text-anchor="start" x="629" y="-139" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="629" y="-128" font-family="Arial" font-size="10.00">body</text>
+<text text-anchor="start" x="651" y="-128" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="686" y="-128" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
+<polygon fill="none" stroke="#dc2626" points="623.5,-119 623.5,-211 800.5,-211 800.5,-119 623.5,-119"/>
 </g>
 <!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_not_found -->
-<g id="edge5" class="edge">
-<title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_not_found</title>
-<path fill="none" stroke="#3f3f46" d="M542.16,-316.78C559.64,-312.92 577.46,-308.98 594.4,-305.24"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="595.44,-307.87 602.64,-303.41 594.23,-302.41 595.44,-307.87"/>
-</g>
-<!-- external_interface_response_external_interface_api_project_approve_transition_not_allowed -->
-<g id="node7" class="node">
-<title>external_interface_response_external_interface_api_project_approve_transition_not_allowed</title>
-<polygon fill="#ffffff" stroke="transparent" points="603,-119 603,-211 780,-211 780,-119 603,-119"/>
-<polygon fill="#dc2626" stroke="transparent" points="604.5,-202 604.5,-210 779.5,-210 779.5,-202 604.5,-202"/>
-<polygon fill="#fef2f2" stroke="transparent" points="604.5,-171 604.5,-202 779.5,-202 779.5,-171 604.5,-171"/>
-<text text-anchor="start" x="608.5" y="-188.6" font-family="Arial" font-weight="bold" font-size="13.00">transition_not_allowed</text>
-<text text-anchor="start" x="608.5" y="-177.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
-<text text-anchor="start" x="609.5" y="-159" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
-<text text-anchor="start" x="640.5" y="-159" font-family="Arial" font-size="10.00">  409</text>
-<text text-anchor="start" x="608.5" y="-139" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
-<text text-anchor="start" x="608.5" y="-128" font-family="Arial" font-size="10.00">body</text>
-<text text-anchor="start" x="630.5" y="-128" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="665.5" y="-128" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
-<polygon fill="none" stroke="#dc2626" points="603,-119 603,-211 780,-211 780,-119 603,-119"/>
-</g>
-<!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_transition_not_allowed -->
 <g id="edge6" class="edge">
-<title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_transition_not_allowed</title>
-<path fill="none" stroke="#3f3f46" d="M523.3,-276.47C553.47,-256.35 586.09,-234.6 614.45,-215.7"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="616.08,-217.98 621.18,-211.21 612.97,-213.32 616.08,-217.98"/>
+<title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_not_found</title>
+<path fill="none" stroke="#3f3f46" d="M521.88,-276.44C548,-259.29 576.36,-241.13 603,-225 608.35,-221.76 613.89,-218.48 619.5,-215.21"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="621.11,-217.51 626.63,-211.07 618.31,-212.66 621.11,-217.51"/>
 </g>
 <!-- external_interface_response_external_interface_api_project_approve_unavailable -->
 <g id="node8" class="node">
 <title>external_interface_response_external_interface_api_project_approve_unavailable</title>
-<polygon fill="#ffffff" stroke="transparent" points="603,0 603,-92 780,-92 780,0 603,0"/>
-<polygon fill="#dc2626" stroke="transparent" points="604.5,-83 604.5,-91 779.5,-91 779.5,-83 604.5,-83"/>
-<polygon fill="#fef2f2" stroke="transparent" points="604.5,-52 604.5,-83 779.5,-83 779.5,-52 604.5,-52"/>
-<text text-anchor="start" x="608.5" y="-69.6" font-family="Arial" font-weight="bold" font-size="13.00">unavailable</text>
-<text text-anchor="start" x="608.5" y="-58.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
-<text text-anchor="start" x="609.5" y="-40" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
-<text text-anchor="start" x="640.5" y="-40" font-family="Arial" font-size="10.00">  503</text>
-<text text-anchor="start" x="608.5" y="-20" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
-<text text-anchor="start" x="608.5" y="-9" font-family="Arial" font-size="10.00">body</text>
-<text text-anchor="start" x="630.5" y="-9" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<text text-anchor="start" x="665.5" y="-9" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
-<polygon fill="none" stroke="#dc2626" points="603,0 603,-92 780,-92 780,0 603,0"/>
+<polygon fill="#ffffff" stroke="transparent" points="623.5,0 623.5,-92 800.5,-92 800.5,0 623.5,0"/>
+<polygon fill="#dc2626" stroke="transparent" points="625,-83 625,-91 800,-91 800,-83 625,-83"/>
+<polygon fill="#fef2f2" stroke="transparent" points="625,-52 625,-83 800,-83 800,-52 625,-52"/>
+<text text-anchor="start" x="629" y="-69.6" font-family="Arial" font-weight="bold" font-size="13.00">unavailable</text>
+<text text-anchor="start" x="629" y="-58.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
+<text text-anchor="start" x="630" y="-40" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
+<text text-anchor="start" x="661" y="-40" font-family="Arial" font-size="10.00">  503</text>
+<text text-anchor="start" x="629" y="-20" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="629" y="-9" font-family="Arial" font-size="10.00">body</text>
+<text text-anchor="start" x="651" y="-9" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<text text-anchor="start" x="686" y="-9" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
+<polygon fill="none" stroke="#dc2626" points="623.5,0 623.5,-92 800.5,-92 800.5,0 623.5,0"/>
 </g>
 <!-- external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_unavailable -->
 <g id="edge7" class="edge">
 <title>external_interface_invocation_command_project_approve&#45;&gt;external_interface_response_external_interface_api_project_approve_unavailable</title>
-<path fill="none" stroke="#3f3f46" d="M465.45,-276.32C498.97,-226.12 549.13,-157.39 603,-106 605.93,-103.21 609,-100.45 612.16,-97.75"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="614.4,-99.53 618.78,-92.27 610.83,-95.21 614.4,-99.53"/>
+<path fill="none" stroke="#3f3f46" d="M463.09,-276.43C495.88,-225.3 546.19,-155.31 603,-106 607.34,-102.23 611.96,-98.59 616.75,-95.1"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="618.45,-97.33 623.37,-90.43 615.22,-92.75 618.45,-97.33"/>
 </g>
 <!-- external_interface_response_external_interface_api_project_approve_access_denied&#45;&gt;external_interface_response_external_interface_api_project_approve_approved -->
 <!-- external_interface_response_external_interface_api_project_approve_approved&#45;&gt;external_interface_response_external_interface_api_project_approve_authentication_required -->
-<!-- external_interface_response_external_interface_api_project_approve_authentication_required&#45;&gt;external_interface_response_external_interface_api_project_approve_not_found -->
-<!-- external_interface_response_external_interface_api_project_approve_not_found&#45;&gt;external_interface_response_external_interface_api_project_approve_transition_not_allowed -->
-<!-- external_interface_response_external_interface_api_project_approve_transition_not_allowed&#45;&gt;external_interface_response_external_interface_api_project_approve_unavailable -->
+<!-- external_interface_response_external_interface_api_project_approve_authentication_required&#45;&gt;external_interface_response_external_interface_api_project_approve_lifecycle_transition_not_allowed -->
+<!-- external_interface_response_external_interface_api_project_approve_lifecycle_transition_not_allowed&#45;&gt;external_interface_response_external_interface_api_project_approve_not_found -->
+<!-- external_interface_response_external_interface_api_project_approve_not_found&#45;&gt;external_interface_response_external_interface_api_project_approve_unavailable -->
 </g>
 </svg>

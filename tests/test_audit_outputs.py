@@ -259,12 +259,12 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert ('"application_' + "act" + 'ion_application_' + "act" + 'ion_project_approve" [shape=') not in behavior
     assert "transition command" not in behavior
     assert behavior.index('"command_input_command_project_approve"') < behavior.index('"command_query_policy_access_policy_project_reviewer"')
-    assert behavior.index('"command_query_policy_access_policy_project_reviewer"') < behavior.index('"command_query_resource_command_project_approve_lifecycle_transition_entity_type_project_status"')
-    assert behavior.index('"command_query_resource_command_project_approve_lifecycle_transition_entity_type_project_status"') < behavior.index('"command_outcome_command_project_approve_approved"')
+    assert behavior.index('"command_query_policy_access_policy_project_reviewer"') < behavior.index('"command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status"')
+    assert behavior.index('"command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status"') < behavior.index('"command_outcome_command_project_approve_approved"')
     assert behavior.index('"command_outcome_command_project_approve_approved"') < behavior.index('"command_query_event_command_project_approve_domain_event_project_approved"')
     assert '"command_input_command_project_approve" -> "command_query_policy_access_policy_project_reviewer" [label="authorize"' in behavior
-    assert '"command_query_policy_access_policy_project_reviewer" -> "command_query_resource_command_project_approve_lifecycle_transition_entity_type_project_status" [label="lifecycle_transition"' in behavior
-    assert '"command_query_resource_command_project_approve_lifecycle_transition_entity_type_project_status" -> "command_outcome_command_project_approve_approved" [label="success"' in behavior
+    assert '"command_query_policy_access_policy_project_reviewer" -> "command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status" [label="entity_lifecycle_transition"' in behavior
+    assert '"command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status" -> "command_outcome_command_project_approve_approved" [label="success"' in behavior
     assert '"command_outcome_command_project_approve_approved" -> "command_query_event_command_project_approve_domain_event_project_approved" [label="emit"' in behavior
     assert "<B>access_policy:</B>" not in behavior
     assert "<B>creates:</B>" not in create_behavior

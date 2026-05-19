@@ -235,7 +235,7 @@ commands:
         kind: failure
         result:
           $ref: entity_type.problem
-      transition_not_allowed:
+      lifecycle_transition_not_allowed:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -285,7 +285,7 @@ commands:
         kind: failure
         result:
           $ref: entity_type.problem
-      transition_not_allowed:
+      lifecycle_transition_not_allowed:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -402,7 +402,7 @@ commands:
       additionalProperties: false
     entity_changes: {}
     outcomes:
-      transition_not_allowed:
+      lifecycle_transition_not_allowed:
         kind: failure
         result:
           $ref: entity_type.problem
@@ -826,7 +826,7 @@ state_machines:
       rationale: Invalid detail commands move the detail panel into its displayable error state.
       to: error
       trigger:
-        local_signal: show_transition_not_allowed
+        local_signal: show_lifecycle_transition_not_allowed
     context_schema:
       type: object
       properties:
@@ -849,7 +849,7 @@ state_machines:
               - project_id
               additionalProperties: false
           selection_cleared: {}
-          show_transition_not_allowed:
+          show_lifecycle_transition_not_allowed:
             payload_schema:
               type: object
               properties:
@@ -931,19 +931,19 @@ state_machines:
                   reason: result_bound_without_signal
               access_denied:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $query_outcome.result.message
               not_found:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $query_outcome.result.message
               authentication_required:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $query_outcome.result.message
@@ -963,9 +963,9 @@ state_machines:
                 no_local_effect:
                   reason: handled_by_response_surface
                   rationale: The response mapping keeps the detail panel unchanged for access_denied approval.
-              transition_not_allowed:
+              lifecycle_transition_not_allowed:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
@@ -992,25 +992,25 @@ state_machines:
                   data_refresh_signal: project_changed
               access_denied:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
-              transition_not_allowed:
+              lifecycle_transition_not_allowed:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
               not_found:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
               authentication_required:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
@@ -1043,7 +1043,7 @@ state_machines:
       rationale: Invalid create attempts move the list into its displayable error state.
       to: error
       trigger:
-        local_signal: show_transition_not_allowed
+        local_signal: show_lifecycle_transition_not_allowed
     - local_effects:
       - emit:
           local_signal: project_selected
@@ -1068,7 +1068,7 @@ state_machines:
       rationale: Invalid list queries move the list into its displayable error state.
       to: error
       trigger:
-        local_signal: show_transition_not_allowed
+        local_signal: show_lifecycle_transition_not_allowed
     context_schema:
       type: object
       properties:
@@ -1136,7 +1136,7 @@ state_machines:
               required:
               - project_id
               additionalProperties: false
-          show_transition_not_allowed:
+          show_lifecycle_transition_not_allowed:
             payload_schema:
               type: object
               properties:
@@ -1195,7 +1195,7 @@ state_machines:
                   rationale: The response mapping reports authentication failure without a local transition.
               validation_failed:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
@@ -1250,19 +1250,19 @@ state_machines:
             local_effects:
               access_denied:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
-              transition_not_allowed:
+              lifecycle_transition_not_allowed:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
               not_found:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
@@ -1271,7 +1271,7 @@ state_machines:
                   data_refresh_signal: projects_changed
               authentication_required:
                 raise:
-                  local_signal: show_transition_not_allowed
+                  local_signal: show_lifecycle_transition_not_allowed
                   payload_bindings:
                     message:
                       from: $command_outcome.result.message
@@ -1412,7 +1412,7 @@ external_interfaces:
             type:
               $ref: entity_type.problem
           status: 403
-        transition_not_allowed:
+        lifecycle_transition_not_allowed:
           body:
             from: $invocation_outcome.result
             type:
@@ -1473,10 +1473,10 @@ external_interfaces:
             bindings:
               message:
                 from: $adapter_response.body.message
-        transition_not_allowed:
+        lifecycle_transition_not_allowed:
           exit_code: 2
           stderr:
-            text: text_resource.project.approve.transition_not_allowed
+            text: text_resource.project.approve.lifecycle_transition_not_allowed
             bindings:
               message:
                 from: $adapter_response.body.message
@@ -1850,7 +1850,7 @@ text_resources:
     args:
       message:
         type: string
-  text_resource.project.approve.transition_not_allowed:
+  text_resource.project.approve.lifecycle_transition_not_allowed:
     rationale: CLI approval invalid-state message.
     max_chars: 120
     placeholder: 'Cannot approve project: {message}'

@@ -248,7 +248,7 @@ def test_author_contract_is_sparse_source() -> None:
         }
     }
     assert "refs" not in author
-    assert "lifecycle_transition" not in author["commands"]["command.project.submit"]["entity_changes"]
+    assert "entity_lifecycle_transition" not in author["commands"]["command.project.submit"]["entity_changes"]
     assert author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["given"]["preconditions"] == [{"ref": "precondition.project.submitted"}]
     assert compile_author(author) == read_yaml(ROOT / COMPILED_SPEC_PATH)
 
@@ -361,7 +361,7 @@ def test_response_assertion_requires_call_external_interface() -> None:
 def test_authorization_denial_outcome_must_be_mapped_authorization_failure() -> None:
     author = _author()
     case = author["behavior_scenarios"]["behavior_scenario.project.approve.access_denied"]
-    case["then"]["outcome"] = "transition_not_allowed"
+    case["then"]["outcome"] = "lifecycle_transition_not_allowed"
     with pytest.raises(ContractError, match=r"authorization_denial outcome must be one of command authorization failure outcomes"):
         compile_author(author)
 
@@ -550,7 +550,7 @@ def _derived_transition_author() -> dict:
                     "lifecycle_states": ["draft", "submitted"],
                     "lifecycle_transitions": [{"triggered_by": "command.ticket.submit", "from": "draft", "to": "submitted"}],
                 },
-                "rationale": "Ticket lifecycle owns state transitions.",
+                "rationale": "Ticket lifecycle owns entity_lifecycle_transitions.",
             },
             "entity_type.problem": {
                 "name": "Problem",
@@ -565,7 +565,7 @@ def _derived_transition_author() -> dict:
                 "emits_domain_events": [],
                 "outcomes": {
                     "submitted": {"kind": "success", "result": M("Ticket")},
-                    "transition_not_allowed": {"kind": "failure", "result": M("Problem")},
+                    "lifecycle_transition_not_allowed": {"kind": "failure", "result": M("Problem")},
                 },
                 "rationale": "Submitting moves a draft ticket forward.",
             }
@@ -576,7 +576,7 @@ def _derived_transition_author() -> dict:
 def test_lifecycle_transition_command_derives_state_change_from_entity_lifecycle() -> None:
     author = _derived_transition_author()
     contract = compile_author(author)
-    assert contract["commands"]["command.ticket.submit"]["entity_changes"]["lifecycle_transition"] == {
+    assert contract["commands"]["command.ticket.submit"]["entity_changes"]["entity_lifecycle_transition"] == {
         "entity_type": "entity_type.ticket",
         "field": "status",
         "from": "draft",
@@ -588,7 +588,7 @@ def test_lifecycle_transition_command_derives_state_change_from_entity_lifecycle
 
 def test_authored_lifecycle_transition_metadata_must_match_entity_lifecycle() -> None:
     author = _derived_transition_author()
-    author["commands"]["command.ticket.submit"]["entity_changes"]["lifecycle_transition"] = {
+    author["commands"]["command.ticket.submit"]["entity_changes"]["entity_lifecycle_transition"] = {
         "entity_type": "entity_type.ticket",
         "field": "status",
         "from": "draft",
@@ -603,7 +603,7 @@ def test_lifecycle_transition_commands_must_be_referenced_by_entity_lifecycle() 
     author["commands"]["command.ticket.close"] = {
         "input_schema": O({"ticket_id": P("ID")}),
         "entity_changes": {
-            "lifecycle_transition": {
+            "entity_lifecycle_transition": {
                 "entity_type": "entity_type.ticket",
                 "field": "status",
                 "from": "draft",
@@ -613,19 +613,19 @@ def test_lifecycle_transition_commands_must_be_referenced_by_entity_lifecycle() 
         "emits_domain_events": [],
         "outcomes": {
             "closed": {"kind": "success", "result": M("Ticket")},
-            "transition_not_allowed": {"kind": "failure", "result": M("Problem")},
+            "lifecycle_transition_not_allowed": {"kind": "failure", "result": M("Problem")},
         },
         "rationale": "Closing is intentionally not declared in the lifecycle graph.",
     }
-    with pytest.raises(ContractError, match=r"Lifecycle-transition command command\.ticket\.close must be referenced by entity_lifecycle declarations"):
+    with pytest.raises(ContractError, match=r"entity_lifecycle_transition command command\.ticket\.close must be referenced by entity_lifecycle declarations"):
         compile_author(author)
 
 
-def test_lifecycle_transition_commands_must_declare_transition_not_allowed_failure() -> None:
+def test_lifecycle_transition_commands_must_declare_lifecycle_transition_not_allowed_failure() -> None:
     author = _derived_transition_author()
     author["commands"]["command.ticket.submit"]["outcomes"]["other_failure"] = {"kind": "failure", "result": M("Problem")}
-    del author["commands"]["command.ticket.submit"]["outcomes"]["transition_not_allowed"]
-    with pytest.raises(ContractError, match=r"must declare transition_not_allowed failure outcome"):
+    del author["commands"]["command.ticket.submit"]["outcomes"]["lifecycle_transition_not_allowed"]
+    with pytest.raises(ContractError, match=r"must declare lifecycle_transition_not_allowed failure outcome"):
         compile_author(author)
 
 
@@ -647,7 +647,7 @@ def test_lifecycle_initial_state_must_be_declared() -> None:
 def test_lifecycle_transition_states_must_be_declared() -> None:
     author = _derived_transition_author()
     author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["lifecycle_transitions"][0]["to"] = "missing"
-    with pytest.raises(ContractError, match=r"Entity type entity_type\.ticket lifecycle_transition uses unknown lifecycle_state"):
+    with pytest.raises(ContractError, match=r"Entity type entity_type\.ticket entity_lifecycle_transition uses unknown lifecycle_state"):
         compile_author(author)
 
 
@@ -663,7 +663,7 @@ def test_lifecycle_transition_must_reference_known_command() -> None:
     author["entity_types"]["entity_type.ticket"]["entity_lifecycle"]["lifecycle_transitions"][0]["triggered_by"] = "command.ticket.missing"
     with pytest.raises(
         ContractError,
-        match=r"Entity type entity_type\.ticket lifecycle_transition references unknown command command\.ticket\.missing",
+        match=r"Entity type entity_type\.ticket entity_lifecycle_transition references unknown command command\.ticket\.missing",
     ):
         compile_author(author)
 
@@ -1352,14 +1352,14 @@ def test_command_binding_rejects_legacy_non_routing_route() -> None:
 
 def test_command_binding_failure_no_local_effect_requires_reason_and_rationale() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["lifecycle_transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "intentionally_unobservable"}
     with pytest.raises(ContractError, match=r"failure outcome no_local_effect must declare rationale"):
         compile_source(author)
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["lifecycle_transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "handled_by_response_surface", "rationale": "test effect"}
     with pytest.raises(ContractError, match=r"handled_by_response_surface requires an adapter response mapping or renderer surface"):
@@ -1368,7 +1368,7 @@ def test_command_binding_failure_no_local_effect_requires_reason_and_rationale()
 
 def test_command_binding_failure_no_local_effect_rejects_state_unchanged() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["lifecycle_transition_not_allowed"]
     effect.clear()
     effect["no_local_effect"] = {"reason": "state_unchanged", "rationale": "Invalid submit leaves the list unchanged."}
     with pytest.raises(ContractError, match=r"failure outcome no_local_effect must use reason handled_by_response_surface with a proven response mapping or intentionally_unobservable with rationale"):
@@ -1383,7 +1383,7 @@ def test_command_binding_raised_signals_must_be_declared_locally() -> None:
         compile_source(author)
 
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["lifecycle_transition_not_allowed"]
     effect["raise"]["local_signal"] = "ghost"
     with pytest.raises(ContractError, match=r"raise references undeclared state-machine signal: local_signal\.ghost"):
         compile_source(author)
@@ -1391,7 +1391,7 @@ def test_command_binding_raised_signals_must_be_declared_locally() -> None:
 
 def test_command_binding_payload_and_input_mapping_are_type_checked() -> None:
     author = _author()
-    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["transition_not_allowed"]
+    effect = _item(author, "state_machines", "state_machine.project.list")["states"]["ready"]["command_bindings"]["submit"]["local_effects"]["lifecycle_transition_not_allowed"]
     del effect["raise"]["payload_bindings"]["message"]
     with pytest.raises(ContractError, match=r"payload_bindings must exactly match payload fields: missing: message"):
         compile_source(author)
@@ -1986,8 +1986,8 @@ def test_external_interface_responses_must_map_authorization_failure_outcomes() 
 
 def test_cli_failure_response_must_use_nonzero_exit_and_stderr() -> None:
     author = _author()
-    author["external_interfaces"]["external_interface.cli.project.approve"]["output_mapping"]["response_handlers"]["transition_not_allowed"]["exit_code"] = 0
-    with pytest.raises(ContractError, match=r"CLI external interface external_interface.cli\.project\.approve failure response handler transition_not_allowed exit_code must be nonzero"):
+    author["external_interfaces"]["external_interface.cli.project.approve"]["output_mapping"]["response_handlers"]["lifecycle_transition_not_allowed"]["exit_code"] = 0
+    with pytest.raises(ContractError, match=r"CLI external interface external_interface.cli\.project\.approve failure response handler lifecycle_transition_not_allowed exit_code must be nonzero"):
         compile_source(author)
 
 

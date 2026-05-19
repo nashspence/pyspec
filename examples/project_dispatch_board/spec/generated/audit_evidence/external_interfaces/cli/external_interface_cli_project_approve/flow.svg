@@ -1,167 +1,168 @@
-<svg width="1045pt" height="687pt"
- viewBox="0.00 0.00 1045.00 687.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 8ae25b7e7395f21929d6223f574dcf88f0b52a5bfc46835e54a2fb597c6d763a -->
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 669)">
+<svg width="1045pt" height="705pt"
+ viewBox="0.00 0.00 1045.00 705.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: e38cc6b8ae6b76a6002f9f19b430c00d79b06730e8ae062571284b3c86653be7 -->
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 687)">
 <title>external_interface_external_interface_cli_project_approve</title>
 <!-- external_interface_external_interface_cli_project_approve -->
 <g id="node1" class="node">
 <title>external_interface_external_interface_cli_project_approve</title>
-<polygon fill="#ffffff" stroke="transparent" points="0,-247.5 0,-402.5 341,-402.5 341,-247.5 0,-247.5"/>
-<polygon fill="#0891b2" stroke="transparent" points="1.5,-393 1.5,-401 340.5,-401 340.5,-393 1.5,-393"/>
-<polygon fill="#ecfeff" stroke="transparent" points="1.5,-362 1.5,-393 340.5,-393 340.5,-362 1.5,-362"/>
-<text text-anchor="start" x="5.5" y="-379.6" font-family="Arial" font-weight="bold" font-size="13.00">project approve</text>
-<text text-anchor="start" x="5.5" y="-368.6" font-family="Arial" font-size="8.00" fill="#64748b">cli external interface</text>
-<text text-anchor="start" x="5.5" y="-351" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">CLI entry for approval automation.</text>
-<text text-anchor="start" x="6.5" y="-331" font-family="Arial" font-weight="bold" font-size="10.00">cli command:</text>
-<text text-anchor="start" x="70.5" y="-331" font-family="Arial" font-size="10.00">  cli_command.project.approve</text>
-<text text-anchor="start" x="5.5" y="-311" font-family="Arial" font-weight="bold" font-size="10.00">args</text>
-<text text-anchor="start" x="5.5" y="-300" font-family="Arial" font-size="10.00">approved_by</text>
-<text text-anchor="start" x="61.5" y="-300" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="5.5" y="-289" font-family="Arial" font-size="10.00">project_id</text>
-<text text-anchor="start" x="48.5" y="-289" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<text text-anchor="start" x="6.5" y="-269" font-family="Arial" font-weight="bold" font-size="10.00">delegated input body:</text>
-<text text-anchor="start" x="108.5" y="-269" font-family="Arial" font-size="10.00">  approved_by ← adapter_input.args.approved_by</text>
-<text text-anchor="start" x="6.5" y="-257" font-family="Arial" font-weight="bold" font-size="10.00">delegated input path_params:</text>
-<text text-anchor="start" x="145.5" y="-257" font-family="Arial" font-size="10.00">  project_id ← adapter_input.args.project_id</text>
-<polygon fill="none" stroke="#0891b2" points="0,-247.5 0,-402.5 341,-402.5 341,-247.5 0,-247.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="0,-261.5 0,-416.5 341,-416.5 341,-261.5 0,-261.5"/>
+<polygon fill="#0891b2" stroke="transparent" points="1.5,-407 1.5,-415 340.5,-415 340.5,-407 1.5,-407"/>
+<polygon fill="#ecfeff" stroke="transparent" points="1.5,-376 1.5,-407 340.5,-407 340.5,-376 1.5,-376"/>
+<text text-anchor="start" x="5.5" y="-393.6" font-family="Arial" font-weight="bold" font-size="13.00">project approve</text>
+<text text-anchor="start" x="5.5" y="-382.6" font-family="Arial" font-size="8.00" fill="#64748b">cli external interface</text>
+<text text-anchor="start" x="5.5" y="-365" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">CLI entry for approval automation.</text>
+<text text-anchor="start" x="6.5" y="-345" font-family="Arial" font-weight="bold" font-size="10.00">cli command:</text>
+<text text-anchor="start" x="70.5" y="-345" font-family="Arial" font-size="10.00">  cli_command.project.approve</text>
+<text text-anchor="start" x="5.5" y="-325" font-family="Arial" font-weight="bold" font-size="10.00">args</text>
+<text text-anchor="start" x="5.5" y="-314" font-family="Arial" font-size="10.00">approved_by</text>
+<text text-anchor="start" x="61.5" y="-314" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="5.5" y="-303" font-family="Arial" font-size="10.00">project_id</text>
+<text text-anchor="start" x="48.5" y="-303" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
+<text text-anchor="start" x="6.5" y="-283" font-family="Arial" font-weight="bold" font-size="10.00">delegated input body:</text>
+<text text-anchor="start" x="108.5" y="-283" font-family="Arial" font-size="10.00">  approved_by ← adapter_input.args.approved_by</text>
+<text text-anchor="start" x="6.5" y="-271" font-family="Arial" font-weight="bold" font-size="10.00">delegated input path_params:</text>
+<text text-anchor="start" x="145.5" y="-271" font-family="Arial" font-size="10.00">  project_id ← adapter_input.args.project_id</text>
+<polygon fill="none" stroke="#0891b2" points="0,-261.5 0,-416.5 341,-416.5 341,-261.5 0,-261.5"/>
 </g>
 <!-- external_interface_invocation_external_interface_api_project_approve -->
 <g id="node2" class="node">
 <title>external_interface_invocation_external_interface_api_project_approve</title>
-<polygon fill="#ffffff" stroke="transparent" points="402,-241 402,-409 656,-409 656,-241 402,-241"/>
-<polygon fill="#0891b2" stroke="transparent" points="403,-400 403,-408 655,-408 655,-400 403,-400"/>
-<polygon fill="#ecfeff" stroke="transparent" points="403,-369 403,-400 655,-400 655,-369 403,-369"/>
-<text text-anchor="start" x="407" y="-386.6" font-family="Arial" font-weight="bold" font-size="13.00">external_interface.api.project.approve</text>
-<text text-anchor="start" x="407" y="-375.6" font-family="Arial" font-size="8.00" fill="#64748b">delegated external interface</text>
-<text text-anchor="start" x="407" y="-358" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for approving submitted dispatch</text>
-<text text-anchor="start" x="407" y="-347" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">projects.</text>
-<text text-anchor="start" x="408" y="-327" font-family="Arial" font-weight="bold" font-size="10.00">adapter:</text>
-<text text-anchor="start" x="446" y="-327" font-family="Arial" font-size="10.00">  http_api</text>
-<text text-anchor="start" x="408" y="-315" font-family="Arial" font-weight="bold" font-size="10.00">invokes:</text>
-<text text-anchor="start" x="448" y="-315" font-family="Arial" font-size="10.00">  command command.project.approve</text>
-<text text-anchor="start" x="408" y="-303" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
-<text text-anchor="start" x="432" y="-303" font-family="Arial" font-size="10.00">  lifecycle_transition</text>
-<text text-anchor="start" x="407" y="-283" font-family="Arial" font-weight="bold" font-size="10.00">authorization</text>
-<text text-anchor="start" x="407" y="-271" font-family="Arial" font-size="10.00">policy: access_policy.project.reviewer</text>
-<text text-anchor="start" x="407" y="-260" font-family="Arial" font-size="10.00">authentication_required_as: authentication_required</text>
-<text text-anchor="start" x="407" y="-249" font-family="Arial" font-size="10.00">access_denied_as: access_denied</text>
-<polygon fill="none" stroke="#0891b2" points="402,-241 402,-409 656,-409 656,-241 402,-241"/>
+<polygon fill="#ffffff" stroke="transparent" points="402,-255 402,-423 656,-423 656,-255 402,-255"/>
+<polygon fill="#0891b2" stroke="transparent" points="403,-414 403,-422 655,-422 655,-414 403,-414"/>
+<polygon fill="#ecfeff" stroke="transparent" points="403,-383 403,-414 655,-414 655,-383 403,-383"/>
+<text text-anchor="start" x="407" y="-400.6" font-family="Arial" font-weight="bold" font-size="13.00">external_interface.api.project.approve</text>
+<text text-anchor="start" x="407" y="-389.6" font-family="Arial" font-size="8.00" fill="#64748b">delegated external interface</text>
+<text text-anchor="start" x="407" y="-372" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTTP endpoint for approving submitted dispatch</text>
+<text text-anchor="start" x="407" y="-361" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">projects.</text>
+<text text-anchor="start" x="408" y="-341" font-family="Arial" font-weight="bold" font-size="10.00">adapter:</text>
+<text text-anchor="start" x="446" y="-341" font-family="Arial" font-size="10.00">  http_api</text>
+<text text-anchor="start" x="408" y="-329" font-family="Arial" font-weight="bold" font-size="10.00">invokes:</text>
+<text text-anchor="start" x="448" y="-329" font-family="Arial" font-size="10.00">  command command.project.approve</text>
+<text text-anchor="start" x="408" y="-317" font-family="Arial" font-weight="bold" font-size="10.00">kind:</text>
+<text text-anchor="start" x="432" y="-317" font-family="Arial" font-size="10.00">  entity_lifecycle_transition</text>
+<text text-anchor="start" x="407" y="-297" font-family="Arial" font-weight="bold" font-size="10.00">authorization</text>
+<text text-anchor="start" x="407" y="-285" font-family="Arial" font-size="10.00">policy: access_policy.project.reviewer</text>
+<text text-anchor="start" x="407" y="-274" font-family="Arial" font-size="10.00">authentication_required_as: authentication_required</text>
+<text text-anchor="start" x="407" y="-263" font-family="Arial" font-size="10.00">access_denied_as: access_denied</text>
+<polygon fill="none" stroke="#0891b2" points="402,-255 402,-423 656,-423 656,-255 402,-255"/>
 </g>
 <!-- external_interface_external_interface_cli_project_approve&#45;&gt;external_interface_invocation_external_interface_api_project_approve -->
 <g id="edge1" class="edge">
 <title>external_interface_external_interface_cli_project_approve&#45;&gt;external_interface_invocation_external_interface_api_project_approve</title>
-<path fill="none" stroke="#3f3f46" d="M341.14,-325C358.72,-325 376.42,-325 393.54,-325"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="393.9,-327.8 401.9,-325 393.9,-322.2 393.9,-327.8"/>
+<path fill="none" stroke="#3f3f46" d="M341.14,-339C358.72,-339 376.42,-339 393.54,-339"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="393.9,-341.8 401.9,-339 393.9,-336.2 393.9,-341.8"/>
 </g>
 <!-- external_interface_response_external_interface_cli_project_approve_access_denied -->
 <g id="node3" class="node">
 <title>external_interface_response_external_interface_cli_project_approve_access_denied</title>
-<polygon fill="#ffffff" stroke="transparent" points="717,-565 717,-651 1009,-651 1009,-565 717,-565"/>
-<polygon fill="#dc2626" stroke="transparent" points="718,-642 718,-650 1008,-650 1008,-642 718,-642"/>
-<polygon fill="#fef2f2" stroke="transparent" points="718,-611 718,-642 1008,-642 1008,-611 718,-611"/>
-<text text-anchor="start" x="722" y="-628.6" font-family="Arial" font-weight="bold" font-size="13.00">access_denied</text>
-<text text-anchor="start" x="722" y="-617.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response handler</text>
-<text text-anchor="start" x="723" y="-599" font-family="Arial" font-weight="bold" font-size="10.00">stderr:</text>
-<text text-anchor="start" x="754" y="-599" font-family="Arial" font-size="10.00">  text_resource.project.approve.access_denied</text>
-<text text-anchor="start" x="723" y="-587" font-family="Arial" font-weight="bold" font-size="10.00">stderr bindings:</text>
-<text text-anchor="start" x="798" y="-587" font-family="Arial" font-size="10.00">  message ← adapter_response.body.message</text>
-<text text-anchor="start" x="723" y="-575" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
-<text text-anchor="start" x="771" y="-575" font-family="Arial" font-size="10.00">  5</text>
-<polygon fill="none" stroke="#dc2626" points="717,-565 717,-651 1009,-651 1009,-565 717,-565"/>
+<polygon fill="#ffffff" stroke="transparent" points="717,-583 717,-669 1009,-669 1009,-583 717,-583"/>
+<polygon fill="#dc2626" stroke="transparent" points="718,-660 718,-668 1008,-668 1008,-660 718,-660"/>
+<polygon fill="#fef2f2" stroke="transparent" points="718,-629 718,-660 1008,-660 1008,-629 718,-629"/>
+<text text-anchor="start" x="722" y="-646.6" font-family="Arial" font-weight="bold" font-size="13.00">access_denied</text>
+<text text-anchor="start" x="722" y="-635.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response handler</text>
+<text text-anchor="start" x="723" y="-617" font-family="Arial" font-weight="bold" font-size="10.00">stderr:</text>
+<text text-anchor="start" x="754" y="-617" font-family="Arial" font-size="10.00">  text_resource.project.approve.access_denied</text>
+<text text-anchor="start" x="723" y="-605" font-family="Arial" font-weight="bold" font-size="10.00">stderr bindings:</text>
+<text text-anchor="start" x="798" y="-605" font-family="Arial" font-size="10.00">  message ← adapter_response.body.message</text>
+<text text-anchor="start" x="723" y="-593" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
+<text text-anchor="start" x="771" y="-593" font-family="Arial" font-size="10.00">  5</text>
+<polygon fill="none" stroke="#dc2626" points="717,-583 717,-669 1009,-669 1009,-583 717,-583"/>
 </g>
 <!-- external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_access_denied -->
 <g id="edge2" class="edge">
 <title>external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_access_denied</title>
-<path fill="none" stroke="#3f3f46" d="M583.36,-409.26C616.89,-456.56 663.8,-513.6 717,-552 721.16,-555.01 725.51,-557.87 729.99,-560.61"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="728.81,-563.16 737.13,-564.8 731.65,-558.33 728.81,-563.16"/>
+<path fill="none" stroke="#3f3f46" d="M581.9,-423.1C615.4,-471.56 662.78,-530.51 717,-570 721.15,-573.02 725.49,-575.91 729.96,-578.65"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="728.77,-581.2 737.08,-582.86 731.62,-576.38 728.77,-581.2"/>
 </g>
 <!-- external_interface_response_external_interface_cli_project_approve_approved -->
 <g id="node4" class="node">
 <title>external_interface_response_external_interface_cli_project_approve_approved</title>
-<polygon fill="#ffffff" stroke="transparent" points="731,-452 731,-538 995,-538 995,-452 731,-452"/>
-<polygon fill="#16a34a" stroke="transparent" points="732,-529 732,-537 994,-537 994,-529 732,-529"/>
-<polygon fill="#f0fdf4" stroke="transparent" points="732,-498 732,-529 994,-529 994,-498 732,-498"/>
-<text text-anchor="start" x="736" y="-515.6" font-family="Arial" font-weight="bold" font-size="13.00">approved</text>
-<text text-anchor="start" x="736" y="-504.6" font-family="Arial" font-size="8.00" fill="#64748b">success response handler</text>
-<text text-anchor="start" x="737" y="-486" font-family="Arial" font-weight="bold" font-size="10.00">stdout:</text>
-<text text-anchor="start" x="770" y="-486" font-family="Arial" font-size="10.00">  text_resource.project.approve.success</text>
-<text text-anchor="start" x="737" y="-474" font-family="Arial" font-weight="bold" font-size="10.00">stdout bindings:</text>
-<text text-anchor="start" x="814" y="-474" font-family="Arial" font-size="10.00">  project_id ← adapter_response.body.id</text>
-<text text-anchor="start" x="737" y="-462" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
-<text text-anchor="start" x="785" y="-462" font-family="Arial" font-size="10.00">  0</text>
-<polygon fill="none" stroke="#16a34a" points="731,-452 731,-538 995,-538 995,-452 731,-452"/>
+<polygon fill="#ffffff" stroke="transparent" points="731,-470 731,-556 995,-556 995,-470 731,-470"/>
+<polygon fill="#16a34a" stroke="transparent" points="732,-547 732,-555 994,-555 994,-547 732,-547"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="732,-516 732,-547 994,-547 994,-516 732,-516"/>
+<text text-anchor="start" x="736" y="-533.6" font-family="Arial" font-weight="bold" font-size="13.00">approved</text>
+<text text-anchor="start" x="736" y="-522.6" font-family="Arial" font-size="8.00" fill="#64748b">success response handler</text>
+<text text-anchor="start" x="737" y="-504" font-family="Arial" font-weight="bold" font-size="10.00">stdout:</text>
+<text text-anchor="start" x="770" y="-504" font-family="Arial" font-size="10.00">  text_resource.project.approve.success</text>
+<text text-anchor="start" x="737" y="-492" font-family="Arial" font-weight="bold" font-size="10.00">stdout bindings:</text>
+<text text-anchor="start" x="814" y="-492" font-family="Arial" font-size="10.00">  project_id ← adapter_response.body.id</text>
+<text text-anchor="start" x="737" y="-480" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
+<text text-anchor="start" x="785" y="-480" font-family="Arial" font-size="10.00">  0</text>
+<polygon fill="none" stroke="#16a34a" points="731,-470 731,-556 995,-556 995,-470 731,-470"/>
 </g>
 <!-- external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_approved -->
 <g id="edge3" class="edge">
 <title>external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_approved</title>
-<path fill="none" stroke="#3f3f46" d="M656.03,-406C676.1,-417.68 696.88,-429.08 717,-439 723.58,-442.24 730.39,-445.43 737.32,-448.53"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="736.42,-451.2 744.87,-451.86 738.68,-446.07 736.42,-451.2"/>
+<path fill="none" stroke="#3f3f46" d="M655.83,-423.02C675.92,-435.08 696.76,-446.83 717,-457 723.46,-460.25 730.16,-463.43 736.98,-466.52"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="735.97,-469.14 744.41,-469.85 738.25,-464.03 735.97,-469.14"/>
 </g>
 <!-- external_interface_response_external_interface_cli_project_approve_authentication_required -->
 <g id="node5" class="node">
 <title>external_interface_response_external_interface_cli_project_approve_authentication_required</title>
-<polygon fill="#ffffff" stroke="transparent" points="717,-339 717,-425 1009,-425 1009,-339 717,-339"/>
-<polygon fill="#dc2626" stroke="transparent" points="718,-416 718,-424 1008,-424 1008,-416 718,-416"/>
-<polygon fill="#fef2f2" stroke="transparent" points="718,-385 718,-416 1008,-416 1008,-385 718,-385"/>
-<text text-anchor="start" x="722" y="-402.6" font-family="Arial" font-weight="bold" font-size="13.00">authentication_required</text>
-<text text-anchor="start" x="722" y="-391.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response handler</text>
-<text text-anchor="start" x="723" y="-373" font-family="Arial" font-weight="bold" font-size="10.00">stderr:</text>
-<text text-anchor="start" x="754" y="-373" font-family="Arial" font-size="10.00">  text_resource.project.approve.authentication_required</text>
-<text text-anchor="start" x="723" y="-361" font-family="Arial" font-weight="bold" font-size="10.00">stderr bindings:</text>
-<text text-anchor="start" x="798" y="-361" font-family="Arial" font-size="10.00">  message ← adapter_response.body.message</text>
-<text text-anchor="start" x="723" y="-349" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
-<text text-anchor="start" x="771" y="-349" font-family="Arial" font-size="10.00">  4</text>
-<polygon fill="none" stroke="#dc2626" points="717,-339 717,-425 1009,-425 1009,-339 717,-339"/>
+<polygon fill="#ffffff" stroke="transparent" points="717,-357 717,-443 1009,-443 1009,-357 717,-357"/>
+<polygon fill="#dc2626" stroke="transparent" points="718,-434 718,-442 1008,-442 1008,-434 718,-434"/>
+<polygon fill="#fef2f2" stroke="transparent" points="718,-403 718,-434 1008,-434 1008,-403 718,-403"/>
+<text text-anchor="start" x="722" y="-420.6" font-family="Arial" font-weight="bold" font-size="13.00">authentication_required</text>
+<text text-anchor="start" x="722" y="-409.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response handler</text>
+<text text-anchor="start" x="723" y="-391" font-family="Arial" font-weight="bold" font-size="10.00">stderr:</text>
+<text text-anchor="start" x="754" y="-391" font-family="Arial" font-size="10.00">  text_resource.project.approve.authentication_required</text>
+<text text-anchor="start" x="723" y="-379" font-family="Arial" font-weight="bold" font-size="10.00">stderr bindings:</text>
+<text text-anchor="start" x="798" y="-379" font-family="Arial" font-size="10.00">  message ← adapter_response.body.message</text>
+<text text-anchor="start" x="723" y="-367" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
+<text text-anchor="start" x="771" y="-367" font-family="Arial" font-size="10.00">  4</text>
+<polygon fill="none" stroke="#dc2626" points="717,-357 717,-443 1009,-443 1009,-357 717,-357"/>
 </g>
 <!-- external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_authentication_required -->
 <g id="edge4" class="edge">
 <title>external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_authentication_required</title>
-<path fill="none" stroke="#3f3f46" d="M656.46,-346.71C673.54,-349.64 691.22,-352.68 708.71,-355.68"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="708.37,-358.46 716.73,-357.06 709.32,-352.95 708.37,-358.46"/>
+<path fill="none" stroke="#3f3f46" d="M656.46,-362.24C673.54,-365.37 691.22,-368.62 708.71,-371.83"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="708.35,-374.62 716.73,-373.31 709.36,-369.11 708.35,-374.62"/>
 </g>
-<!-- external_interface_response_external_interface_cli_project_approve_not_found -->
+<!-- external_interface_response_external_interface_cli_project_approve_lifecycle_transition_not_allowed -->
 <g id="node6" class="node">
-<title>external_interface_response_external_interface_cli_project_approve_not_found</title>
-<polygon fill="#ffffff" stroke="transparent" points="717,-226 717,-312 1009,-312 1009,-226 717,-226"/>
-<polygon fill="#dc2626" stroke="transparent" points="718,-303 718,-311 1008,-311 1008,-303 718,-303"/>
-<polygon fill="#fef2f2" stroke="transparent" points="718,-272 718,-303 1008,-303 1008,-272 718,-272"/>
-<text text-anchor="start" x="722" y="-289.6" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
-<text text-anchor="start" x="722" y="-278.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response handler</text>
-<text text-anchor="start" x="723" y="-260" font-family="Arial" font-weight="bold" font-size="10.00">stderr:</text>
-<text text-anchor="start" x="754" y="-260" font-family="Arial" font-size="10.00">  text_resource.project.approve.not_found</text>
+<title>external_interface_response_external_interface_cli_project_approve_lifecycle_transition_not_allowed</title>
+<polygon fill="#ffffff" stroke="transparent" points="717,-226 717,-330 1009,-330 1009,-226 717,-226"/>
+<polygon fill="#dc2626" stroke="transparent" points="718,-321 718,-329 1008,-329 1008,-321 718,-321"/>
+<polygon fill="#fef2f2" stroke="transparent" points="718,-290 718,-321 1008,-321 1008,-290 718,-290"/>
+<text text-anchor="start" x="722" y="-307.6" font-family="Arial" font-weight="bold" font-size="13.00">lifecycle_transition_not_allowed</text>
+<text text-anchor="start" x="722" y="-296.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response handler</text>
+<text text-anchor="start" x="722" y="-279" font-family="Arial" font-weight="bold" font-size="10.00">stderr:</text>
+<text text-anchor="start" x="753" y="-279" font-family="Arial" font-size="10.00">  text_resource.project.approve</text>
+<text text-anchor="start" x="722" y="-267" font-family="Arial" font-size="10.00">  lifecycle_transition_not_allowed</text>
 <text text-anchor="start" x="723" y="-248" font-family="Arial" font-weight="bold" font-size="10.00">stderr bindings:</text>
 <text text-anchor="start" x="798" y="-248" font-family="Arial" font-size="10.00">  message ← adapter_response.body.message</text>
 <text text-anchor="start" x="723" y="-236" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
-<text text-anchor="start" x="771" y="-236" font-family="Arial" font-size="10.00">  3</text>
-<polygon fill="none" stroke="#dc2626" points="717,-226 717,-312 1009,-312 1009,-226 717,-226"/>
+<text text-anchor="start" x="771" y="-236" font-family="Arial" font-size="10.00">  2</text>
+<polygon fill="none" stroke="#dc2626" points="717,-226 717,-330 1009,-330 1009,-226 717,-226"/>
 </g>
-<!-- external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_not_found -->
+<!-- external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_lifecycle_transition_not_allowed -->
 <g id="edge5" class="edge">
-<title>external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_not_found</title>
-<path fill="none" stroke="#3f3f46" d="M656.46,-303.67C673.54,-300.79 691.22,-297.81 708.71,-294.86"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="709.3,-297.6 716.73,-293.5 708.37,-292.07 709.3,-297.6"/>
+<title>external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_lifecycle_transition_not_allowed</title>
+<path fill="none" stroke="#3f3f46" d="M656.46,-315.76C673.54,-312.63 691.22,-309.38 708.71,-306.17"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="709.36,-308.89 716.73,-304.69 708.35,-303.38 709.36,-308.89"/>
 </g>
-<!-- external_interface_response_external_interface_cli_project_approve_transition_not_allowed -->
+<!-- external_interface_response_external_interface_cli_project_approve_not_found -->
 <g id="node7" class="node">
-<title>external_interface_response_external_interface_cli_project_approve_transition_not_allowed</title>
+<title>external_interface_response_external_interface_cli_project_approve_not_found</title>
 <polygon fill="#ffffff" stroke="transparent" points="717,-113 717,-199 1009,-199 1009,-113 717,-113"/>
 <polygon fill="#dc2626" stroke="transparent" points="718,-190 718,-198 1008,-198 1008,-190 718,-190"/>
 <polygon fill="#fef2f2" stroke="transparent" points="718,-159 718,-190 1008,-190 1008,-159 718,-159"/>
-<text text-anchor="start" x="722" y="-176.6" font-family="Arial" font-weight="bold" font-size="13.00">transition_not_allowed</text>
+<text text-anchor="start" x="722" y="-176.6" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
 <text text-anchor="start" x="722" y="-165.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response handler</text>
 <text text-anchor="start" x="723" y="-147" font-family="Arial" font-weight="bold" font-size="10.00">stderr:</text>
-<text text-anchor="start" x="754" y="-147" font-family="Arial" font-size="10.00">  text_resource.project.approve.transition_not_allowed</text>
+<text text-anchor="start" x="754" y="-147" font-family="Arial" font-size="10.00">  text_resource.project.approve.not_found</text>
 <text text-anchor="start" x="723" y="-135" font-family="Arial" font-weight="bold" font-size="10.00">stderr bindings:</text>
 <text text-anchor="start" x="798" y="-135" font-family="Arial" font-size="10.00">  message ← adapter_response.body.message</text>
 <text text-anchor="start" x="723" y="-123" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
-<text text-anchor="start" x="771" y="-123" font-family="Arial" font-size="10.00">  2</text>
+<text text-anchor="start" x="771" y="-123" font-family="Arial" font-size="10.00">  3</text>
 <polygon fill="none" stroke="#dc2626" points="717,-113 717,-199 1009,-199 1009,-113 717,-113"/>
 </g>
-<!-- external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_transition_not_allowed -->
+<!-- external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_not_found -->
 <g id="edge6" class="edge">
-<title>external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_transition_not_allowed</title>
-<path fill="none" stroke="#3f3f46" d="M656.19,-245.61C676.23,-234.11 696.96,-222.85 717,-213 724.28,-209.42 731.85,-205.89 739.53,-202.46"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="741.06,-204.85 747.25,-199.06 738.8,-199.72 741.06,-204.85"/>
+<title>external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_not_found</title>
+<path fill="none" stroke="#3f3f46" d="M646.3,-254.98C669.19,-240.07 693.43,-225.38 717,-213 723.91,-209.37 731.11,-205.83 738.45,-202.41"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="739.71,-204.91 745.82,-199.03 737.38,-199.82 739.71,-204.91"/>
 </g>
 <!-- external_interface_response_external_interface_cli_project_approve_unavailable -->
 <g id="node8" class="node">
@@ -182,13 +183,13 @@
 <!-- external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_unavailable -->
 <g id="edge7" class="edge">
 <title>external_interface_invocation_external_interface_api_project_approve&#45;&gt;external_interface_response_external_interface_cli_project_approve_unavailable</title>
-<path fill="none" stroke="#3f3f46" d="M584.18,-240.79C617.74,-194.12 664.42,-138.02 717,-100 724.3,-94.72 732.16,-89.85 740.3,-85.38"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="742.09,-87.59 747.85,-81.37 739.47,-82.65 742.09,-87.59"/>
+<path fill="none" stroke="#3f3f46" d="M579.5,-254.93C612.91,-204.29 661.04,-141.73 717,-100 724.22,-94.62 732.02,-89.67 740.12,-85.13"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="741.92,-87.34 747.64,-81.08 739.26,-82.41 741.92,-87.34"/>
 </g>
 <!-- external_interface_response_external_interface_cli_project_approve_access_denied&#45;&gt;external_interface_response_external_interface_cli_project_approve_approved -->
 <!-- external_interface_response_external_interface_cli_project_approve_approved&#45;&gt;external_interface_response_external_interface_cli_project_approve_authentication_required -->
-<!-- external_interface_response_external_interface_cli_project_approve_authentication_required&#45;&gt;external_interface_response_external_interface_cli_project_approve_not_found -->
-<!-- external_interface_response_external_interface_cli_project_approve_not_found&#45;&gt;external_interface_response_external_interface_cli_project_approve_transition_not_allowed -->
-<!-- external_interface_response_external_interface_cli_project_approve_transition_not_allowed&#45;&gt;external_interface_response_external_interface_cli_project_approve_unavailable -->
+<!-- external_interface_response_external_interface_cli_project_approve_authentication_required&#45;&gt;external_interface_response_external_interface_cli_project_approve_lifecycle_transition_not_allowed -->
+<!-- external_interface_response_external_interface_cli_project_approve_lifecycle_transition_not_allowed&#45;&gt;external_interface_response_external_interface_cli_project_approve_not_found -->
+<!-- external_interface_response_external_interface_cli_project_approve_not_found&#45;&gt;external_interface_response_external_interface_cli_project_approve_unavailable -->
 </g>
 </svg>

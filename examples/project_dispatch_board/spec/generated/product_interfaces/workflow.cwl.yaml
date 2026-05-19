@@ -61,9 +61,9 @@ $graph:
       type: Any
     authentication_required:
       type: Any
-    not_found:
+    lifecycle_transition_not_allowed:
       type: Any
-    transition_not_allowed:
+    not_found:
       type: Any
     unavailable:
       type: Any

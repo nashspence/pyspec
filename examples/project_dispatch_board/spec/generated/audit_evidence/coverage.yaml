@@ -230,9 +230,9 @@ render_presence:
     not_rendered:
     - text_resource.project.approve.access_denied
     - text_resource.project.approve.authentication_required
+    - text_resource.project.approve.lifecycle_transition_not_allowed
     - text_resource.project.approve.not_found
     - text_resource.project.approve.success
-    - text_resource.project.approve.transition_not_allowed
     - text_resource.project.approve.unavailable
     - text_resource.project.detail.error.body
     - text_resource.project.detail.error.heading
@@ -286,10 +286,10 @@ visual_audit:
       /commands/command.project.approve/emits_domain_events/0/outcome: V0004
       /commands/command.project.approve/emits_domain_events/0/payload_bindings/approved_by/from: V0004
       /commands/command.project.approve/emits_domain_events/0/payload_bindings/project_id/from: V0004
-      /commands/command.project.approve/entity_changes/lifecycle_transition/entity_type: V0004
-      /commands/command.project.approve/entity_changes/lifecycle_transition/field: V0004
-      /commands/command.project.approve/entity_changes/lifecycle_transition/from: V0004
-      /commands/command.project.approve/entity_changes/lifecycle_transition/to: V0004
+      /commands/command.project.approve/entity_changes/entity_lifecycle_transition/entity_type: V0004
+      /commands/command.project.approve/entity_changes/entity_lifecycle_transition/field: V0004
+      /commands/command.project.approve/entity_changes/entity_lifecycle_transition/from: V0004
+      /commands/command.project.approve/entity_changes/entity_lifecycle_transition/to: V0004
       /commands/command.project.approve/idempotent: V0004
       /commands/command.project.approve/input_schema/additionalProperties: V0004
       /commands/command.project.approve/input_schema/properties/approved_by/type: V0004
@@ -303,10 +303,10 @@ visual_audit:
       /commands/command.project.approve/outcomes/approved/result/$ref: V0004
       /commands/command.project.approve/outcomes/authentication_required/kind: V0004
       /commands/command.project.approve/outcomes/authentication_required/result/$ref: V0004
+      /commands/command.project.approve/outcomes/lifecycle_transition_not_allowed/kind: V0004
+      /commands/command.project.approve/outcomes/lifecycle_transition_not_allowed/result/$ref: V0004
       /commands/command.project.approve/outcomes/not_found/kind: V0004
       /commands/command.project.approve/outcomes/not_found/result/$ref: V0004
-      /commands/command.project.approve/outcomes/transition_not_allowed/kind: V0004
-      /commands/command.project.approve/outcomes/transition_not_allowed/result/$ref: V0004
       /commands/command.project.approve/outcomes/unavailable/kind: V0004
       /commands/command.project.approve/outcomes/unavailable/result/$ref: V0004
       /commands/command.project.approve/rationale: V0004
@@ -317,10 +317,10 @@ visual_audit:
       /commands/command.project.archive/emits_domain_events/0/domain_event: V0007
       /commands/command.project.archive/emits_domain_events/0/outcome: V0007
       /commands/command.project.archive/emits_domain_events/0/payload_source: V0007
-      /commands/command.project.archive/entity_changes/lifecycle_transition/entity_type: V0007
-      /commands/command.project.archive/entity_changes/lifecycle_transition/field: V0007
-      /commands/command.project.archive/entity_changes/lifecycle_transition/from: V0007
-      /commands/command.project.archive/entity_changes/lifecycle_transition/to: V0007
+      /commands/command.project.archive/entity_changes/entity_lifecycle_transition/entity_type: V0007
+      /commands/command.project.archive/entity_changes/entity_lifecycle_transition/field: V0007
+      /commands/command.project.archive/entity_changes/entity_lifecycle_transition/from: V0007
+      /commands/command.project.archive/entity_changes/entity_lifecycle_transition/to: V0007
       /commands/command.project.archive/input_schema/additionalProperties: V0007
       /commands/command.project.archive/input_schema/properties/project_id/type: V0007
       /commands/command.project.archive/input_schema/required/0: V0007
@@ -331,10 +331,10 @@ visual_audit:
       /commands/command.project.archive/outcomes/archived/result/$ref: V0007
       /commands/command.project.archive/outcomes/authentication_required/kind: V0007
       /commands/command.project.archive/outcomes/authentication_required/result/$ref: V0007
+      /commands/command.project.archive/outcomes/lifecycle_transition_not_allowed/kind: V0007
+      /commands/command.project.archive/outcomes/lifecycle_transition_not_allowed/result/$ref: V0007
       /commands/command.project.archive/outcomes/not_found/kind: V0007
       /commands/command.project.archive/outcomes/not_found/result/$ref: V0007
-      /commands/command.project.archive/outcomes/transition_not_allowed/kind: V0007
-      /commands/command.project.archive/outcomes/transition_not_allowed/result/$ref: V0007
       /commands/command.project.archive/rationale: V0007
       /commands/command.project.create/authorization/access_denied_as: V0008
       /commands/command.project.create/authorization/authentication_required_as: V0008
@@ -390,10 +390,10 @@ visual_audit:
       /commands/command.project.submit/emits_domain_events/0/domain_event: V0010
       /commands/command.project.submit/emits_domain_events/0/outcome: V0010
       /commands/command.project.submit/emits_domain_events/0/payload_source: V0010
-      /commands/command.project.submit/entity_changes/lifecycle_transition/entity_type: V0010
-      /commands/command.project.submit/entity_changes/lifecycle_transition/field: V0010
-      /commands/command.project.submit/entity_changes/lifecycle_transition/from: V0010
-      /commands/command.project.submit/entity_changes/lifecycle_transition/to: V0010
+      /commands/command.project.submit/entity_changes/entity_lifecycle_transition/entity_type: V0010
+      /commands/command.project.submit/entity_changes/entity_lifecycle_transition/field: V0010
+      /commands/command.project.submit/entity_changes/entity_lifecycle_transition/from: V0010
+      /commands/command.project.submit/entity_changes/entity_lifecycle_transition/to: V0010
       /commands/command.project.submit/input_schema/additionalProperties: V0010
       /commands/command.project.submit/input_schema/properties/project_id/type: V0010
       /commands/command.project.submit/input_schema/required/0: V0010
@@ -402,12 +402,12 @@ visual_audit:
       /commands/command.project.submit/outcomes/access_denied/result/$ref: V0010
       /commands/command.project.submit/outcomes/authentication_required/kind: V0010
       /commands/command.project.submit/outcomes/authentication_required/result/$ref: V0010
+      /commands/command.project.submit/outcomes/lifecycle_transition_not_allowed/kind: V0010
+      /commands/command.project.submit/outcomes/lifecycle_transition_not_allowed/result/$ref: V0010
       /commands/command.project.submit/outcomes/not_found/kind: V0010
       /commands/command.project.submit/outcomes/not_found/result/$ref: V0010
       /commands/command.project.submit/outcomes/submitted/kind: V0010
       /commands/command.project.submit/outcomes/submitted/result/$ref: V0010
-      /commands/command.project.submit/outcomes/transition_not_allowed/kind: V0010
-      /commands/command.project.submit/outcomes/transition_not_allowed/result/$ref: V0010
       /commands/command.project.submit/rationale: V0010
       /domain_events/domain_event.project.approved/emitted_by/0: V0003
       /domain_events/domain_event.project.approved/payload_schema/$ref: V0003
@@ -495,12 +495,15 @@ visual_audit:
       ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/authentication_required/body/type/$ref
       : V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/authentication_required/status: V0014
+      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/body/from
+      : V0014
+      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/body/type/$ref
+      : V0014
+      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/status
+      : V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/body/from: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/body/type/$ref: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/status: V0014
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/transition_not_allowed/body/from: V0014
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/transition_not_allowed/body/type/$ref: V0014
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/transition_not_allowed/status: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/body/from: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/body/type/$ref: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/status: V0014
@@ -573,16 +576,16 @@ visual_audit:
       : V0016
       ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/authentication_required/stderr/text
       : V0016
+      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/lifecycle_transition_not_allowed/exit_code
+      : V0016
+      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/lifecycle_transition_not_allowed/stderr/bindings/message/from
+      : V0016
+      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/lifecycle_transition_not_allowed/stderr/text
+      : V0016
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/not_found/exit_code: V0016
       ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/not_found/stderr/bindings/message/from
       : V0016
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/not_found/stderr/text: V0016
-      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/transition_not_allowed/exit_code
-      : V0016
-      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/transition_not_allowed/stderr/bindings/message/from
-      : V0016
-      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/transition_not_allowed/stderr/text
-      : V0016
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/unavailable/exit_code: V0016
       ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/unavailable/retry_policy/attempts
       : V0016
@@ -911,13 +914,13 @@ visual_audit:
       : V0026
       /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_cleared/payload_schema/required: V0026
       /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/selection_cleared/payload_schema/type: V0026
-      ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_transition_not_allowed/payload_schema/additionalProperties
+      ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/additionalProperties
       : V0026
-      ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_transition_not_allowed/payload_schema/properties/message/type
+      ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/properties/message/type
       : V0026
-      ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_transition_not_allowed/payload_schema/required/0
+      ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/required/0
       : V0026
-      ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_transition_not_allowed/payload_schema/type
+      ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/type
       : V0026
       /state_machines/state_machine.project.detail/local_signals/emits/local_signals: V0026
       /state_machines/state_machine.project.detail/query_bindings: V0026
@@ -970,13 +973,13 @@ visual_audit:
       : V0026
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/authentication_required/no_local_effect/reason
       : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/lifecycle_transition_not_allowed/raise/local_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/lifecycle_transition_not_allowed/raise/payload_bindings/message/from
+      : V0026
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/not_found/no_local_effect/rationale
       : V0026
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/not_found/no_local_effect/reason
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/transition_not_allowed/raise/local_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/transition_not_allowed/raise/payload_bindings/message/from
       : V0026
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/approve/local_effects/unavailable/no_local_effect/rationale
       : V0026
@@ -994,13 +997,13 @@ visual_audit:
       : V0026
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/authentication_required/raise/payload_bindings/message/from
       : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/lifecycle_transition_not_allowed/raise/local_signal
+      : V0026
+      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/lifecycle_transition_not_allowed/raise/payload_bindings/message/from
+      : V0026
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/not_found/raise/local_signal
       : V0026
       ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/not_found/raise/payload_bindings/message/from
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/transition_not_allowed/raise/local_signal
-      : V0026
-      ? /state_machines/state_machine.project.detail/states/ready/command_bindings/archive/local_effects/transition_not_allowed/raise/payload_bindings/message/from
       : V0026
       /state_machines/state_machine.project.detail/states/ready/fields/0: V0026
       /state_machines/state_machine.project.detail/states/ready/fields/1: V0026
@@ -1098,13 +1101,13 @@ visual_audit:
       : V0027
       /state_machines/state_machine.project.list/local_signals/accepts/local_signals/project_select/payload_schema/required/0: V0027
       /state_machines/state_machine.project.list/local_signals/accepts/local_signals/project_select/payload_schema/type: V0027
-      ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_transition_not_allowed/payload_schema/additionalProperties
+      ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/additionalProperties
       : V0027
-      ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_transition_not_allowed/payload_schema/properties/message/type
+      ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/properties/message/type
       : V0027
-      ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_transition_not_allowed/payload_schema/required/0
+      ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/required/0
       : V0027
-      ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_transition_not_allowed/payload_schema/type
+      ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/type
       : V0027
       ? /state_machines/state_machine.project.list/local_signals/emits/local_signals/project_selected/payload_schema/additionalProperties
       : V0027
@@ -1212,14 +1215,14 @@ visual_audit:
       : V0027
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/authentication_required/raise/payload_bindings/message/from
       : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/lifecycle_transition_not_allowed/raise/local_signal
+      : V0027
+      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/lifecycle_transition_not_allowed/raise/payload_bindings/message/from
+      : V0027
       /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/not_found/raise/local_signal: V0027
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/not_found/raise/payload_bindings/message/from
       : V0027
       ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/submitted/raise/data_refresh_signal
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/transition_not_allowed/raise/local_signal
-      : V0027
-      ? /state_machines/state_machine.project.list/states/ready/command_bindings/submit/local_effects/transition_not_allowed/raise/payload_bindings/message/from
       : V0027
       /state_machines/state_machine.project.list/states/ready/fields/0: V0027
       /state_machines/state_machine.project.list/states/ready/fields/1: V0027
@@ -1423,6 +1426,16 @@ visual_audit:
         tokens:
         - authentication_required
         - Problem
+      /commands/command.project.approve/outcomes/lifecycle_transition_not_allowed/kind:
+        visual_evidence_set: V0004
+        tokens:
+        - lifecycle_transition_not_allowed
+        - failure
+      /commands/command.project.approve/outcomes/lifecycle_transition_not_allowed/result/$ref:
+        visual_evidence_set: V0004
+        tokens:
+        - lifecycle_transition_not_allowed
+        - Problem
       /commands/command.project.approve/outcomes/not_found/kind:
         visual_evidence_set: V0004
         tokens:
@@ -1432,16 +1445,6 @@ visual_audit:
         visual_evidence_set: V0004
         tokens:
         - not_found
-        - Problem
-      /commands/command.project.approve/outcomes/transition_not_allowed/kind:
-        visual_evidence_set: V0004
-        tokens:
-        - transition_not_allowed
-        - failure
-      /commands/command.project.approve/outcomes/transition_not_allowed/result/$ref:
-        visual_evidence_set: V0004
-        tokens:
-        - transition_not_allowed
         - Problem
       /commands/command.project.approve/outcomes/unavailable/kind:
         visual_evidence_set: V0004
@@ -1506,6 +1509,16 @@ visual_audit:
         tokens:
         - authentication_required
         - Problem
+      /commands/command.project.archive/outcomes/lifecycle_transition_not_allowed/kind:
+        visual_evidence_set: V0007
+        tokens:
+        - lifecycle_transition_not_allowed
+        - failure
+      /commands/command.project.archive/outcomes/lifecycle_transition_not_allowed/result/$ref:
+        visual_evidence_set: V0007
+        tokens:
+        - lifecycle_transition_not_allowed
+        - Problem
       /commands/command.project.archive/outcomes/not_found/kind:
         visual_evidence_set: V0007
         tokens:
@@ -1515,16 +1528,6 @@ visual_audit:
         visual_evidence_set: V0007
         tokens:
         - not_found
-        - Problem
-      /commands/command.project.archive/outcomes/transition_not_allowed/kind:
-        visual_evidence_set: V0007
-        tokens:
-        - transition_not_allowed
-        - failure
-      /commands/command.project.archive/outcomes/transition_not_allowed/result/$ref:
-        visual_evidence_set: V0007
-        tokens:
-        - transition_not_allowed
         - Problem
       /commands/command.project.create/authorization/access_denied_as:
         visual_evidence_set: V0008
@@ -1711,6 +1714,16 @@ visual_audit:
         tokens:
         - authentication_required
         - Problem
+      /commands/command.project.submit/outcomes/lifecycle_transition_not_allowed/kind:
+        visual_evidence_set: V0010
+        tokens:
+        - lifecycle_transition_not_allowed
+        - failure
+      /commands/command.project.submit/outcomes/lifecycle_transition_not_allowed/result/$ref:
+        visual_evidence_set: V0010
+        tokens:
+        - lifecycle_transition_not_allowed
+        - Problem
       /commands/command.project.submit/outcomes/not_found/kind:
         visual_evidence_set: V0010
         tokens:
@@ -1731,16 +1744,6 @@ visual_audit:
         tokens:
         - submitted
         - Project
-      /commands/command.project.submit/outcomes/transition_not_allowed/kind:
-        visual_evidence_set: V0010
-        tokens:
-        - transition_not_allowed
-        - failure
-      /commands/command.project.submit/outcomes/transition_not_allowed/result/$ref:
-        visual_evidence_set: V0010
-        tokens:
-        - transition_not_allowed
-        - Problem
       /domain_events/domain_event.project.approved/emitted_by/0:
         visual_evidence_set: V0003
         tokens:
@@ -1877,6 +1880,16 @@ visual_audit:
         tokens:
         - status
         - '401'
+      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/body/type/$ref
+      : visual_evidence_set: V0014
+        tokens:
+        - body
+        - Problem
+      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/status
+      : visual_evidence_set: V0014
+        tokens:
+        - status
+        - '409'
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/body/type/$ref:
         visual_evidence_set: V0014
         tokens:
@@ -1887,16 +1900,6 @@ visual_audit:
         tokens:
         - status
         - '404'
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/transition_not_allowed/body/type/$ref:
-        visual_evidence_set: V0014
-        tokens:
-        - body
-        - Problem
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/transition_not_allowed/status:
-        visual_evidence_set: V0014
-        tokens:
-        - status
-        - '409'
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/body/type/$ref:
         visual_evidence_set: V0014
         tokens:
@@ -2134,6 +2137,20 @@ visual_audit:
       : visual_evidence_set: V0016
         tokens:
         - text_resource.project.approve.authentication_required
+      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/lifecycle_transition_not_allowed/exit_code
+      : visual_evidence_set: V0016
+        tokens:
+        - exit_code
+        - '2'
+      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/lifecycle_transition_not_allowed/stderr/bindings/message/from
+      : visual_evidence_set: V0016
+        tokens:
+        - adapter_response.body.message
+      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/lifecycle_transition_not_allowed/stderr/text
+      : visual_evidence_set: V0016
+        tokens:
+        - text_resource.project.approve
+        - lifecycle_transition_not_allowed
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/not_found/exit_code:
         visual_evidence_set: V0016
         tokens:
@@ -2147,19 +2164,6 @@ visual_audit:
         visual_evidence_set: V0016
         tokens:
         - text_resource.project.approve.not_found
-      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/transition_not_allowed/exit_code
-      : visual_evidence_set: V0016
-        tokens:
-        - exit_code
-        - '2'
-      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/transition_not_allowed/stderr/bindings/message/from
-      : visual_evidence_set: V0016
-        tokens:
-        - adapter_response.body.message
-      ? /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/transition_not_allowed/stderr/text
-      : visual_evidence_set: V0016
-        tokens:
-        - text_resource.project.approve.transition_not_allowed
       /external_interfaces/external_interface.cli.project.approve/output_mapping/response_handlers/unavailable/exit_code:
         visual_evidence_set: V0016
         tokens:
@@ -2412,7 +2416,7 @@ visual_audit:
         tokens:
         - project_id
         - string
-      ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_transition_not_allowed/payload_schema/properties/message/type
+      ? /state_machines/state_machine.project.detail/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/properties/message/type
       : visual_evidence_set: V0026
         tokens:
         - message
@@ -2458,7 +2462,7 @@ visual_audit:
         tokens:
         - project_id
         - string
-      ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_transition_not_allowed/payload_schema/properties/message/type
+      ? /state_machines/state_machine.project.list/local_signals/accepts/local_signals/show_lifecycle_transition_not_allowed/payload_schema/properties/message/type
       : visual_evidence_set: V0027
         tokens:
         - message
@@ -3167,6 +3171,11 @@ visual_audit:
       /text_resources/text_resource.project.approve.authentication_required/max_chars: V0016
       /text_resources/text_resource.project.approve.authentication_required/placeholder: V0016
       /text_resources/text_resource.project.approve.authentication_required/rationale: V0016
+      /text_resources/text_resource.project.approve.lifecycle_transition_not_allowed/args/message/type: V0016
+      /text_resources/text_resource.project.approve.lifecycle_transition_not_allowed/intent: V0016
+      /text_resources/text_resource.project.approve.lifecycle_transition_not_allowed/max_chars: V0016
+      /text_resources/text_resource.project.approve.lifecycle_transition_not_allowed/placeholder: V0016
+      /text_resources/text_resource.project.approve.lifecycle_transition_not_allowed/rationale: V0016
       /text_resources/text_resource.project.approve.not_found/args/message/type: V0016
       /text_resources/text_resource.project.approve.not_found/intent: V0016
       /text_resources/text_resource.project.approve.not_found/max_chars: V0016
@@ -3177,11 +3186,6 @@ visual_audit:
       /text_resources/text_resource.project.approve.success/max_chars: V0016
       /text_resources/text_resource.project.approve.success/placeholder: V0016
       /text_resources/text_resource.project.approve.success/rationale: V0016
-      /text_resources/text_resource.project.approve.transition_not_allowed/args/message/type: V0016
-      /text_resources/text_resource.project.approve.transition_not_allowed/intent: V0016
-      /text_resources/text_resource.project.approve.transition_not_allowed/max_chars: V0016
-      /text_resources/text_resource.project.approve.transition_not_allowed/placeholder: V0016
-      /text_resources/text_resource.project.approve.transition_not_allowed/rationale: V0016
       /text_resources/text_resource.project.approve.unavailable/intent: V0016
       /text_resources/text_resource.project.approve.unavailable/max_chars: V0016
       /text_resources/text_resource.project.approve.unavailable/placeholder: V0016

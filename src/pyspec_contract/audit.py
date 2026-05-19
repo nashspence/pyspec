@@ -726,7 +726,7 @@ def _visual_text_witness_tokens(contract: dict[str, Any], pointer: str, evidence
     tokens: list[str] = []
     detail_evidence = _has_detail_card_evidence(evidence_files)
     if isinstance(value, str) and _generic_reference_witness_allowed(parts, detail_evidence) and _is_visual_text_reference(value):
-        tokens.append(value)
+        tokens.extend(_wrap_dot_text(value))
 
     collection = parts[0]
     if collection == "access_policies":
@@ -886,9 +886,9 @@ def _command_query_text_witness_tokens(contract: dict[str, Any], parts: list[str
             return [value]
         if parts[-1] in {"authentication_required_as", "access_denied_as"} and isinstance(value, str):
             return [parts[-1], value]
-    if len(parts) >= 5 and parts[2] == "lifecycle_transition":
-        lifecycle_transition = _command_query_map(contract)[parts[1]]["lifecycle_transition"]
-        field_token = f"{type_display({'$ref': lifecycle_transition['entity_type']})}.{lifecycle_transition['field']}"
+    if len(parts) >= 5 and parts[2] == "entity_lifecycle_transition":
+        entity_lifecycle_transition = _command_query_map(contract)[parts[1]]["entity_lifecycle_transition"]
+        field_token = f"{type_display({'$ref': entity_lifecycle_transition['entity_type']})}.{entity_lifecycle_transition['field']}"
         tokens.append(field_token)
         if parts[-1] in {"from", "to"}:
             tokens.append(_format_scalar(value))
@@ -2090,15 +2090,15 @@ def _command_query_resource_nodes(
                 target_kind,
                 [("fields", _schema_fields(fields))],
             ))
-    if behavior.get("lifecycle_transition"):
-        lifecycle_transition = behavior["lifecycle_transition"]
-        field = schema_properties(contract["entity_types"][lifecycle_transition["entity_type"]]["schema"])[lifecycle_transition["field"]]
+    if behavior.get("entity_lifecycle_transition"):
+        entity_lifecycle_transition = behavior["entity_lifecycle_transition"]
+        field = schema_properties(contract["entity_types"][entity_lifecycle_transition["entity_type"]]["schema"])[entity_lifecycle_transition["field"]]
         nodes.append((
-            _dot_node_id("command_query_resource", f"{behavior_ref}_lifecycle_transition_{lifecycle_transition['entity_type']}_{lifecycle_transition['field']}"),
-            "lifecycle_transition",
-            lifecycle_transition["entity_type"],
+            _dot_node_id("command_query_resource", f"{behavior_ref}_entity_lifecycle_transition_{entity_lifecycle_transition['entity_type']}_{entity_lifecycle_transition['field']}"),
+            "entity_lifecycle_transition",
+            entity_lifecycle_transition["entity_type"],
             "entity_type",
-            [("change", [_DotTransitionField(f"{type_display({'$ref': lifecycle_transition['entity_type']})}.{lifecycle_transition['field']}", effective_property_schema(field), f"{lifecycle_transition['from']} {_DOT_ARROW_FORWARD} {lifecycle_transition['to']}")])],
+            [("change", [_DotTransitionField(f"{type_display({'$ref': entity_lifecycle_transition['entity_type']})}.{entity_lifecycle_transition['field']}", effective_property_schema(field), f"{entity_lifecycle_transition['from']} {_DOT_ARROW_FORWARD} {entity_lifecycle_transition['to']}")])],
         ))
     return nodes
 

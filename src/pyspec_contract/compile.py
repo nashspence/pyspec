@@ -341,7 +341,7 @@ def compile_author(author: dict[str, Any], layers: set[str] | None = None) -> di
             _apply_author_defaults(entity, spec)
             section[entity_id] = _compile_entity(entity, spec, contract)
 
-    _derive_command_lifecycle_transitions(contract)
+    _derive_command_entity_lifecycle_transitions(contract)
     contract["domain_events"] = _derive_domain_events(contract)
     contract["reference_index"] = _derive_refs(contract)
     used_preconditions, used_assertions = _expand_behavior_scenario_predicate_refs(contract)
@@ -620,14 +620,14 @@ def _command_query_map(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
     for command_ref, command in contract.get("commands", {}).items():
         item = copy.deepcopy(command)
         entity_changes = item.get("entity_changes", {})
-        item["behavior_kind"] = "lifecycle_transition" if entity_changes.get("lifecycle_transition") else "command"
+        item["behavior_kind"] = "entity_lifecycle_transition" if entity_changes.get("entity_lifecycle_transition") else "command"
         item["input"] = item.get("input_schema", EMPTY_OBJECT_SCHEMA)
         item["creates"] = list(entity_changes.get("creates", []))
         item["updates"] = list(entity_changes.get("updates", []))
         item["deletes"] = list(entity_changes.get("deletes", []))
         item["reads"] = []
-        if entity_changes.get("lifecycle_transition"):
-            item["lifecycle_transition"] = copy.deepcopy(entity_changes["lifecycle_transition"])
+        if entity_changes.get("entity_lifecycle_transition"):
+            item["entity_lifecycle_transition"] = copy.deepcopy(entity_changes["entity_lifecycle_transition"])
         emits_by_outcome = _command_emits_by_outcome(command)
         for outcome_id, outcome in item.get("outcomes", {}).items():
             outcome["emits"] = copy.deepcopy(emits_by_outcome.get(outcome_id, []))
@@ -663,10 +663,10 @@ def _command_emits_by_outcome(command: dict[str, Any]) -> dict[str, list[dict[st
     return result
 
 
-def _derive_command_lifecycle_transitions(contract: dict[str, Any]) -> None:
-    """Derive lifecycle-transition action details from entity_lifecycle declarations.
+def _derive_command_entity_lifecycle_transitions(contract: dict[str, Any]) -> None:
+    """Derive entity_lifecycle_transition action details from entity_lifecycle declarations.
 
-    Authored sources should not have to repeat the same state transition in both
+    Authored sources should not have to repeat the same entity_lifecycle_transition in both
     the entity_lifecycle and the command. The compiled contract remains
     explicit for downstream projections and validators.
     """
@@ -676,25 +676,25 @@ def _derive_command_lifecycle_transitions(contract: dict[str, Any]) -> None:
         if not entity_lifecycle:
             continue
         field = entity_lifecycle["field"]
-        for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
-            command_id = lifecycle_transition["triggered_by"]
+        for entity_lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
+            command_id = entity_lifecycle_transition["triggered_by"]
             if command_id in by_command:
-                raise ContractError(f"Command {command_id} is used by multiple lifecycle transitions")
+                raise ContractError(f"Command {command_id} is used by multiple entity_lifecycle_transitions")
             by_command[command_id] = {
                 "entity_type": entity_type_ref,
                 "field": field,
-                "from": lifecycle_transition["from"],
-                "to": lifecycle_transition["to"],
+                "from": entity_lifecycle_transition["from"],
+                "to": entity_lifecycle_transition["to"],
             }
 
     for command_id, command in contract.get("commands", {}).items():
         entity_changes = command.setdefault("entity_changes", {})
-        if "lifecycle_transition" in entity_changes:
+        if "entity_lifecycle_transition" in entity_changes:
             continue
         derived = by_command.get(command_id)
         if not derived:
             continue
-        entity_changes["lifecycle_transition"] = derived
+        entity_changes["entity_lifecycle_transition"] = derived
 
 
 def _derive_domain_events(contract: dict[str, Any]) -> dict[str, Any]:
@@ -1106,12 +1106,12 @@ def _validate_entity_types(contract: dict[str, Any]) -> None:
         states = set(entity_lifecycle["lifecycle_states"])
         if entity_lifecycle["initial_state"] not in states:
             raise ContractError(f"Entity type {rid} initial lifecycle_state is not declared: {entity_lifecycle['initial_state']}")
-        for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
-            if lifecycle_transition["from"] not in states or lifecycle_transition["to"] not in states:
-                raise ContractError(f"Entity type {rid} lifecycle_transition uses unknown lifecycle_state: {lifecycle_transition}")
-            if lifecycle_transition["triggered_by"] not in _command_query_map(contract):
+        for entity_lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
+            if entity_lifecycle_transition["from"] not in states or entity_lifecycle_transition["to"] not in states:
+                raise ContractError(f"Entity type {rid} entity_lifecycle_transition uses unknown lifecycle_state: {entity_lifecycle_transition}")
+            if entity_lifecycle_transition["triggered_by"] not in _command_query_map(contract):
                 raise ContractError(
-                    f"Entity type {rid} lifecycle_transition references unknown command {lifecycle_transition['triggered_by']}"
+                    f"Entity type {rid} entity_lifecycle_transition references unknown command {entity_lifecycle_transition['triggered_by']}"
                 )
 
 
@@ -1162,44 +1162,44 @@ def _validate_commands(contract: dict[str, Any]) -> None:
     for cid, cap in commands.items():
         _validate_command_relationships(cid, cap, entity_types)
         _validate_command_authorization_outcomes(cid, cap)
-        lifecycle_transition = cap.get("lifecycle_transition")
-        if lifecycle_transition:
-            entity_type_ref = lifecycle_transition["entity_type"]
+        entity_lifecycle_transition = cap.get("entity_lifecycle_transition")
+        if entity_lifecycle_transition:
+            entity_type_ref = entity_lifecycle_transition["entity_type"]
             entity_lifecycle = entity_types[entity_type_ref].get("entity_lifecycle")
             if not entity_lifecycle:
-                raise ContractError(f"Command {cid} declares lifecycle_transition but {entity_type_ref} has no entity_lifecycle")
+                raise ContractError(f"Command {cid} declares entity_lifecycle_transition but {entity_type_ref} has no entity_lifecycle")
             if not any(
                 transition["triggered_by"] == cid
                 for transition in entity_lifecycle.get("lifecycle_transitions", [])
             ):
-                raise ContractError(f"Lifecycle-transition command {cid} must be referenced by entity_lifecycle declarations")
-            if lifecycle_transition["field"] != entity_lifecycle["field"]:
-                raise ContractError(f"Command {cid} lifecycle_transition field does not match entity_lifecycle")
-            if lifecycle_transition["from"] not in entity_lifecycle["lifecycle_states"] or lifecycle_transition["to"] not in entity_lifecycle["lifecycle_states"]:
-                raise ContractError(f"Command {cid} lifecycle_transition references unknown lifecycle_state")
+                raise ContractError(f"entity_lifecycle_transition command {cid} must be referenced by entity_lifecycle declarations")
+            if entity_lifecycle_transition["field"] != entity_lifecycle["field"]:
+                raise ContractError(f"Command {cid} entity_lifecycle_transition field does not match entity_lifecycle")
+            if entity_lifecycle_transition["from"] not in entity_lifecycle["lifecycle_states"] or entity_lifecycle_transition["to"] not in entity_lifecycle["lifecycle_states"]:
+                raise ContractError(f"Command {cid} entity_lifecycle_transition references unknown lifecycle_state")
     for rid, entity_type in entity_types.items():
         entity_lifecycle = entity_type.get("entity_lifecycle")
         if not entity_lifecycle:
             continue
-        for lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
-            triggered_by = lifecycle_transition["triggered_by"]
+        for entity_lifecycle_transition in entity_lifecycle.get("lifecycle_transitions", []):
+            triggered_by = entity_lifecycle_transition["triggered_by"]
             behavior = commands[triggered_by]
-            if behavior["behavior_kind"] != "lifecycle_transition":
+            if behavior["behavior_kind"] != "entity_lifecycle_transition":
                 raise ContractError(
-                    f"Entity type {rid} lifecycle_transition {triggered_by} must reference a lifecycle_transition command"
+                    f"Entity type {rid} entity_lifecycle_transition {triggered_by} must reference an entity_lifecycle_transition command"
                 )
-            transition_not_allowed = behavior["outcomes"].get("transition_not_allowed")
-            if not transition_not_allowed or transition_not_allowed["kind"] != "failure":
+            lifecycle_transition_not_allowed = behavior["outcomes"].get("lifecycle_transition_not_allowed")
+            if not lifecycle_transition_not_allowed or lifecycle_transition_not_allowed["kind"] != "failure":
                 raise ContractError(
-                    f"Lifecycle-transition command {triggered_by} referenced by entity_lifecycle must declare transition_not_allowed failure outcome"
+                    f"entity_lifecycle_transition command {triggered_by} referenced by entity_lifecycle must declare lifecycle_transition_not_allowed failure outcome"
                 )
-            cap_transition = behavior.get("lifecycle_transition")
+            cap_transition = behavior.get("entity_lifecycle_transition")
             if not cap_transition:
-                raise ContractError(f"Lifecycle-transition command {triggered_by} must be referenced by entity_lifecycle declarations")
+                raise ContractError(f"entity_lifecycle_transition command {triggered_by} must be referenced by entity_lifecycle declarations")
             if (
                 cap_transition["entity_type"] != rid
-                or cap_transition["from"] != lifecycle_transition["from"]
-                or cap_transition["to"] != lifecycle_transition["to"]
+                or cap_transition["from"] != entity_lifecycle_transition["from"]
+                or cap_transition["to"] != entity_lifecycle_transition["to"]
             ):
                 raise ContractError(f"Entity type {rid} entity_lifecycle and command {triggered_by} disagree")
     for event_id, event in contract["domain_events"].items():
@@ -1215,30 +1215,30 @@ def _validate_command_relationships(cid: str, cap: dict[str, Any], entity_types:
             if entity_type_id not in entity_types:
                 raise ContractError(f"Command {cid} {field} unknown entity_type {entity_type_id}")
 
-    if "lifecycle_transition" in cap:
-        entity_type_ref = cap["lifecycle_transition"]["entity_type"]
+    if "entity_lifecycle_transition" in cap:
+        entity_type_ref = cap["entity_lifecycle_transition"]["entity_type"]
         if entity_type_ref not in entity_types:
-            raise ContractError(f"Command {cid} lifecycle_transition references unknown entity_type {entity_type_ref}")
+            raise ContractError(f"Command {cid} entity_lifecycle_transition references unknown entity_type {entity_type_ref}")
 
     behavior_kind = cap["behavior_kind"]
     if behavior_kind != "query" and cap.get("retryable") and not cap.get("idempotent"):
         raise ContractError(f"Command {cid} retryable requires idempotent true")
     if behavior_kind == "query":
         _reject_non_empty_relationships(cid, cap, {"creates", "updates", "deletes"})
-        if "lifecycle_transition" in cap:
-            raise ContractError(f"Query command {cid} must not declare lifecycle_transition")
+        if "entity_lifecycle_transition" in cap:
+            raise ContractError(f"Query command {cid} must not declare entity_lifecycle_transition")
         emitting_outcomes = sorted(outcome_id for outcome_id, outcome in cap["outcomes"].items() if outcome.get("emits"))
         if emitting_outcomes:
             raise ContractError(f"Query command {cid} must not emit domain events: {emitting_outcomes}")
         _validate_query_success_result(cid, cap)
     elif behavior_kind == "command":
-        if "lifecycle_transition" in cap:
-            raise ContractError(f"Only lifecycle_transition commands may declare lifecycle_transition: {cid}")
-    elif behavior_kind == "lifecycle_transition":
-        if "lifecycle_transition" not in cap:
-            raise ContractError(f"Lifecycle-transition command {cid} must be referenced by entity_lifecycle declarations")
+        if "entity_lifecycle_transition" in cap:
+            raise ContractError(f"Only entity_lifecycle_transition commands may declare entity_lifecycle_transition: {cid}")
+    elif behavior_kind == "entity_lifecycle_transition":
+        if "entity_lifecycle_transition" not in cap:
+            raise ContractError(f"entity_lifecycle_transition command {cid} must be referenced by entity_lifecycle declarations")
         _reject_non_empty_relationships(cid, cap, {"creates", "reads", "updates", "deletes"})
-        _require_output_entity_type(cid, cap, cap["lifecycle_transition"]["entity_type"])
+        _require_output_entity_type(cid, cap, cap["entity_lifecycle_transition"]["entity_type"])
     else:  # pragma: no cover - schema prevents this.
         raise ContractError(f"Unsupported behavior_kind {behavior_kind}: {cid}")
 
@@ -1653,7 +1653,7 @@ def _validate_command_binding_local_effects(
 
 def _lint_mutation_loaded_signal(label: str, command: dict[str, Any], signal: dict[str, Any], effect: dict[str, Any]) -> None:
     data_refresh_signal = signal.get("data_refresh_signal")
-    if command.get("behavior_kind") not in {"command", "lifecycle_transition"} or not data_refresh_signal:
+    if command.get("behavior_kind") not in {"command", "entity_lifecycle_transition"} or not data_refresh_signal:
         return
     if data_refresh_signal == "loaded" or data_refresh_signal.endswith("_loaded"):
         has_loaded_payload = bool(signal.get("payload_bindings")) or "result_binding" in effect or "context_updates" in effect
@@ -1793,8 +1793,8 @@ def _validate_query_bindings(
             raise ContractError(f"{label} must reference a query")
         if command.get("creates") or command.get("updates") or command.get("deletes"):
             raise ContractError(f"{label} query must not create, update, or delete entity_types")
-        if command.get("lifecycle_transition"):
-            raise ContractError(f"{label} query must not be a lifecycle transition")
+        if command.get("entity_lifecycle_transition"):
+            raise ContractError(f"{label} query must not be an entity_lifecycle_transition")
         emitting_outcomes = sorted(
             outcome_id
             for outcome_id, outcome in command.get("outcomes", {}).items()

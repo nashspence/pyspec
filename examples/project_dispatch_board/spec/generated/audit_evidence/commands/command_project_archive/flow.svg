@@ -1,6 +1,6 @@
-<svg width="1472pt" height="607pt"
- viewBox="0.00 0.00 1472.00 607.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 2971d1b25676efe655d356b3e3a81b37b46ce2d70ec68cdff9087e9194c2e11d -->
+<svg width="1555pt" height="607pt"
+ viewBox="0.00 0.00 1555.00 607.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: f60eab3c1203b95f33e6f1f4f5242b13b6e59ec6f7bc686f7932e7f574ee0074 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 589)">
 <title>command_command_project_archive</title>
 <!-- command_input_command_project_archive -->
@@ -45,151 +45,151 @@
 <polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="171.95,-288.3 179.95,-285.5 171.95,-282.7 171.95,-288.3"/>
 <text text-anchor="middle" x="129" y="-288.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
-<!-- command_query_resource_command_project_archive_lifecycle_transition_entity_type_project_status -->
+<!-- command_query_resource_command_project_archive_entity_lifecycle_transition_entity_type_project_status -->
 <g id="node3" class="node">
-<title>command_query_resource_command_project_archive_lifecycle_transition_entity_type_project_status</title>
-<polygon fill="#ffffff" stroke="transparent" points="574,-143 574,-214 883,-214 883,-143 574,-143"/>
-<polygon fill="#15803d" stroke="transparent" points="575.5,-204.5 575.5,-212.5 882.5,-212.5 882.5,-204.5 575.5,-204.5"/>
-<polygon fill="#f0fdfa" stroke="transparent" points="575.5,-173.5 575.5,-204.5 882.5,-204.5 882.5,-173.5 575.5,-173.5"/>
-<text text-anchor="start" x="579.5" y="-191.1" font-family="Arial" font-weight="bold" font-size="13.00">entity_type.project</text>
-<text text-anchor="start" x="579.5" y="-180.1" font-family="Arial" font-size="8.00" fill="#64748b">entity_type resource</text>
-<text text-anchor="start" x="579.5" y="-162.5" font-family="Arial" font-weight="bold" font-size="10.00">change</text>
-<text text-anchor="start" x="579.5" y="-151.5" font-family="Arial" font-size="10.00">Project.status</text>
-<text text-anchor="start" x="640.5" y="-151.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
-<text text-anchor="start" x="796.5" y="-151.5" font-family="Arial" font-size="8.00">  approved → archived</text>
-<polygon fill="none" stroke="#15803d" points="574,-143 574,-214 883,-214 883,-143 574,-143"/>
+<title>command_query_resource_command_project_archive_entity_lifecycle_transition_entity_type_project_status</title>
+<polygon fill="#ffffff" stroke="transparent" points="603,-143 603,-214 912,-214 912,-143 603,-143"/>
+<polygon fill="#15803d" stroke="transparent" points="604.5,-204.5 604.5,-212.5 911.5,-212.5 911.5,-204.5 604.5,-204.5"/>
+<polygon fill="#f0fdfa" stroke="transparent" points="604.5,-173.5 604.5,-204.5 911.5,-204.5 911.5,-173.5 604.5,-173.5"/>
+<text text-anchor="start" x="608.5" y="-191.1" font-family="Arial" font-weight="bold" font-size="13.00">entity_type.project</text>
+<text text-anchor="start" x="608.5" y="-180.1" font-family="Arial" font-size="8.00" fill="#64748b">entity_type resource</text>
+<text text-anchor="start" x="608.5" y="-162.5" font-family="Arial" font-weight="bold" font-size="10.00">change</text>
+<text text-anchor="start" x="608.5" y="-151.5" font-family="Arial" font-size="10.00">Project.status</text>
+<text text-anchor="start" x="669.5" y="-151.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
+<text text-anchor="start" x="825.5" y="-151.5" font-family="Arial" font-size="8.00">  approved → archived</text>
+<polygon fill="none" stroke="#15803d" points="603,-143 603,-214 912,-214 912,-143 603,-143"/>
 </g>
-<!-- command_query_policy_access_policy_project_reviewer&#45;&gt;command_query_resource_command_project_archive_lifecycle_transition_entity_type_project_status -->
+<!-- command_query_policy_access_policy_project_reviewer&#45;&gt;command_query_resource_command_project_archive_entity_lifecycle_transition_entity_type_project_status -->
 <g id="edge2" class="edge">
-<title>command_query_policy_access_policy_project_reviewer&#45;&gt;command_query_resource_command_project_archive_lifecycle_transition_entity_type_project_status</title>
-<path fill="none" stroke="#3f3f46" d="M430.18,-253.98C477.09,-242.07 530.92,-228.4 579.78,-216"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="580.51,-218.7 587.58,-214.02 579.13,-213.27 580.51,-218.7"/>
-<text text-anchor="middle" x="502" y="-248.5" font-family="Arial" font-size="10.00">lifecycle_transition</text>
+<title>command_query_policy_access_policy_project_reviewer&#45;&gt;command_query_resource_command_project_archive_entity_lifecycle_transition_entity_type_project_status</title>
+<path fill="none" stroke="#3f3f46" d="M430.29,-255.98C482.42,-243.6 543.65,-229.06 598.89,-215.93"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="599.86,-218.58 606.99,-214.01 598.56,-213.13 599.86,-218.58"/>
+<text text-anchor="middle" x="516.5" y="-251.5" font-family="Arial" font-size="10.00">entity_lifecycle_transition</text>
 </g>
 <!-- command_outcome_command_project_archive_access_denied -->
 <g id="node4" class="node">
 <title>command_outcome_command_project_archive_access_denied</title>
-<polygon fill="#ffffff" stroke="transparent" points="1010.5,-500 1010.5,-571 1117.5,-571 1117.5,-500 1010.5,-500"/>
-<polygon fill="#dc2626" stroke="transparent" points="1012,-561.5 1012,-569.5 1117,-569.5 1117,-561.5 1012,-561.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="1012,-530.5 1012,-561.5 1117,-561.5 1117,-530.5 1012,-530.5"/>
-<text text-anchor="start" x="1016" y="-548.1" font-family="Arial" font-weight="bold" font-size="13.00">access_denied</text>
-<text text-anchor="start" x="1016" y="-537.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="1016" y="-519.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="1016" y="-508.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="1041" y="-508.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="1010.5,-500 1010.5,-571 1117.5,-571 1117.5,-500 1010.5,-500"/>
+<polygon fill="#ffffff" stroke="transparent" points="1066.5,-500 1066.5,-571 1173.5,-571 1173.5,-500 1066.5,-500"/>
+<polygon fill="#dc2626" stroke="transparent" points="1068,-561.5 1068,-569.5 1173,-569.5 1173,-561.5 1068,-561.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1068,-530.5 1068,-561.5 1173,-561.5 1173,-530.5 1068,-530.5"/>
+<text text-anchor="start" x="1072" y="-548.1" font-family="Arial" font-weight="bold" font-size="13.00">access_denied</text>
+<text text-anchor="start" x="1072" y="-537.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="1072" y="-519.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1072" y="-508.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1097" y="-508.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1066.5,-500 1066.5,-571 1173.5,-571 1173.5,-500 1066.5,-500"/>
 </g>
 <!-- command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_archive_access_denied -->
 <g id="edge3" class="edge">
 <title>command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_archive_access_denied</title>
-<path fill="none" stroke="#3f3f46" d="M430.16,-326.5C594.74,-380.86 878.75,-474.65 1002.47,-515.51"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1001.91,-518.27 1010.38,-518.12 1003.66,-512.95 1001.91,-518.27"/>
-<text text-anchor="middle" x="728.5" y="-477.5" font-family="Arial" font-size="10.00">access_denied_as</text>
+<path fill="none" stroke="#3f3f46" d="M430.36,-323.74C607.65,-378.26 926.21,-476.22 1058.67,-516.95"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1057.9,-519.64 1066.37,-519.31 1059.54,-514.29 1057.9,-519.64"/>
+<text text-anchor="middle" x="757.5" y="-474.5" font-family="Arial" font-size="10.00">access_denied_as</text>
 </g>
 <!-- command_outcome_command_project_archive_authentication_required -->
 <g id="node6" class="node">
 <title>command_outcome_command_project_archive_authentication_required</title>
-<polygon fill="#ffffff" stroke="transparent" points="982,-250 982,-321 1146,-321 1146,-250 982,-250"/>
-<polygon fill="#dc2626" stroke="transparent" points="983,-311.5 983,-319.5 1145,-319.5 1145,-311.5 983,-311.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="983,-280.5 983,-311.5 1145,-311.5 1145,-280.5 983,-280.5"/>
-<text text-anchor="start" x="987" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">authentication_required</text>
-<text text-anchor="start" x="987" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="987" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="987" y="-258.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="1012" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="982,-250 982,-321 1146,-321 1146,-250 982,-250"/>
+<polygon fill="#ffffff" stroke="transparent" points="1038,-250 1038,-321 1202,-321 1202,-250 1038,-250"/>
+<polygon fill="#dc2626" stroke="transparent" points="1039,-311.5 1039,-319.5 1201,-319.5 1201,-311.5 1039,-311.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1039,-280.5 1039,-311.5 1201,-311.5 1201,-280.5 1039,-280.5"/>
+<text text-anchor="start" x="1043" y="-298.1" font-family="Arial" font-weight="bold" font-size="13.00">authentication_required</text>
+<text text-anchor="start" x="1043" y="-287.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="1043" y="-269.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1043" y="-258.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1068" y="-258.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1038,-250 1038,-321 1202,-321 1202,-250 1038,-250"/>
 </g>
 <!-- command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_archive_authentication_required -->
 <g id="edge6" class="edge">
 <title>command_query_policy_access_policy_project_reviewer&#45;&gt;command_outcome_command_project_archive_authentication_required</title>
-<path fill="none" stroke="#3f3f46" d="M430.16,-285.5C582.99,-285.5 838.8,-285.5 973.62,-285.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="973.93,-288.3 981.93,-285.5 973.93,-282.7 973.93,-288.3"/>
-<text text-anchor="middle" x="728.5" y="-288.5" font-family="Arial" font-size="10.00">authentication_required_as</text>
+<path fill="none" stroke="#3f3f46" d="M430.36,-285.5C595.82,-285.5 884.33,-285.5 1029.77,-285.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1029.86,-288.3 1037.86,-285.5 1029.86,-282.7 1029.86,-288.3"/>
+<text text-anchor="middle" x="757.5" y="-288.5" font-family="Arial" font-size="10.00">authentication_required_as</text>
 </g>
 <!-- command_outcome_command_project_archive_archived -->
 <g id="node5" class="node">
 <title>command_outcome_command_project_archive_archived</title>
-<polygon fill="#ffffff" stroke="transparent" points="1028.5,-375 1028.5,-446 1099.5,-446 1099.5,-375 1028.5,-375"/>
-<polygon fill="#16a34a" stroke="transparent" points="1030,-436.5 1030,-444.5 1099,-444.5 1099,-436.5 1030,-436.5"/>
-<polygon fill="#f0fdf4" stroke="transparent" points="1030,-405.5 1030,-436.5 1099,-436.5 1099,-405.5 1030,-405.5"/>
-<text text-anchor="start" x="1034" y="-423.1" font-family="Arial" font-weight="bold" font-size="13.00">archived</text>
-<text text-anchor="start" x="1034" y="-412.1" font-family="Arial" font-size="8.00" fill="#64748b">success outcome</text>
-<text text-anchor="start" x="1034" y="-394.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="1034" y="-383.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="1059" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<polygon fill="none" stroke="#16a34a" points="1028.5,-375 1028.5,-446 1099.5,-446 1099.5,-375 1028.5,-375"/>
+<polygon fill="#ffffff" stroke="transparent" points="1084.5,-375 1084.5,-446 1155.5,-446 1155.5,-375 1084.5,-375"/>
+<polygon fill="#16a34a" stroke="transparent" points="1086,-436.5 1086,-444.5 1155,-444.5 1155,-436.5 1086,-436.5"/>
+<polygon fill="#f0fdf4" stroke="transparent" points="1086,-405.5 1086,-436.5 1155,-436.5 1155,-405.5 1086,-405.5"/>
+<text text-anchor="start" x="1090" y="-423.1" font-family="Arial" font-weight="bold" font-size="13.00">archived</text>
+<text text-anchor="start" x="1090" y="-412.1" font-family="Arial" font-size="8.00" fill="#64748b">success outcome</text>
+<text text-anchor="start" x="1090" y="-394.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1090" y="-383.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1115" y="-383.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#16a34a" points="1084.5,-375 1084.5,-446 1155.5,-446 1155.5,-375 1084.5,-375"/>
 </g>
-<!-- command_query_resource_command_project_archive_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_archived -->
+<!-- command_query_resource_command_project_archive_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_archived -->
 <g id="edge4" class="edge">
-<title>command_query_resource_command_project_archive_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_archived</title>
-<path fill="none" stroke="#3f3f46" d="M813.81,-214.09C836.94,-225.19 861.54,-238.29 883,-252.5 911.73,-271.52 978.68,-332.12 1022.34,-372.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1020.57,-374.67 1028.34,-378.05 1024.37,-370.56 1020.57,-374.67"/>
-<text text-anchor="middle" x="932.5" y="-311.5" font-family="Arial" font-size="10.00">success</text>
+<title>command_query_resource_command_project_archive_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_archived</title>
+<path fill="none" stroke="#3f3f46" d="M841.75,-214.11C865.1,-225.3 890.09,-238.44 912,-252.5 960.09,-283.35 965.6,-299.81 1011,-334.5 1032.6,-351.01 1057.37,-368.53 1077.73,-382.59"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1076.28,-384.99 1084.46,-387.21 1079.45,-380.37 1076.28,-384.99"/>
+<text text-anchor="middle" x="961.5" y="-310.5" font-family="Arial" font-size="10.00">success</text>
+</g>
+<!-- command_outcome_command_project_archive_lifecycle_transition_not_allowed -->
+<g id="node7" class="node">
+<title>command_outcome_command_project_archive_lifecycle_transition_not_allowed</title>
+<polygon fill="#ffffff" stroke="transparent" points="1011,-125 1011,-196 1229,-196 1229,-125 1011,-125"/>
+<polygon fill="#dc2626" stroke="transparent" points="1012,-186.5 1012,-194.5 1228,-194.5 1228,-186.5 1012,-186.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1012,-155.5 1012,-186.5 1228,-186.5 1228,-155.5 1012,-155.5"/>
+<text text-anchor="start" x="1016" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">lifecycle_transition_not_allowed</text>
+<text text-anchor="start" x="1016" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="1016" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1016" y="-133.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1041" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1011,-125 1011,-196 1229,-196 1229,-125 1011,-125"/>
+</g>
+<!-- command_query_resource_command_project_archive_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_lifecycle_transition_not_allowed -->
+<g id="edge7" class="edge">
+<title>command_query_resource_command_project_archive_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_lifecycle_transition_not_allowed</title>
+<path fill="none" stroke="#3f3f46" d="M912.17,-170.83C942.54,-169.31 973.94,-167.74 1002.82,-166.3"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1003.04,-169.09 1010.89,-165.9 1002.76,-163.5 1003.04,-169.09"/>
+<text text-anchor="middle" x="961.5" y="-172.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- command_outcome_command_project_archive_not_found -->
-<g id="node7" class="node">
-<title>command_outcome_command_project_archive_not_found</title>
-<polygon fill="#ffffff" stroke="transparent" points="1025.5,-125 1025.5,-196 1102.5,-196 1102.5,-125 1025.5,-125"/>
-<polygon fill="#dc2626" stroke="transparent" points="1027,-186.5 1027,-194.5 1102,-194.5 1102,-186.5 1027,-186.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="1027,-155.5 1027,-186.5 1102,-186.5 1102,-155.5 1027,-155.5"/>
-<text text-anchor="start" x="1031" y="-173.1" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
-<text text-anchor="start" x="1031" y="-162.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="1031" y="-144.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="1031" y="-133.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="1056" y="-133.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="1025.5,-125 1025.5,-196 1102.5,-196 1102.5,-125 1025.5,-125"/>
-</g>
-<!-- command_query_resource_command_project_archive_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_not_found -->
-<g id="edge7" class="edge">
-<title>command_query_resource_command_project_archive_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_not_found</title>
-<path fill="none" stroke="#3f3f46" d="M883.07,-170.21C931.98,-167.57 982.4,-164.85 1017.38,-162.96"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="1017.65,-165.75 1025.49,-162.52 1017.35,-160.16 1017.65,-165.75"/>
-<text text-anchor="middle" x="932.5" y="-171.5" font-family="Arial" font-size="10.00">failure</text>
-</g>
-<!-- command_outcome_command_project_archive_transition_not_allowed -->
 <g id="node8" class="node">
-<title>command_outcome_command_project_archive_transition_not_allowed</title>
-<polygon fill="#ffffff" stroke="transparent" points="985.5,0 985.5,-71 1142.5,-71 1142.5,0 985.5,0"/>
-<polygon fill="#dc2626" stroke="transparent" points="987,-61.5 987,-69.5 1142,-69.5 1142,-61.5 987,-61.5"/>
-<polygon fill="#fef2f2" stroke="transparent" points="987,-30.5 987,-61.5 1142,-61.5 1142,-30.5 987,-30.5"/>
-<text text-anchor="start" x="991" y="-48.1" font-family="Arial" font-weight="bold" font-size="13.00">transition_not_allowed</text>
-<text text-anchor="start" x="991" y="-37.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
-<text text-anchor="start" x="991" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
-<text text-anchor="start" x="991" y="-8.5" font-family="Arial" font-size="10.00">result</text>
-<text text-anchor="start" x="1016" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="985.5,0 985.5,-71 1142.5,-71 1142.5,0 985.5,0"/>
+<title>command_outcome_command_project_archive_not_found</title>
+<polygon fill="#ffffff" stroke="transparent" points="1081.5,0 1081.5,-71 1158.5,-71 1158.5,0 1081.5,0"/>
+<polygon fill="#dc2626" stroke="transparent" points="1083,-61.5 1083,-69.5 1158,-69.5 1158,-61.5 1083,-61.5"/>
+<polygon fill="#fef2f2" stroke="transparent" points="1083,-30.5 1083,-61.5 1158,-61.5 1158,-30.5 1083,-30.5"/>
+<text text-anchor="start" x="1087" y="-48.1" font-family="Arial" font-weight="bold" font-size="13.00">not_found</text>
+<text text-anchor="start" x="1087" y="-37.1" font-family="Arial" font-size="8.00" fill="#64748b">failure outcome</text>
+<text text-anchor="start" x="1087" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">result</text>
+<text text-anchor="start" x="1087" y="-8.5" font-family="Arial" font-size="10.00">result</text>
+<text text-anchor="start" x="1112" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="1081.5,0 1081.5,-71 1158.5,-71 1158.5,0 1081.5,0"/>
 </g>
-<!-- command_query_resource_command_project_archive_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_transition_not_allowed -->
+<!-- command_query_resource_command_project_archive_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_not_found -->
 <g id="edge8" class="edge">
-<title>command_query_resource_command_project_archive_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_transition_not_allowed</title>
-<path fill="none" stroke="#3f3f46" d="M812.37,-142.97C862.84,-121.33 927.17,-93.74 978.03,-71.94"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="979.18,-74.49 985.43,-68.76 976.97,-69.34 979.18,-74.49"/>
-<text text-anchor="middle" x="932.5" y="-101.5" font-family="Arial" font-size="10.00">failure</text>
+<title>command_query_resource_command_project_archive_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_archive_not_found</title>
+<path fill="none" stroke="#3f3f46" d="M848.08,-142.97C919.77,-114.53 1017.35,-75.82 1073.72,-53.46"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1074.99,-55.97 1081.39,-50.42 1072.92,-50.76 1074.99,-55.97"/>
+<text text-anchor="middle" x="961.5" y="-106.5" font-family="Arial" font-size="10.00">failure</text>
 </g>
 <!-- command_outcome_command_project_archive_access_denied&#45;&gt;command_outcome_command_project_archive_archived -->
 <!-- command_outcome_command_project_archive_archived&#45;&gt;command_outcome_command_project_archive_authentication_required -->
 <!-- command_query_event_command_project_archive_domain_event_project_archived -->
 <g id="node9" class="node">
 <title>command_query_event_command_project_archive_domain_event_project_archived</title>
-<polygon fill="#ffffff" stroke="transparent" points="1227,-365.5 1227,-455.5 1436,-455.5 1436,-365.5 1227,-365.5"/>
-<polygon fill="#4f46e5" stroke="transparent" points="1228.5,-446.5 1228.5,-454.5 1435.5,-454.5 1435.5,-446.5 1228.5,-446.5"/>
-<polygon fill="#eef2ff" stroke="transparent" points="1228.5,-415.5 1228.5,-446.5 1435.5,-446.5 1435.5,-415.5 1228.5,-415.5"/>
-<text text-anchor="start" x="1232.5" y="-433.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.archived</text>
-<text text-anchor="start" x="1232.5" y="-422.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
-<text text-anchor="start" x="1232.5" y="-404.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approved dispatch projects can be archived.</text>
-<text text-anchor="start" x="1232.5" y="-385.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
-<text text-anchor="start" x="1232.5" y="-374.5" font-family="Arial" font-size="10.00">payload</text>
-<text text-anchor="start" x="1266.5" y="-374.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
-<polygon fill="none" stroke="#4f46e5" points="1227,-365.5 1227,-455.5 1436,-455.5 1436,-365.5 1227,-365.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="1310,-365.5 1310,-455.5 1519,-455.5 1519,-365.5 1310,-365.5"/>
+<polygon fill="#4f46e5" stroke="transparent" points="1311.5,-446.5 1311.5,-454.5 1518.5,-454.5 1518.5,-446.5 1311.5,-446.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="1311.5,-415.5 1311.5,-446.5 1518.5,-446.5 1518.5,-415.5 1311.5,-415.5"/>
+<text text-anchor="start" x="1315.5" y="-433.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.archived</text>
+<text text-anchor="start" x="1315.5" y="-422.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted event</text>
+<text text-anchor="start" x="1315.5" y="-404.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approved dispatch projects can be archived.</text>
+<text text-anchor="start" x="1315.5" y="-385.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
+<text text-anchor="start" x="1315.5" y="-374.5" font-family="Arial" font-size="10.00">payload</text>
+<text text-anchor="start" x="1349.5" y="-374.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
+<polygon fill="none" stroke="#4f46e5" points="1310,-365.5 1310,-455.5 1519,-455.5 1519,-365.5 1310,-365.5"/>
 </g>
 <!-- command_outcome_command_project_archive_archived&#45;&gt;command_query_event_command_project_archive_domain_event_project_archived -->
 <g id="edge5" class="edge">
 <title>command_outcome_command_project_archive_archived&#45;&gt;command_query_event_command_project_archive_domain_event_project_archived</title>
-<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1099.71,-410.5C1130.01,-410.5 1175.72,-410.5 1218.49,-410.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1218.71,-413.3 1226.71,-410.5 1218.71,-407.7 1218.71,-413.3"/>
-<text text-anchor="middle" x="1186.5" y="-413.5" font-family="Arial" font-size="10.00">emit</text>
+<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1155.7,-410.5C1191.61,-410.5 1249.62,-410.5 1301.52,-410.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1301.79,-413.3 1309.79,-410.5 1301.79,-407.7 1301.79,-413.3"/>
+<text text-anchor="middle" x="1269.5" y="-413.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
-<!-- command_outcome_command_project_archive_authentication_required&#45;&gt;command_outcome_command_project_archive_not_found -->
-<!-- command_outcome_command_project_archive_not_found&#45;&gt;command_outcome_command_project_archive_transition_not_allowed -->
+<!-- command_outcome_command_project_archive_authentication_required&#45;&gt;command_outcome_command_project_archive_lifecycle_transition_not_allowed -->
+<!-- command_outcome_command_project_archive_lifecycle_transition_not_allowed&#45;&gt;command_outcome_command_project_archive_not_found -->
 </g>
 </svg>

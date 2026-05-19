@@ -395,14 +395,14 @@ class ReferenceSpecDriver:
                 else self._find(entity_type_ref, {"id": selected_id})
             )
             return self.last_result
-        if behavior_kind == "lifecycle_transition":
-            lifecycle_transition = cap["lifecycle_transition"]
-            entity_type_ref = lifecycle_transition["entity_type"]
+        if behavior_kind == "entity_lifecycle_transition":
+            entity_lifecycle_transition = cap["entity_lifecycle_transition"]
+            entity_type_ref = entity_lifecycle_transition["entity_type"]
             entity_key = _entity_input_key(entity_type_ref)
             selected_id = input_values.get(entity_key) or input_values.get("id")
             record = self._find(entity_type_ref, {"id": selected_id})
-            assert record[lifecycle_transition["field"]] == lifecycle_transition["from"]
-            record[lifecycle_transition["field"]] = lifecycle_transition["to"]
+            assert record[entity_lifecycle_transition["field"]] == entity_lifecycle_transition["from"]
+            record[entity_lifecycle_transition["field"]] = entity_lifecycle_transition["to"]
             for emit in outcome.get("emits", []):
                 event_id, payload = self._event_payload_from_emit(emit, cap, outcome, input_values, record)
                 self._record_event(event_id, payload)

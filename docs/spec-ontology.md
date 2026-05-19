@@ -4,7 +4,7 @@ This glossary is the vocabulary contract for the authored-source, layer-pruned a
 
 ## Terminology Boundaries
 
-- `domain_event`: a durable product/domain occurrence that happened. Domain events are emitted by successful command or lifecycle-transition outcomes and may serve as workflow inputs.
+- `domain_event`: a durable product/domain occurrence that happened. Domain events are emitted by successful command or entity_lifecycle_transition outcomes and may serve as workflow inputs.
 - `integration_message`: a wire-level AsyncAPI message in `integration_messages.asyncapi.yaml`. It carries a domain-event payload over a channel, but it is not state-machine vocabulary.
 - `local_signal`: a state-machine-local trigger or emitted signal. Local signals may be accepted by transitions, emitted by transitions, and synced between mounted child state-machine instances.
 - `data_refresh_signal`: a state-machine-local data refresh or invalidation signal, commonly consumed by `query_binding.load.refresh_on`.
@@ -85,7 +85,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `response handler`: adapter-specific projection of an invoked or delegated response outcome.
 - `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated external interface is an HTTP API.
 - `idempotent`: repeated identical command or external-interface execution has the same intended product-state effect as a single execution. Retry policies may rely on this marker. The default is false. Queries are idempotent by definition. This is idempotency for product behavior, not HTTP safe-method vocabulary.
-- `retryable`: explicit command or external-interface marker permitting automatic retry of delegated, command, transition, or workflow execution. Retryable commands must currently also be idempotent; future idempotency-key or proven-non-execution guards may provide other retry proofs. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
+- `retryable`: explicit command or external-interface marker permitting automatic retry of delegated external-interface, command, `entity_lifecycle_transition`, or workflow execution. Retryable commands must currently also be idempotent; future idempotency-key or proven-non-execution guards may provide other retry proofs. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
 - `workflow_activity`: a BPMN-like command activity that invokes a command with an `input_mapping`; workflow activities do not invoke queries, external interfaces, workers, or subworkflows.
 - `workflow_gateway`: a BPMN-like workflow branching or joining node. Gateways are explicit workflow elements even when a simple workflow has none.
 - `workflow_sequence_flow`: a top-level BPMN-like workflow control-flow edge from `source_ref` (`activity` or `gateway`) to `target_ref` (`activity`, `gateway`, or terminal workflow outcome). Activity-sourced flows use `source_result` to map command outcomes; gateway-sourced flows may use `condition` expressions and may not use `source_result`.
@@ -134,9 +134,9 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `authentication_required`: authorization failure where no acceptable subject identity is available. HTTP examples conventionally map this outcome to `401`; CLI examples map it to stderr plus a nonzero exit code.
 - `access_denied`: authorization failure where a subject identity exists but does not satisfy the access policy. HTTP examples conventionally map this outcome to `403`; CLI examples map it to stderr plus a nonzero exit code.
 - `domain failure outcome`: command outcome produced by command execution or domain validation, such as `validation_failed` or `not_found`.
-- `transition applicability`: lifecycle source-state check derived from `entity_type.entity_lifecycle.lifecycle_transitions[*]`, not authorization.
-- `transition_not_allowed`: transition applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `command_outcome` or `external_interface_response`, not `authorization_denial`.
-- `rule.entity_state_condition`: explicit author-authored access-control rule when an entity lifecycle state is truly part of who may attempt a command. The compiler does not generate this rule from lifecycle transition `from` states; lifecycle source-state mismatch remains transition applicability and maps to `transition_not_allowed`.
+- `lifecycle_transition_applicability`: entity-lifecycle source-state check derived from `entity_type.entity_lifecycle.lifecycle_transitions[*]`, not authorization.
+- `lifecycle_transition_not_allowed`: lifecycle_transition_applicability/domain failure outcome for lifecycle source-state mismatch. It is not an authorization failure and should be asserted with `command_outcome` or `external_interface_response`, not `authorization_denial`.
+- `rule.entity_state_condition`: explicit author-authored access-control rule when an entity lifecycle state is truly part of who may attempt a command. The compiler does not generate this rule from entity_lifecycle_transition `from` states; lifecycle source-state mismatch remains lifecycle_transition_applicability and maps to `lifecycle_transition_not_allowed`.
 
 ## Command Binding Example
 
@@ -153,9 +153,9 @@ states:
           approved:
             raise:
               data_refresh_signal: project_changed
-          transition_not_allowed:
+          lifecycle_transition_not_allowed:
             raise:
-              local_signal: show_transition_not_allowed
+              local_signal: show_lifecycle_transition_not_allowed
               payload_bindings:
                 message:
                   from: $command_outcome.result.message
@@ -422,7 +422,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:command_authorization --> `$defs/command_authorization`: explicit command access policy and mapped authorization failure outcomes.
 - <!-- schema-def:command_binding_id --> `$defs/command_binding_id`: local state command binding identifier.
 - <!-- schema-def:command_domain_event_emit --> `$defs/command_domain_event_emit`: command-level domain-event emission mapping keyed by outcome.
-- <!-- schema-def:command_entity_changes --> `$defs/command_entity_changes`: command entity-change summary containing creates, updates, deletes, or lifecycle_transition entries.
+- <!-- schema-def:command_entity_changes --> `$defs/command_entity_changes`: command entity-change summary containing creates, updates, deletes, or entity_lifecycle_transition entries.
 - <!-- schema-def:command_ref --> `$defs/command_ref`: typed reference definition for its namespace.
 - <!-- schema-def:query_ref --> `$defs/query_ref`: typed reference definition for its namespace.
 - <!-- schema-def:command_outcome --> `$defs/command_outcome`: command outcome without embedded domain-event emission metadata.

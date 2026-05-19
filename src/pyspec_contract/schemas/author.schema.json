@@ -1162,7 +1162,7 @@
           "type": "array",
           "uniqueItems": true
         },
-        "lifecycle_transition": {
+        "entity_lifecycle_transition": {
           "additionalProperties": false,
           "properties": {
             "entity_type": {

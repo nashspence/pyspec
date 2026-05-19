@@ -582,7 +582,7 @@
             "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           }
         ]
@@ -707,7 +707,7 @@
             "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           }
         ]
@@ -793,7 +793,7 @@
             "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           }
         ]
@@ -821,7 +821,7 @@
           "local_effects": {
             "access_denied": {
               "raise": {
-                "local_signal": "show_transition_not_allowed",
+                "local_signal": "show_lifecycle_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
                     "from": "$query_outcome.result.message"
@@ -831,7 +831,7 @@
             },
             "authentication_required": {
               "raise": {
-                "local_signal": "show_transition_not_allowed",
+                "local_signal": "show_lifecycle_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
                     "from": "$query_outcome.result.message"
@@ -852,7 +852,7 @@
             },
             "not_found": {
               "raise": {
-                "local_signal": "show_transition_not_allowed",
+                "local_signal": "show_lifecycle_transition_not_allowed",
                 "payload_bindings": {
                   "message": {
                     "from": "$query_outcome.result.message"
@@ -897,20 +897,20 @@
                   "reason": "handled_by_response_surface"
                 }
               },
-              "not_found": {
-                "no_local_effect": {
-                  "rationale": "The response mapping reports a missing project without a local transition.",
-                  "reason": "handled_by_response_surface"
-                }
-              },
-              "transition_not_allowed": {
+              "lifecycle_transition_not_allowed": {
                 "raise": {
-                  "local_signal": "show_transition_not_allowed",
+                  "local_signal": "show_lifecycle_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$command_outcome.result.message"
                     }
                   }
+                }
+              },
+              "not_found": {
+                "no_local_effect": {
+                  "rationale": "The response mapping reports a missing project without a local transition.",
+                  "reason": "handled_by_response_surface"
                 }
               },
               "unavailable": {
@@ -931,7 +931,7 @@
             "local_effects": {
               "access_denied": {
                 "raise": {
-                  "local_signal": "show_transition_not_allowed",
+                  "local_signal": "show_lifecycle_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$command_outcome.result.message"
@@ -946,7 +946,17 @@
               },
               "authentication_required": {
                 "raise": {
-                  "local_signal": "show_transition_not_allowed",
+                  "local_signal": "show_lifecycle_transition_not_allowed",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$command_outcome.result.message"
+                    }
+                  }
+                }
+              },
+              "lifecycle_transition_not_allowed": {
+                "raise": {
+                  "local_signal": "show_lifecycle_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$command_outcome.result.message"
@@ -956,17 +966,7 @@
               },
               "not_found": {
                 "raise": {
-                  "local_signal": "show_transition_not_allowed",
-                  "payload_bindings": {
-                    "message": {
-                      "from": "$command_outcome.result.message"
-                    }
-                  }
-                }
-              },
-              "transition_not_allowed": {
-                "raise": {
-                  "local_signal": "show_transition_not_allowed",
+                  "local_signal": "show_lifecycle_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$command_outcome.result.message"
@@ -1054,7 +1054,7 @@
             "rationale": "Invalid detail commands move the detail panel into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           }
         ]
@@ -1106,7 +1106,7 @@
               },
               "validation_failed": {
                 "raise": {
-                  "local_signal": "show_transition_not_allowed",
+                  "local_signal": "show_lifecycle_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$command_outcome.result.message"
@@ -1186,7 +1186,7 @@
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           },
           {
@@ -1229,7 +1229,7 @@
             "rationale": "Invalid list queries move the list into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           }
         ]
@@ -1312,7 +1312,7 @@
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           },
           {
@@ -1355,7 +1355,7 @@
             "rationale": "Invalid list queries move the list into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           }
         ]
@@ -1437,7 +1437,7 @@
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           },
           {
@@ -1480,7 +1480,7 @@
             "rationale": "Invalid list queries move the list into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           }
         ]
@@ -1546,7 +1546,7 @@
             "local_effects": {
               "access_denied": {
                 "raise": {
-                  "local_signal": "show_transition_not_allowed",
+                  "local_signal": "show_lifecycle_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$command_outcome.result.message"
@@ -1556,7 +1556,17 @@
               },
               "authentication_required": {
                 "raise": {
-                  "local_signal": "show_transition_not_allowed",
+                  "local_signal": "show_lifecycle_transition_not_allowed",
+                  "payload_bindings": {
+                    "message": {
+                      "from": "$command_outcome.result.message"
+                    }
+                  }
+                }
+              },
+              "lifecycle_transition_not_allowed": {
+                "raise": {
+                  "local_signal": "show_lifecycle_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$command_outcome.result.message"
@@ -1566,7 +1576,7 @@
               },
               "not_found": {
                 "raise": {
-                  "local_signal": "show_transition_not_allowed",
+                  "local_signal": "show_lifecycle_transition_not_allowed",
                   "payload_bindings": {
                     "message": {
                       "from": "$command_outcome.result.message"
@@ -1577,16 +1587,6 @@
               "submitted": {
                 "raise": {
                   "data_refresh_signal": "projects_changed"
-                }
-              },
-              "transition_not_allowed": {
-                "raise": {
-                  "local_signal": "show_transition_not_allowed",
-                  "payload_bindings": {
-                    "message": {
-                      "from": "$command_outcome.result.message"
-                    }
-                  }
                 }
               }
             }
@@ -1665,7 +1665,7 @@
             "rationale": "Invalid create attempts move the list into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           },
           {
@@ -1708,7 +1708,7 @@
             "rationale": "Invalid list queries move the list into its displayable error state.",
             "to": "error",
             "trigger": {
-              "local_signal": "show_transition_not_allowed"
+              "local_signal": "show_lifecycle_transition_not_allowed"
             }
           }
         ]
