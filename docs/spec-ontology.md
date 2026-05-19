@@ -399,7 +399,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:slot_name --> `$defs/slot_name`: local identifier contract component.
 - <!-- schema-def:outcome_name --> `$defs/outcome_name`: local identifier contract component.
 - <!-- schema-def:rule_id --> `$defs/rule_id`: local identifier contract component.
-- <!-- schema-def:role_name --> `$defs/role_name`: local identifier contract component.
+- <!-- schema-def:access_role_name --> `$defs/access_role_name`: access-control role name used by access-policy `subject_has_role` conditions.
 - <!-- schema-def:render_example_id --> `$defs/render_example_id`: local identifier contract component.
 - <!-- schema-def:fixture_ref --> `$defs/fixture_ref`: typed reference definition for its namespace.
 - <!-- schema-def:given --> `$defs/given`: shared schema component used by authored source or compiled output.

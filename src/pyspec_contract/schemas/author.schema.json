@@ -1267,7 +1267,7 @@
           "$ref": "#/$defs/field_name"
         },
         "subject_has_role": {
-          "$ref": "#/$defs/role_name"
+          "$ref": "#/$defs/access_role_name"
         },
         "unconditional": {
           "const": true,
@@ -2240,9 +2240,9 @@
       },
       "type": "object"
     },
-    "role_name": {
+    "access_role_name": {
       "$ref": "#/$defs/local_name",
-      "description": "Local authorization role name."
+      "description": "Access-control role name used by access-policy subject role conditions."
     },
     "rule_id": {
       "$ref": "#/$defs/local_name",
