@@ -19,6 +19,13 @@ from .targets import (
 from .json_schema import entity_type_id, schema_properties
 
 
+def _workflow_sequence_flow_for_activity_outcome(workflow: dict[str, Any], activity_id: str, outcome_id: str) -> dict[str, Any]:
+    for sequence_flow in workflow["sequence_flows"].values():
+        if sequence_flow["source_activity"] == activity_id and sequence_flow["source_outcome"] == outcome_id:
+            return sequence_flow
+    raise AssertionError(f"Workflow activity {activity_id} has no sequence_flow for outcome {outcome_id}")
+
+
 class ReferenceSpecDriver:
     """A fake/reference world for spec BDD. It proves behavior scenarios are coherent, not that prod works."""
 
@@ -391,17 +398,17 @@ class ReferenceSpecDriver:
                 self.workflow_outputs[workflow_id] = self._run_workflow(workflow, payload)
 
     def _run_workflow(self, workflow: dict[str, Any], payload: dict[str, Any]) -> str:
-        step_by_id = {step["id"]: step for step in workflow["steps"]}
-        current = workflow["steps"][0]["id"]
-        namespace: dict[str, Any] = {"workflow_input": {"payload": payload}, "step_outcome": {}}
+        activity_by_id = {activity["id"]: activity for activity in workflow["activities"]}
+        current = workflow["activities"][0]["id"]
+        namespace: dict[str, Any] = {"workflow_input": {"payload": payload}, "activity_outcome": {}}
         while True:
-            step = step_by_id[current]
-            input_values = {name: _resolve_binding(source, namespace) for name, source in step["input_mapping"].items()}
-            result = self._invoke(step["command"], input_values)
+            activity = activity_by_id[current]
+            input_values = {name: _resolve_binding(source, namespace) for name, source in activity["input_mapping"].items()}
+            result = self._invoke(activity["command"], input_values)
             outcome_id = self.last_outcome
             assert outcome_id is not None
-            namespace["step_outcome"].setdefault(step["id"], {})[outcome_id] = {"result": result}
-            transition = step["sequence_flows"][outcome_id]
+            namespace["activity_outcome"].setdefault(activity["id"], {})[outcome_id] = {"result": result}
+            transition = _workflow_sequence_flow_for_activity_outcome(workflow, activity["id"], outcome_id)
             if "complete_as" in transition:
                 return transition["complete_as"]
             if "fail_as" in transition:
@@ -410,7 +417,7 @@ class ReferenceSpecDriver:
                 return transition["retry_policy"]["fail_as"]
             if "dead_letter_as" in transition:
                 return transition["dead_letter_as"]
-            current = transition["next_step"]
+            current = transition["target_activity"]
 
     def _event_payload_from_emit(
         self,

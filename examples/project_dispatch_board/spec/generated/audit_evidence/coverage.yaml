@@ -1,9 +1,9 @@
 version: 1
 project: project_dispatch_board
 summary:
-  required_visual_pointers: 879
+  required_visual_pointers: 888
   missing_required_visual_pointers: 0
-  required_visual_text_witnesses: 274
+  required_visual_text_witnesses: 282
   optional_visual_pointers: 503
   optional_visual_pointers_not_shown: 21
   non_visual_pointers: 149
@@ -1262,7 +1262,12 @@ visual_audit:
       /state_machines/state_machine.project.list/transitions/9/rationale: V0027
       /state_machines/state_machine.project.list/transitions/9/to: V0027
       /state_machines/state_machine.project.list/transitions/9/trigger/local_signal: V0027
+      /workflows/workflow.project.approval_notice/activities/0/command: V0033
+      /workflows/workflow.project.approval_notice/activities/0/id: V0033
+      /workflows/workflow.project.approval_notice/activities/0/input_mapping/approved_by/from: V0033
+      /workflows/workflow.project.approval_notice/activities/0/input_mapping/project_id/from: V0033
       /workflows/workflow.project.approval_notice/failure_handlers: V0033
+      /workflows/workflow.project.approval_notice/gateways: V0033
       /workflows/workflow.project.approval_notice/inputs/domain_event: V0033
       /workflows/workflow.project.approval_notice/outputs/completed/kind: V0033
       /workflows/workflow.project.approval_notice/outputs/completed/result/$ref: V0033
@@ -1275,16 +1280,20 @@ visual_audit:
       /workflows/workflow.project.approval_notice/rationale: V0033
       /workflows/workflow.project.approval_notice/ref: V0033
       /workflows/workflow.project.approval_notice/retry_policies: V0033
-      /workflows/workflow.project.approval_notice/steps/0/command: V0033
-      /workflows/workflow.project.approval_notice/steps/0/id: V0033
-      /workflows/workflow.project.approval_notice/steps/0/input_mapping/approved_by/from: V0033
-      /workflows/workflow.project.approval_notice/steps/0/input_mapping/project_id/from: V0033
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/access_denied/fail_as: V0033
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/authentication_required/fail_as: V0033
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/delivery_failed/retry_policy/attempts: V0033
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/delivery_failed/retry_policy/backoff: V0033
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/delivery_failed/retry_policy/fail_as: V0033
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/sent/complete_as: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/fail_as: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/source_activity: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/source_outcome: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/fail_as: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/source_activity: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/source_outcome: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/retry_policy/attempts: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/retry_policy/backoff: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/retry_policy/fail_as: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/source_activity: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/source_outcome: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/complete_as: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/source_activity: V0033
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/source_outcome: V0033
     missing: {}
     text_witnesses:
       /access_policies/access_policy.project.member/action/0:
@@ -2493,6 +2502,14 @@ visual_audit:
         visual_evidence_set: V0027
         tokens:
         - text_resource.project.list.ready.heading
+      /workflows/workflow.project.approval_notice/activities/0/command:
+        visual_evidence_set: V0033
+        tokens:
+        - command.project.send_approval_notice
+      /workflows/workflow.project.approval_notice/activities/0/id:
+        visual_evidence_set: V0033
+        tokens:
+        - send_notice
       /workflows/workflow.project.approval_notice/inputs/domain_event:
         visual_evidence_set: V0033
         tokens:
@@ -2505,40 +2522,64 @@ visual_audit:
         visual_evidence_set: V0033
         tokens:
         - workflow.project.approval_notice
-      /workflows/workflow.project.approval_notice/steps/0/command:
-        visual_evidence_set: V0033
-        tokens:
-        - command.project.send_approval_notice
-      /workflows/workflow.project.approval_notice/steps/0/id:
-        visual_evidence_set: V0033
-        tokens:
-        - send_notice
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/access_denied/fail_as:
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/fail_as:
         visual_evidence_set: V0033
         tokens:
         - notice_access_denied
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/authentication_required/fail_as:
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/source_activity:
+        visual_evidence_set: V0033
+        tokens:
+        - send_notice
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_access_denied/source_outcome:
+        visual_evidence_set: V0033
+        tokens:
+        - access_denied
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/fail_as:
         visual_evidence_set: V0033
         tokens:
         - notice_authentication_required
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/delivery_failed/retry_policy/attempts:
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/source_activity:
+        visual_evidence_set: V0033
+        tokens:
+        - send_notice
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_authentication_required/source_outcome:
+        visual_evidence_set: V0033
+        tokens:
+        - authentication_required
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/retry_policy/attempts:
         visual_evidence_set: V0033
         tokens:
         - retry_policy
         - '3'
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/delivery_failed/retry_policy/backoff:
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/retry_policy/backoff:
         visual_evidence_set: V0033
         tokens:
         - retry_policy
         - exponential
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/delivery_failed/retry_policy/fail_as:
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/retry_policy/fail_as:
         visual_evidence_set: V0033
         tokens:
         - delivery_failed
-      /workflows/workflow.project.approval_notice/steps/0/sequence_flows/sent/complete_as:
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/source_activity:
+        visual_evidence_set: V0033
+        tokens:
+        - send_notice
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_delivery_failed/source_outcome:
+        visual_evidence_set: V0033
+        tokens:
+        - delivery_failed
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/complete_as:
         visual_evidence_set: V0033
         tokens:
         - completed
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/source_activity:
+        visual_evidence_set: V0033
+        tokens:
+        - send_notice
+      /workflows/workflow.project.approval_notice/sequence_flows/send_notice_sent/source_outcome:
+        visual_evidence_set: V0033
+        tokens:
+        - sent
   optional:
     covered:
       /behavior_scenarios/behavior_scenario.project.approval_notice.workflow/archetype: V0003

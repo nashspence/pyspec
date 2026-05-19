@@ -1558,7 +1558,7 @@ external_interfaces:
 workflows:
   workflow.project.approval_notice:
     rationale: Approval domain event sends a downstream notice.
-    steps:
+    activities:
     - id: send_notice
       command: command.project.send_approval_notice
       input_mapping:
@@ -1566,18 +1566,27 @@ workflows:
           from: $workflow_input.payload.approved_by
         project_id:
           from: $workflow_input.payload.project_id
-      sequence_flows:
-        delivery_failed:
-          retry_policy:
-            attempts: 3
-            backoff: exponential
-            fail_as: delivery_failed
-        access_denied:
-          fail_as: notice_access_denied
-        sent:
-          complete_as: completed
-        authentication_required:
-          fail_as: notice_authentication_required
+    gateways: {}
+    sequence_flows:
+      send_notice_delivery_failed:
+        source_activity: send_notice
+        source_outcome: delivery_failed
+        retry_policy:
+          attempts: 3
+          backoff: exponential
+          fail_as: delivery_failed
+      send_notice_access_denied:
+        source_activity: send_notice
+        source_outcome: access_denied
+        fail_as: notice_access_denied
+      send_notice_sent:
+        source_activity: send_notice
+        source_outcome: sent
+        complete_as: completed
+      send_notice_authentication_required:
+        source_activity: send_notice
+        source_outcome: authentication_required
+        fail_as: notice_authentication_required
     inputs:
       domain_event: domain_event.project.approved
     outputs:

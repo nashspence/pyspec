@@ -97,7 +97,7 @@ external_interface_adapters:
 external_interface_invocation_contracts:
   boundary: 'External interfaces declare adapter-specific input plus either invoked outcome responses or async ingress responses. input_mapping maps adapter input onto the invoked command, query, state-machine context, workflow input, or delegated external-interface input.'
   state_machine: 'State-machine external interface invocations use invokes.state_machine.ref plus invokes.state_machine.renderer to distinguish invocation from html/textual rendering.'
-  workflow: 'Workflow external-interface invocations use invokes.workflow.ref plus input_mapping.bindings so adapter input binds into workflow input fields. Workers declare ingress dispositions; workflows declare named execution outcomes and transition each step outcome explicitly.'
+  workflow: 'Workflow external-interface invocations use invokes.workflow.ref plus input_mapping.bindings so adapter input binds into workflow input fields. Workers declare ingress dispositions; BPMN-like workflows declare activities, gateways, named execution outcomes, and explicit sequence_flows for each activity outcome.'
 
 renderer_contracts:
   html_layout:

@@ -433,14 +433,14 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in workflow_failed_card
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">domain event input</FONT>' in workflow
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in workflow
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow step</FONT>' in workflow
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow activity</FONT>' in workflow
     assert "<B>command:</B>&#160;&#160;command.project.send_approval_notice" in workflow
-    workflow_step = workflow[workflow.index('"workflow_step_workflow_project_approval_notice_send_notice"') :]
-    assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' not in workflow_step
-    assert "approved_by ← workflow_input.payload.approved_by" in workflow_step
+    workflow_activity = workflow[workflow.index('"workflow_activity_workflow_project_approval_notice_send_notice"') :]
+    assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' not in workflow_activity
+    assert "approved_by ← workflow_input.payload.approved_by" in workflow_activity
     assert '<FONT POINT-SIZE="10">completed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.notice_result</FONT>' in workflow
     assert '<FONT POINT-SIZE="10">delivery_failed</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Problem</FONT>' in workflow
-    assert "access_policy.project.reviewer" in workflow_step
+    assert "access_policy.project.reviewer" in workflow_activity
     assert "success workflow outcome" in workflow
     assert "failure workflow outcome" in workflow
     assert "sent: complete_as → completed" in workflow

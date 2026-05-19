@@ -671,12 +671,17 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
     graph = []
     for workflow_id, workflow in sorted(contract["workflows"].items()):
         steps = {}
-        for step in workflow["steps"]:
-            cap = _command_query_map(contract)[step["command"]]
-            steps[step["id"]] = {
-                "doc": f"input_mapping={step['input_mapping']}; sequence_flows={step['sequence_flows']}",
-                "run": f"#{safe_id(step['command'])}",
-                "in": {name: _workflow_cwl_source(source) for name, source in sorted(step["input_mapping"].items())},
+        for activity in workflow["activities"]:
+            cap = _command_query_map(contract)[activity["command"]]
+            sequence_flows = {
+                sequence_flow_id: sequence_flow
+                for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
+                if sequence_flow["source_activity"] == activity["id"]
+            }
+            steps[activity["id"]] = {
+                "doc": f"activity={activity['id']}; input_mapping={activity['input_mapping']}; sequence_flows={sequence_flows}",
+                "run": f"#{safe_id(activity['command'])}",
+                "in": {name: _workflow_cwl_source(source) for name, source in sorted(activity["input_mapping"].items())},
                 "out": sorted(cap["outcomes"]),
             }
         workflow_input_payload_type = _workflow_input_payload_type(contract, workflow)
@@ -684,7 +689,11 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "id": f"#{safe_id(workflow_id)}",
             "class": "Workflow",
             "label": workflow_id,
-            "doc": f"contract workflow {workflow_id}; inputs={workflow['inputs']}; outputs={list(workflow['outputs'])}; ref={workflow['ref']}",
+            "doc": (
+                f"BPMN-like contract workflow {workflow_id}; inputs={workflow['inputs']}; "
+                f"activities={[activity['id'] for activity in workflow['activities']]}; gateways={list(workflow['gateways'])}; "
+                f"sequence_flows={workflow['sequence_flows']}; outputs={list(workflow['outputs'])}; ref={workflow['ref']}; projected_to=CWL"
+            ),
             "inputs": {"workflow_input_payload": {"type": cwl_type(workflow_input_payload_type)}},
             "outputs": {
                 outcome_id: {"type": cwl_type(outcome["result"])}
@@ -710,9 +719,9 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
 
 def _cwl_command_query_ids(contract: dict[str, Any]) -> list[str]:
     command_query_refs = {
-        step["command"]
+        activity["command"]
         for workflow in contract.get("workflows", {}).values()
-        for step in workflow.get("steps", [])
+        for activity in workflow.get("activities", [])
     }
     for entry in contract.get("external_interfaces", {}).values():
         adapter_kind, _ = external_interface_adapter_pair(entry)
@@ -756,7 +765,7 @@ def _workflow_cwl_source(source: Any) -> str:
         return source
     if ref.root == "workflow_input" and ref.path[:1] == ("payload",):
         return "workflow_input_payload"
-    if ref.root == "step_outcome" and len(ref.path) >= 3 and ref.path[2] == "result":
+    if ref.root == "activity_outcome" and len(ref.path) >= 3 and ref.path[2] == "result":
         return f"{ref.path[0]}/{ref.path[1]}"
     return source
 

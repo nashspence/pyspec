@@ -886,12 +886,21 @@
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
-        "steps": {
+        "activities": {
           "items": {
-            "$ref": "#/$defs/workflow_step"
+            "$ref": "#/$defs/workflow_activity"
           },
           "minItems": 1,
           "type": "array"
+        },
+        "gateways": {
+          "additionalProperties": {
+            "$ref": "#/$defs/workflow_gateway"
+          },
+          "type": "object"
+        },
+        "sequence_flows": {
+          "$ref": "#/$defs/workflow_sequence_flows"
         },
         "inputs": {
           "$ref": "#/$defs/workflow_input_source"
@@ -915,7 +924,9 @@
       "required": [
         "inputs",
         "outputs",
-        "steps",
+        "activities",
+        "gateways",
+        "sequence_flows",
         "retry_policies",
         "failure_handlers"
       ],
@@ -3470,7 +3481,7 @@
       },
       "minProperties": 1,
       "propertyNames": {
-        "$ref": "#/$defs/outcome_name"
+        "$ref": "#/$defs/local_name"
       },
       "type": "object"
     },
@@ -3514,7 +3525,26 @@
       ],
       "type": "object"
     },
-    "workflow_step": {
+    "workflow_gateway": {
+      "additionalProperties": false,
+      "properties": {
+        "gateway_type": {
+          "enum": [
+            "exclusive",
+            "parallel",
+            "inclusive"
+          ]
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        }
+      },
+      "required": [
+        "gateway_type"
+      ],
+      "type": "object"
+    },
+    "workflow_activity": {
       "additionalProperties": false,
       "properties": {
         "command": {
@@ -3524,9 +3554,6 @@
           "pattern": "^[a-z][a-z0-9_]*$",
           "type": "string"
         },
-        "sequence_flows": {
-          "$ref": "#/$defs/workflow_sequence_flows"
-        },
         "input_mapping": {
           "$ref": "#/$defs/binding_map"
         }
@@ -3534,8 +3561,7 @@
       "required": [
         "id",
         "command",
-        "input_mapping",
-        "sequence_flows"
+        "input_mapping"
       ],
       "type": "object"
     },
@@ -3544,7 +3570,7 @@
       "oneOf": [
         {
           "required": [
-            "next_step"
+            "target_activity"
           ]
         },
         {
@@ -3578,7 +3604,14 @@
         "fail_as": {
           "$ref": "#/$defs/outcome_name"
         },
-        "next_step": {
+        "source_activity": {
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "type": "string"
+        },
+        "source_outcome": {
+          "$ref": "#/$defs/outcome_name"
+        },
+        "target_activity": {
           "pattern": "^[a-z][a-z0-9_]*$",
           "type": "string"
         },
@@ -3589,6 +3622,10 @@
           "$ref": "#/$defs/workflow_retry_policy"
         }
       },
+      "required": [
+        "source_activity",
+        "source_outcome"
+      ],
       "type": "object"
     },
     "workflow_input_source": {

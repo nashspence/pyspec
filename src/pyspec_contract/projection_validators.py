@@ -574,19 +574,24 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         if item.get("inputs") != expected_inputs or item.get("outputs") != expected_outputs:
             raise ContractError(f"CWL workflow {workflow_id} inputs/outputs malformed")
         steps = item.get("steps")
-        if set(steps) != {step["id"] for step in workflow["steps"]}:
+        if set(steps) != {activity["id"] for activity in workflow["activities"]}:
             raise ContractError(f"CWL workflow {workflow_id} steps mismatch")
-        for step in workflow["steps"]:
-            actual = steps[step["id"]]
-            run_id = f"#{safe_id(step['command'])}"
+        for activity in workflow["activities"]:
+            actual = steps[activity["id"]]
+            run_id = f"#{safe_id(activity['command'])}"
             if actual.get("run") != run_id or run_id not in by_id:
-                raise ContractError(f"CWL workflow {workflow_id} step {step['id']} references unknown run")
-            cap = _command_query_map(contract)[step["command"]]
-            expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(step["input_mapping"].items())}
+                raise ContractError(f"CWL workflow {workflow_id} activity {activity['id']} references unknown run")
+            cap = _command_query_map(contract)[activity["command"]]
+            expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(activity["input_mapping"].items())}
             expected_out = sorted(cap["outcomes"])
-            expected_doc = f"input_mapping={step['input_mapping']}; sequence_flows={step['sequence_flows']}"
+            sequence_flows = {
+                sequence_flow_id: sequence_flow
+                for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
+                if sequence_flow["source_activity"] == activity["id"]
+            }
+            expected_doc = f"activity={activity['id']}; input_mapping={activity['input_mapping']}; sequence_flows={sequence_flows}"
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
-                raise ContractError(f"CWL workflow {workflow_id} step {step['id']} malformed")
+                raise ContractError(f"CWL workflow {workflow_id} activity {activity['id']} malformed")
 
     for cap_id in _cwl_command_query_ids(contract):
         cap = _command_query_map(contract)[cap_id]
@@ -633,7 +638,7 @@ def _workflow_cwl_source(source: Any) -> str:
         return source
     if ref.root == "workflow_input" and ref.path[:1] == ("payload",):
         return "workflow_input_payload"
-    if ref.root == "step_outcome" and len(ref.path) >= 3 and ref.path[2] == "result":
+    if ref.root == "activity_outcome" and len(ref.path) >= 3 and ref.path[2] == "result":
         return f"{ref.path[0]}/{ref.path[1]}"
     return source
 

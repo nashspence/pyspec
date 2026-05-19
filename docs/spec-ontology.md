@@ -18,7 +18,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - <!-- top-level:commands --> `commands`: state-changing product behavior with `input_schema`, optional authorization, explicit `entity_changes`, outcomes, and `emits_domain_events`.
 - <!-- top-level:queries --> `queries`: read-only product behavior with `input_schema`, `result_schema`, and outcomes.
 - <!-- top-level:domain_events --> `domain_events`: durable domain/application occurrences with payload_schema contracts and compiled emitters.
-- <!-- top-level:workflows --> `workflows`: asynchronous or long-running flows with `inputs`, `steps`, `sequence_flows`, `outputs`, `retry_policies`, and `failure_handlers`.
+- <!-- top-level:workflows --> `workflows`: BPMN-like asynchronous or long-running process contracts with `inputs`, `activities`, `gateways`, top-level `sequence_flows`, `outputs`, `retry_policies`, and `failure_handlers`. CWL is a generated projection target, not the authored workflow vocabulary.
 - <!-- top-level:state_machines --> `state_machines`: UI/component state-machine contracts with `context_schema`, states, transitions, triggers, guards, local_effects, local signals, command bindings, and query bindings.
 - <!-- top-level:external_interfaces --> `external_interfaces`: canonical external invocation declarations split into explicit adapter and invocation objects.
 - <!-- top-level:access_policies --> `access_policies`: canonical access-control policies with `subject`, `resource`, `action`, `environment`, rules with per-rule `effect`, and `decision`.
@@ -48,7 +48,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `instance_id`: local child state-machine instance id within a composed state.
 - `local_signal_name`: local state-machine signal name; authored sources do not use global-looking `local_signal.*` references for local signals.
 - `entity_type_ref`: `entity_type.<domain>...`; stable product/domain entity type id. The entity type object carries a separate PascalCase `name` for display/type naming.
-- `command_ref`: `command.<domain>...`; state-changing command declarations, state-machine command bindings, workflow steps, external-interface command invocations, and behavior-scenario command assertions.
+- `command_ref`: `command.<domain>...`; state-changing command declarations, state-machine command bindings, workflow activities, external-interface command invocations, and behavior-scenario command assertions.
 - `query_ref`: `query.<domain>...`; read-only query declarations, state-machine query bindings, external-interface query invocations, and behavior-scenario query assertions.
 - `command_binding_id`: local state command binding name; authored sources do not use global-looking `command_binding.*` references for local invocation keys.
 - `query_binding_id`: local state-machine or state query binding name; authored sources do not use global-looking `query_binding.*` references for local invocation keys.
@@ -86,7 +86,9 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `CLI response handler`: maps a named response outcome to stdout, stderr, an exit code, and optionally a retry policy. It does not restate HTTP status classification when the delegated external interface is an HTTP API.
 - `retry_safe`: explicit command or external-interface marker permitting automatic retry of delegated, command, transition, or workflow execution. The default is false. Queries are retry-safe by definition.
 - `retry safety`: validation that a retry policy applies only to a retry-safe delegated external interface and final invocation, a query, an explicitly retry-safe command or external interface, or an ingress/disposition outcome where no invoked command has executed. Transport retry, ingress retry, workflow retry, and command retry are separate scopes.
-- `workflow_sequence_flow`: exclusive workflow control-flow step via `next_step`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
+- `workflow_activity`: a BPMN-like workflow activity that invokes a command with an `input_mapping`.
+- `workflow_gateway`: a BPMN-like workflow branching or joining node. Gateways are explicit workflow elements even when a simple workflow has none.
+- `workflow_sequence_flow`: a top-level BPMN-like workflow control-flow edge from `source_activity` and `source_outcome` to exactly one of `target_activity`, `complete_as`, `fail_as`, `retry_policy`, or `dead_letter_as`.
 - `state-machine context schema`: local machine context declared as JSON Schema object `properties` and `required`. Nullability uses JSON Schema type arrays such as `type: [string, null]`; local_effects may set a context field to null only when that field schema allows null.
 - `context_non_null`: state-machine condition meaning the declared context field exists in the current context and its value is not `null`. JSON Schema property presence remains separate: `required` means a property is present even when its value is `null`.
 - `selected.condition`: child state-machine selected-state guard. It uses state-machine condition vocabulary and does not reuse BDD `when`.
@@ -105,7 +107,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `local_outcome_effect`: mapping from a command/query-binding outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
 - `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
 - `Authored value`: explicit literal-or-fixture-reference value used in authored test, precondition, content-example, and render-example value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
-- `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$signal.payload`, and `$state_machine`; command domain-event payload mappings use `$command_input` and `$command_outcome`; external-interface response mappings use `$invocation_outcome`; adapter/delegation bindings use `$adapter_input` and `$adapter_response`; workflow step bindings use `$workflow_input` and `$step_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
+- `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$signal.payload`, and `$state_machine`; command domain-event payload mappings use `$command_input` and `$command_outcome`; external-interface response mappings use `$invocation_outcome`; adapter/delegation bindings use `$adapter_input` and `$adapter_response`; workflow activity bindings use `$workflow_input` and `$activity_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
 - `Actor/user binding source`: local command bindings should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$principal.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
 - `Local signal raise`: creation of a state-machine-local `local_signal` or `data_refresh_signal`.
 - `Data refresh signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data-refresh signals are not sent between child state-machine instances.
@@ -251,7 +253,7 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 | HTTP API response bodies | `$invocation_outcome.result` only |
 | CLI command/query response handlers | `$adapter_input`, `$invocation_outcome` |
 | CLI delegated response handlers | `$adapter_input`, `$adapter_response` |
-| Workflow step `input_mapping` | `$workflow_input`, `$step_outcome` |
+| Workflow activity `input_mapping` | `$workflow_input`, `$activity_outcome` |
 | Authored test/precondition/assertion/content-example/render-example value maps | `$fixture` |
 
 ## Visual Audit Coverage
@@ -291,7 +293,7 @@ The visual audit includes state-machine and composition diagrams, external-inter
 - `$query_binding.input.<field>` reads the bound query input during query-binding local_effects.
 - `$adapter_response.body[.<field>]` reads the delegated external-interface response body inside delegating CLI `response_handlers`.
 - `$workflow_input.payload[.<field>]` reads workflow input payload.
-- `$step_outcome.<step>.<outcome>.result[.<field>]` reads previous workflow step result.
+- `$activity_outcome.<activity>.<outcome>.result[.<field>]` reads a previous workflow activity result.
 
 Binding expressions appear inside binding objects. Authored value maps use `{from: ...}` for these expressions and `{value: ...}` for literal JSON values; a raw string beginning with `$` is a literal only when wrapped with `value`.
 - The shared grammar is `$source.path.to.field`; semantic validation checks available roots and declared field paths for each context.
@@ -307,7 +309,7 @@ Binding expressions appear inside binding objects. Authored value maps use `{fro
 - `spec/generated/product_interfaces/html.routes.json`: UI route projection generated from HTML route external interfaces.
 - `spec/generated/product_interfaces/html.state_machines.json`: state-machine HTML/Textual renderer contract projection, including composition layout and renderer-specific style contracts.
 - `spec/generated/product_interfaces/textual.projection.py`: Textual renderer projection generated from `renderers.textual.presentation` widgets, `renderers.textual.style`, and `renderers.textual.layout` containers.
-- `spec/generated/product_interfaces/workflow.cwl.yaml`: CWL projection generated for workflow/CLI/worker-relevant execution graphs.
+- `spec/generated/product_interfaces/workflow.cwl.yaml`: CWL projection generated from BPMN-like authored workflow processes for workflow/CLI/worker-relevant execution graphs.
 - `spec/generated/product_interfaces/access_policies.json`: access-policy projection with command authorization mappings and external-interface policies.
 - `spec/generated/content_resolvers/{signatures.py,stubs.py,examples.yaml}`: documented content-resolution contracts and examples.
 - `spec/generated/test_adapters/python_refs.py`: Python constants for resource and generated reference IDs.
@@ -472,14 +474,15 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:webhook_adapter --> `$defs/webhook_adapter`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:when --> `$defs/when`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:worker_adapter --> `$defs/worker_adapter`: external-interface adapter, invocation, input, or response contract component.
-- <!-- schema-def:workflow_outcome --> `$defs/workflow_outcome`: workflow input, step, sequence-flow, retry, output, or binding contract component.
-- <!-- schema-def:workflow_sequence_flows --> `$defs/workflow_sequence_flows`: workflow input, step, sequence-flow, retry, output, or binding contract component.
-- <!-- schema-def:workflow_outputs --> `$defs/workflow_outputs`: workflow input, step, sequence-flow, retry, output, or binding contract component.
+- <!-- schema-def:workflow_outcome --> `$defs/workflow_outcome`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
+- <!-- schema-def:workflow_sequence_flows --> `$defs/workflow_sequence_flows`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
+- <!-- schema-def:workflow_outputs --> `$defs/workflow_outputs`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
 - <!-- schema-def:workflow_ref --> `$defs/workflow_ref`: typed reference definition for its namespace.
-- <!-- schema-def:workflow_retry_policy --> `$defs/workflow_retry_policy`: workflow input, step, sequence-flow, retry, output, or binding contract component.
-- <!-- schema-def:workflow_sequence_flow --> `$defs/workflow_sequence_flow`: workflow input, step, sequence-flow, retry, output, or binding contract component.
-- <!-- schema-def:workflow_step --> `$defs/workflow_step`: workflow input, step, sequence-flow, retry, output, or binding contract component.
-- <!-- schema-def:workflow_input_source --> `$defs/workflow_input_source`: workflow input, step, sequence-flow, retry, output, or binding contract component.
+- <!-- schema-def:workflow_retry_policy --> `$defs/workflow_retry_policy`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
+- <!-- schema-def:workflow_sequence_flow --> `$defs/workflow_sequence_flow`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
+- <!-- schema-def:workflow_activity --> `$defs/workflow_activity`: BPMN-like workflow activity contract component.
+- <!-- schema-def:workflow_gateway --> `$defs/workflow_gateway`: BPMN-like workflow gateway contract component.
+- <!-- schema-def:workflow_input_source --> `$defs/workflow_input_source`: BPMN-like workflow input, activity, gateway, sequence-flow, retry, output, or binding contract component.
 - <!-- schema-def:schema_ref --> `$defs/schema_ref`: typed reference definition for its namespace.
 - <!-- schema-def:authored_schema --> `$defs/authored_schema`: human-authored source object for this resource or nested contract.
 - <!-- schema-def:feature_tag --> `$defs/feature_tag`: unprefixed behavior-scenario feature grouping tag, not a typed reference.

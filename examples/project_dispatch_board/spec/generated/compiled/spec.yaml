@@ -2673,7 +2673,16 @@ viewport_profiles:
         rows: 36
 workflows:
   workflow.project.approval_notice:
+    activities:
+    - command: command.project.send_approval_notice
+      id: send_notice
+      input_mapping:
+        approved_by:
+          from: $workflow_input.payload.approved_by
+        project_id:
+          from: $workflow_input.payload.project_id
     failure_handlers: {}
+    gateways: {}
     inputs:
       domain_event: domain_event.project.approved
     outputs:
@@ -2696,23 +2705,23 @@ workflows:
     rationale: Approval domain event sends a downstream notice.
     ref: workflow.project.approval_notice
     retry_policies: {}
-    steps:
-    - command: command.project.send_approval_notice
-      id: send_notice
-      input_mapping:
-        approved_by:
-          from: $workflow_input.payload.approved_by
-        project_id:
-          from: $workflow_input.payload.project_id
-      sequence_flows:
-        access_denied:
-          fail_as: notice_access_denied
-        authentication_required:
-          fail_as: notice_authentication_required
-        delivery_failed:
-          retry_policy:
-            attempts: 3
-            backoff: exponential
-            fail_as: delivery_failed
-        sent:
-          complete_as: completed
+    sequence_flows:
+      send_notice_access_denied:
+        fail_as: notice_access_denied
+        source_activity: send_notice
+        source_outcome: access_denied
+      send_notice_authentication_required:
+        fail_as: notice_authentication_required
+        source_activity: send_notice
+        source_outcome: authentication_required
+      send_notice_delivery_failed:
+        retry_policy:
+          attempts: 3
+          backoff: exponential
+          fail_as: delivery_failed
+        source_activity: send_notice
+        source_outcome: delivery_failed
+      send_notice_sent:
+        complete_as: completed
+        source_activity: send_notice
+        source_outcome: sent

@@ -911,7 +911,7 @@ def test_workflow_input_mapping_supports_binding_sources_and_literal_values() ->
                     "completed": {"kind": "success", "result": D("schema.ticket.notice")},
                     "failed": {"kind": "failure", "result": M("Problem")},
                 },
-                "steps": [
+                "activities": [
                     {
                         "id": "notify",
                         "command": "command.ticket.notify",
@@ -919,12 +919,13 @@ def test_workflow_input_mapping_supports_binding_sources_and_literal_values() ->
                             "source_id": {"from": "$workflow_input.payload.source_id"},
                             "title": {"value": "Literal title"},
                         },
-                        "sequence_flows": {
-                            "sent": {"complete_as": "completed"},
-                            "failed": {"fail_as": "failed"},
-                        },
                     }
                 ],
+                "gateways": {},
+                "sequence_flows": {
+                    "notify_sent": {"source_activity": "notify", "source_outcome": "sent", "complete_as": "completed"},
+                    "notify_failed": {"source_activity": "notify", "source_outcome": "failed", "fail_as": "failed"},
+                },
                 "retry_policies": {},
                 "failure_handlers": {},
                 "rationale": "Workflow exercises explicit binding values.",
@@ -932,7 +933,7 @@ def test_workflow_input_mapping_supports_binding_sources_and_literal_values() ->
         },
     }
     contract = compile_author(author)
-    bindings = contract["workflows"]["workflow.ticket.notice"]["steps"][0]["input_mapping"]
+    bindings = contract["workflows"]["workflow.ticket.notice"]["activities"][0]["input_mapping"]
     assert bindings["source_id"] == {"from": "$workflow_input.payload.source_id"}
     assert bindings["title"] == {"value": "Literal title"}
 
@@ -1916,7 +1917,7 @@ def test_binding_expressions_are_context_scoped() -> None:
 
 def test_binding_expressions_validate_declared_fields() -> None:
     author = _author()
-    author["workflows"]["workflow.project.approval_notice"]["steps"][0]["input_mapping"]["project_id"] = {"from": "$workflow_input.payload.missing"}
+    author["workflows"]["workflow.project.approval_notice"]["activities"][0]["input_mapping"]["project_id"] = {"from": "$workflow_input.payload.missing"}
     with pytest.raises(ContractError, match=r"input project_id references unknown schema\.project\.approved field: missing"):
         compile_source(author)
 
@@ -2156,17 +2157,17 @@ def test_worker_entry_must_declare_realistic_dispositions() -> None:
         compile_source(author)
 
 
-def test_workflow_steps_must_sequence_flow_all_command_outcomes() -> None:
+def test_workflow_activities_must_sequence_flow_all_command_outcomes() -> None:
     author = _author()
-    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["sequence_flows"]["delivery_failed"]
-    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice sequence_flows must exactly map command outcomes: missing: delivery_failed"):
+    del author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["send_notice_delivery_failed"]
+    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice activity send_notice sequence_flows must exactly map command outcomes: missing: delivery_failed"):
         compile_source(author)
 
 
-def test_workflow_steps_must_sequence_flow_authorization_failure_outcomes() -> None:
+def test_workflow_activities_must_sequence_flow_authorization_failure_outcomes() -> None:
     author = _author()
-    del author["workflows"]["workflow.project.approval_notice"]["steps"][0]["sequence_flows"]["access_denied"]
-    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice step send_notice sequence_flows must exactly map command outcomes: missing: access_denied"):
+    del author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["send_notice_access_denied"]
+    with pytest.raises(ContractError, match=r"Workflow workflow.project\.approval_notice activity send_notice sequence_flows must exactly map command outcomes: missing: access_denied"):
         compile_source(author)
 
 
@@ -2174,17 +2175,17 @@ def test_workflow_authorization_failure_collapse_requires_rationale() -> None:
     author = _author()
     workflow = author["workflows"]["workflow.project.approval_notice"]
     del workflow["outputs"]["notice_access_denied"]
-    workflow["steps"][0]["sequence_flows"]["access_denied"] = {"fail_as": "delivery_failed"}
+    workflow["sequence_flows"]["send_notice_access_denied"] = {"source_activity": "send_notice", "source_outcome": "access_denied", "fail_as": "delivery_failed"}
     with pytest.raises(ContractError, match=r"collapses authorization failure into delivery_failed"):
         compile_source(author)
 
-    workflow["steps"][0]["sequence_flows"]["access_denied"]["rationale"] = "The worker deliberately treats policy denial as a delivery failure for this integration."
+    workflow["sequence_flows"]["send_notice_access_denied"]["rationale"] = "The worker deliberately treats policy denial as a delivery failure for this integration."
     compile_source(author)
 
 
 def test_workflow_sequence_flow_choices_must_be_exclusive() -> None:
     author = _author()
-    transition = author["workflows"]["workflow.project.approval_notice"]["steps"][0]["sequence_flows"]["delivery_failed"]
+    transition = author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["send_notice_delivery_failed"]
     transition["fail_as"] = "delivery_failed"
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
@@ -2192,9 +2193,9 @@ def test_workflow_sequence_flow_choices_must_be_exclusive() -> None:
 
 def test_workflow_sequence_flows_must_reference_known_outputs() -> None:
     author = _author()
-    transition = author["workflows"]["workflow.project.approval_notice"]["steps"][0]["sequence_flows"]["delivery_failed"]
+    transition = author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["send_notice_delivery_failed"]
     transition["retry_policy"]["fail_as"] = "missing"
-    with pytest.raises(ContractError, match=r"sequence_flow delivery_failed references unknown workflow outcome missing"):
+    with pytest.raises(ContractError, match=r"sequence_flow send_notice_delivery_failed references unknown workflow outcome missing"):
         compile_source(author)
 
 
