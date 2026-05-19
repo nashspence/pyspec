@@ -70,7 +70,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `given`: setup contract split into `seed_fixtures` and `preconditions`.
 - `when`: BDD behavior-scenario stimulus only: `open_external_interface`, `call_external_interface`, `invoke_command`, `invoke_query`, or `emit_domain_event`.
 - `then`: assertions for `outcome`, entity existence, emitted/not-emitted domain events, workflow execution, authorization decisions, responses, invoked/enabled/access_denied commands or queries, state-machine state, and `postconditions`. Compiled state-machine assertions may add `surface`, `composition`, and top-level `requires`.
-- `then.requires`: compiled-only derived projection dependencies for a state-machine assertion, split into `surfaces`, `text`, `assets`, `query_bindings`, and `command_bindings`.
+- `then.requires`: compiled-only derived projection dependencies for a state-machine assertion, split into `renderer_surfaces`, `text_resources`, `media_assets`, `query_bindings`, and `command_bindings`.
 - `external_interface_adapter`: exactly one adapter object: `http_api`, `cli`, `webhook`, `scheduled`, `worker`, or `html_route`.
 - `adapter input shape`: HTTP API input may use `path_params`, `query_params`, and `body`; HTML route input may use `path_params` and `query_params`; CLI input uses `args`; worker input uses `payload`; webhook input may use `path_params`, `query_params`, and `payload`; scheduled input has no external input sections.
 - `external_interface_invokes`: exactly one invocation object: `command`, `query`, `state_machine`, `workflow`, or `external_interface`.
@@ -270,7 +270,7 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 - `missing_required_visual_pointer`: a required visual pointer with no diagram or render-capture evidence.
 - `optional_visual_pointer_not_shown`: an optional visual pointer with no diagram or render-capture evidence; this is reported but does not fail validation.
 - `non_visual_pointer`: compiled metadata that is intentionally outside visual-audit scope, such as `project` workspace metadata or the compiled `reference_index`.
-- `render_presence`: resource-level visibility in actual render captures, reported as `rendered` or `not_rendered` for assets, text resources, fixtures, preconditions, assertions, and content examples.
+- `render_presence`: resource-level visibility in actual render captures, reported as `rendered` or `not_rendered` for `media_assets`, `text_resources`, `fixtures`, `preconditions`, `assertions`, and `content_examples`.
 
 Audit validation fails when any `missing_required_visual_pointer` exists or when a declared `required_visual_text_witness` is absent from its SVG evidence set. Required pointers without a text witness are still required to have diagram or render-capture evidence, but their semantics are audited through the visual artifact rather than a machine-readable token.
 
@@ -324,7 +324,7 @@ Binding expressions appear inside binding objects. Authored value maps use `{fro
 - `spec/generated/test_adapters/pytest_bdd_steps.py`: BDD step glue.
 - `spec/generated/test_adapters/pytest_bdd_features/{feature}.feature`: generated behavior feature files.
 - `spec/generated/audit_evidence/external_interfaces/{adapter}/{external_interface}/flow.svg`: external-interface flow diagrams grouped by adapter kind.
-- `spec/generated/audit_evidence/coverage.yaml`: generated visual coverage index mapping compiled JSON Pointers to diagram and render-capture evidence, including explicit render coverage gaps for assets, text, fixtures, preconditions, assertions, and content examples.
+- `spec/generated/audit_evidence/coverage.yaml`: generated visual coverage index mapping compiled JSON Pointers to diagram and render-capture evidence, including explicit render coverage gaps for `media_assets`, `text_resources`, `fixtures`, `preconditions`, `assertions`, and `content_examples`.
 - `spec/generated/audit_evidence/workflows/{workflow}/flow.svg`: workflow flow diagrams.
 - `spec/generated/audit_evidence/commands/{command}/flow.svg`: chronological command flows showing input, authorization, touched resources, outcomes, and emitted domain events.
 - `spec/generated/audit_evidence/queries/{query}/flow.svg`: chronological query flows showing input, authorization, results, and outcomes.

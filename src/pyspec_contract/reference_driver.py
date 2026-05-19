@@ -122,12 +122,12 @@ class ReferenceSpecDriver:
             rendered_text = self._rendered_values("text")
             rendered_assets = self._rendered_values("assets")
             rendered_command_bindings = self._rendered_values("command_bindings")
-            for state_machine in requires.get("surfaces", []):
+            for state_machine in requires.get("renderer_surfaces", []):
                 assert state_machine in self.surfaces
                 assert state_machine in rendered_state_machines
-            for key in requires.get("text", []):
+            for key in requires.get("text_resources", []):
                 assert key in rendered_text
-            for key in requires.get("assets", []):
+            for key in requires.get("media_assets", []):
                 assert key in rendered_assets
             for cap in requires.get("command_bindings", []):
                 assert cap in rendered_command_bindings

@@ -198,19 +198,19 @@ behavior_scenarios:
       enables:
       - command.project.create
       requires:
-        assets:
-        - media_asset.project.list.empty.illustration
         command_bindings:
         - create
+        media_assets:
+        - media_asset.project.list.empty.illustration
         query_bindings:
         - list_board
         - list_projects
-        surfaces:
+        renderer_surfaces:
         - state_machine.project.board.ready
         - state_machine.project.activity.empty
         - state_machine.project.detail.none
         - state_machine.project.list.empty
-        text:
+        text_resources:
         - text_resource.project.activity.empty.heading
         - text_resource.project.activity.empty.body
         - text_resource.project.detail.none.heading
@@ -419,19 +419,19 @@ behavior_scenarios:
       - command.project.create
       - command.project.submit
       requires:
-        assets: []
         command_bindings:
         - create
         - submit
+        media_assets: []
         query_bindings:
         - list_board
         - list_projects
-        surfaces:
+        renderer_surfaces:
         - state_machine.project.board.ready
         - state_machine.project.activity.empty
         - state_machine.project.detail.none
         - state_machine.project.list.ready
-        text:
+        text_resources:
         - text_resource.project.activity.empty.heading
         - text_resource.project.activity.empty.body
         - text_resource.project.detail.none.heading

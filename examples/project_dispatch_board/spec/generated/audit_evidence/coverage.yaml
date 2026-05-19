@@ -2670,20 +2670,20 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.empty/then/authorization/denied/0/access_policy: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/authorization/denied/0/command: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/enables/0: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/assets/0: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/command_bindings/0: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/media_assets/0: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/query_bindings/0: V0005
       /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/query_bindings/1: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/surfaces/0: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/surfaces/1: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/surfaces/2: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/surfaces/3: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text/0: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text/1: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text/2: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text/3: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text/4: V0005
-      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text/5: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/renderer_surfaces/0: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/renderer_surfaces/1: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/renderer_surfaces/2: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/renderer_surfaces/3: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text_resources/0: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text_resources/1: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text_resources/2: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text_resources/3: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text_resources/4: V0005
+      /behavior_scenarios/behavior_scenario.project.board.empty/then/requires/text_resources/5: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/0/context_bindings/selected_project_id/from
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.empty/then/state_machine/composition/child_state_machines/0/context_bindings/workspace_id/from
@@ -2880,20 +2880,20 @@ visual_audit:
       /behavior_scenarios/behavior_scenario.project.board.ready/system_under_test_ref/state_machine: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/enables/0: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/enables/1: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/assets: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/command_bindings/0: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/command_bindings/1: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/media_assets: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/query_bindings/0: V0005
       /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/query_bindings/1: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/surfaces/0: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/surfaces/1: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/surfaces/2: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/surfaces/3: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/text/0: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/text/1: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/text/2: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/text/3: V0005
-      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/text/4: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/renderer_surfaces/0: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/renderer_surfaces/1: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/renderer_surfaces/2: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/renderer_surfaces/3: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/text_resources/0: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/text_resources/1: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/text_resources/2: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/text_resources/3: V0005
+      /behavior_scenarios/behavior_scenario.project.board.ready/then/requires/text_resources/4: V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/0/context_bindings/selected_project_id/from
       : V0005
       ? /behavior_scenarios/behavior_scenario.project.board.ready/then/state_machine/composition/child_state_machines/0/context_bindings/workspace_id/from

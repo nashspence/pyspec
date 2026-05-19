@@ -4762,16 +4762,16 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
                 mounts = {mount["id"]: mount for mount in parent_state.get("child_state_machines", [])}
                 required = {
                     "query_bindings": list(parent_state_machine.get("query_bindings", {})),
-                    "surfaces": [],
-                    "text": [],
-                    "assets": [],
+                    "renderer_surfaces": [],
+                    "text_resources": [],
+                    "media_assets": [],
                     "command_bindings": [],
                 }
                 state_machine_assertion["surface"] = parent_state["surface"]
-                required["surfaces"].append(parent_state["surface"])
+                required["renderer_surfaces"].append(parent_state["surface"])
                 required["query_bindings"].extend(parent_state.get("query_bindings", {}))
-                required["text"].extend(parent_state["text"])
-                required["assets"].extend(parent_state["assets"])
+                required["text_resources"].extend(parent_state["text"])
+                required["media_assets"].extend(parent_state["assets"])
                 required["command_bindings"].extend(parent_state["command_bindings"])
                 for instance_id, expected in state_machine_assertion["instances"].items():
                     mount = mounts[instance_id]
@@ -4781,9 +4781,9 @@ def _expand_behavior_scenarios(contract: dict[str, Any]) -> None:
                     expected["source"] = mount["state_machine"]
                     required["query_bindings"].extend(mounted_state_machine.get("query_bindings", {}))
                     required["query_bindings"].extend(mounted_state.get("query_bindings", {}))
-                    required["surfaces"].append(mounted_state["surface"])
-                    required["text"].extend(mounted_state["text"])
-                    required["assets"].extend(mounted_state["assets"])
+                    required["renderer_surfaces"].append(mounted_state["surface"])
+                    required["text_resources"].extend(mounted_state["text"])
+                    required["media_assets"].extend(mounted_state["assets"])
                     required["command_bindings"].extend(mounted_state["command_bindings"])
                 state_machine_assertion["composition"] = {
                     "renderers": parent_state.get("renderers", {}),

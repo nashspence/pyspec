@@ -3155,7 +3155,7 @@
               "type": "array",
               "uniqueItems": true
             },
-            "assets": {
+            "media_assets": {
               "items": {
                 "$ref": "#/$defs/media_asset_ref"
               },
@@ -3169,14 +3169,14 @@
               "type": "array",
               "uniqueItems": true
             },
-            "surfaces": {
+            "renderer_surfaces": {
               "items": {
                 "type": "string"
               },
               "type": "array",
               "uniqueItems": true
             },
-            "text": {
+            "text_resources": {
               "items": {
                 "$ref": "#/$defs/text_resource_ref"
               },

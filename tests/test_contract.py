@@ -118,6 +118,24 @@ def test_canonical_top_level_sections_compile_without_compatibility_mirrors() ->
     assert "refs" not in contract
 
 
+def test_compiled_then_requires_uses_projection_bucket_names() -> None:
+    contract = compile_author(_author())
+    behavior_scenario = contract["behavior_scenarios"]["behavior_scenario.project.board.ready"]
+    requires = behavior_scenario["then"]["requires"]
+
+    assert set(requires) == {
+        "command_bindings",
+        "media_assets",
+        "query_bindings",
+        "renderer_surfaces",
+        "text_resources",
+    }
+    assert requires["renderer_surfaces"]
+    assert "surfaces" not in requires
+    assert "text" not in requires
+    assert "assets" not in requires
+
+
 def test_legacy_top_level_sections_are_rejected() -> None:
     asset = {
         "media_kind": "icon",
