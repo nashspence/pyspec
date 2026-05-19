@@ -502,7 +502,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:container_id --> `$defs/container_id`: local Textual layout container identifier within a state.
 - <!-- schema-def:http_api_adapter --> `$defs/http_api_adapter`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:authorization_assertion --> `$defs/authorization_assertion`: access-policy contract component.
-- <!-- schema-def:condition --> `$defs/condition`: access-policy rule predicate component used by policy `environment` and `rules` lists.
+- <!-- schema-def:access_policy_condition --> `$defs/access_policy_condition`: access-policy rule predicate component used by policy `environment` and `rules` lists.
 - <!-- schema-def:authorization_decision_assertion --> `$defs/authorization_decision_assertion`: access-policy contract component.
 - <!-- schema-def:subject --> `$defs/subject`: access-policy contract component.
 - <!-- schema-def:resource --> `$defs/resource`: access-policy contract component.

@@ -276,7 +276,7 @@
       "additionalProperties": false,
       "properties": {
         "condition": {
-          "$ref": "#/$defs/condition"
+          "$ref": "#/$defs/access_policy_condition"
         },
         "effect": {
           "enum": [
@@ -329,7 +329,7 @@
         },
         "environment": {
           "items": {
-            "$ref": "#/$defs/condition"
+            "$ref": "#/$defs/access_policy_condition"
           },
           "type": "array"
         },
@@ -654,7 +654,7 @@
       },
       "type": "object"
     },
-    "condition": {
+    "access_policy_condition": {
       "additionalProperties": false,
       "oneOf": [
         {
