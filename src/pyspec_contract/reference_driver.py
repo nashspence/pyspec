@@ -491,7 +491,7 @@ class ReferenceSpecDriver:
                 return False
         matched_environment = all(self._condition_matches(rule, input_values) for rule in policy.get("environment", []))
         matched_rules = all(self._condition_matches(rule["condition"], input_values) for rule in policy.get("rules", []))
-        decision = policy["decision"] if matched_environment and matched_rules else "deny"
+        decision = _evaluate_access_policy_decision(policy, matched_environment, matched_rules)
         return decision == "permit"
 
     def _subject_available(self, policy: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:
@@ -611,3 +611,13 @@ def _access_policy_covers_resource(policy: Mapping[str, Any], kind: str, resourc
     if resource_kind == "action":
         return resource_ref in policy.get("action", [])
     return any(resource == {resource_kind: resource_ref} for resource in policy.get("resource", []))
+
+
+def _evaluate_access_policy_decision(policy: Mapping[str, Any], matched_environment: bool, matched_rules: bool) -> str:
+    if not (matched_environment and matched_rules):
+        return "deny"
+    if policy["combining_algorithm"] == "all_rules_must_apply":
+        rule_effects = {rule["effect"] for rule in policy.get("rules", [])}
+        if len(rule_effects) == 1:
+            return next(iter(rule_effects))
+    return "indeterminate"

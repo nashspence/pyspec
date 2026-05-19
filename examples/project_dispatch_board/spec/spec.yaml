@@ -194,7 +194,7 @@ access_policies:
     - condition:
         subject_has_role: member
       effect: permit
-    decision: permit
+    combining_algorithm: all_rules_must_apply
   access_policy.project.reviewer:
     rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
     subject:
@@ -210,7 +210,7 @@ access_policies:
     - condition:
         subject_has_role: reviewer
       effect: permit
-    decision: permit
+    combining_algorithm: all_rules_must_apply
 commands:
   command.project.approve:
     rationale: Reviewers can approve submitted dispatch projects.

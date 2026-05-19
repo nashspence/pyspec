@@ -817,7 +817,7 @@ def _access_policy_text_witness_tokens(contract: dict[str, Any], parts: list[str
         return []
     policy_id = parts[1]
     policy = contract.get("access_policies", {}).get(policy_id, {})
-    if parts[2] == "decision" and isinstance(value, str):
+    if parts[2] == "combining_algorithm" and isinstance(value, str):
         return [parts[2], value]
     if parts[2] == "rules" and parts[-1] == "effect" and isinstance(value, str):
         return [value]
@@ -2117,8 +2117,8 @@ def _policy_reference_card(
 ) -> str:
     policy = contract.get("access_policies", {}).get(policy_id, {})
     sections = []
-    if policy.get("decision"):
-        sections.append(("decision", [policy["decision"]]))
+    if policy.get("combining_algorithm"):
+        sections.append(("combining_algorithm", [policy["combining_algorithm"]]))
     if policy.get("subject"):
         sections.append(("subject", _format_access_policy_subject(policy["subject"])))
     if policy.get("action"):
@@ -2536,7 +2536,7 @@ def _access_policy_sections(
     policy = contract.get("access_policies", {}).get(policy_id)
     if not policy:
         return sections
-    sections.append(("decision", [policy["decision"]]))
+    sections.append(("combining_algorithm", [policy["combining_algorithm"]]))
     sections.append(("subject", _format_access_policy_subject(policy.get("subject", []))))
     sections.append(("action", policy.get("action", [])))
     sections.append(("resource", _format_access_policy_resource(policy.get("resource", []))))

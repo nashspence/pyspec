@@ -337,12 +337,9 @@
           "type": "array",
           "uniqueItems": true
         },
-        "decision": {
+        "combining_algorithm": {
           "enum": [
-            "permit",
-            "deny",
-            "not_applicable",
-            "indeterminate"
+            "all_rules_must_apply"
           ]
         }
       },
@@ -352,7 +349,7 @@
         "action",
         "environment",
         "rules",
-        "decision",
+        "combining_algorithm",
         "rationale"
       ],
       "type": "object"

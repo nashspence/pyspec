@@ -262,7 +262,7 @@ visual_audit:
       /access_policies/access_policy.project.member/action/1: V0001
       /access_policies/access_policy.project.member/action/2: V0001
       /access_policies/access_policy.project.member/action/3: V0001
-      /access_policies/access_policy.project.member/decision: V0001
+      /access_policies/access_policy.project.member/combining_algorithm: V0001
       /access_policies/access_policy.project.member/environment: V0001
       /access_policies/access_policy.project.member/rationale: V0001
       /access_policies/access_policy.project.member/resource/0/entity_type: V0001
@@ -272,7 +272,7 @@ visual_audit:
       /access_policies/access_policy.project.reviewer/action/0: V0002
       /access_policies/access_policy.project.reviewer/action/1: V0002
       /access_policies/access_policy.project.reviewer/action/2: V0002
-      /access_policies/access_policy.project.reviewer/decision: V0002
+      /access_policies/access_policy.project.reviewer/combining_algorithm: V0002
       /access_policies/access_policy.project.reviewer/environment: V0002
       /access_policies/access_policy.project.reviewer/rationale: V0002
       /access_policies/access_policy.project.reviewer/resource/0/entity_type: V0002
@@ -1316,11 +1316,11 @@ visual_audit:
         tokens:
         - command.project.submit
         - action
-      /access_policies/access_policy.project.member/decision:
+      /access_policies/access_policy.project.member/combining_algorithm:
         visual_evidence_set: V0001
         tokens:
-        - decision
-        - permit
+        - combining_algorithm
+        - all_rules_must_apply
       /access_policies/access_policy.project.member/rules/0/effect:
         visual_evidence_set: V0001
         tokens:
@@ -1345,11 +1345,11 @@ visual_audit:
         tokens:
         - command.project.send_approval_notice
         - action
-      /access_policies/access_policy.project.reviewer/decision:
+      /access_policies/access_policy.project.reviewer/combining_algorithm:
         visual_evidence_set: V0002
         tokens:
-        - decision
-        - permit
+        - combining_algorithm
+        - all_rules_must_apply
       /access_policies/access_policy.project.reviewer/rules/0/effect:
         visual_evidence_set: V0002
         tokens:

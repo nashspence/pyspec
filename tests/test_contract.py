@@ -379,7 +379,7 @@ def test_access_policies_require_explicit_conditions_and_support_value_equals() 
             "resource": [{"entity_type": ET("Ticket")}],
             "action": ["command.ticket.submit"],
             "environment": [],
-            "decision": "permit",
+            "combining_algorithm": "all_rules_must_apply",
             "rationale": "Explicit policy missing rules is invalid.",
         }
     }
@@ -411,7 +411,7 @@ def test_access_policies_reject_duplicated_rule_sets() -> None:
         "action": ["command.ticket.submit"],
         "environment": [],
         "rules": [{"condition": {"subject_has_role": "member"}, "effect": "permit"}],
-        "decision": "permit",
+        "combining_algorithm": "all_rules_must_apply",
         "rationale": "This should reuse the member submit policy instead.",
     }
     with pytest.raises(ContractError, match=r"reuse one access_policy with combined resource/action coverage"):
@@ -435,7 +435,7 @@ def _authorized_transition_author() -> dict:
             "action": ["command.ticket.submit"],
             "environment": [],
             "rules": [{"condition": {"subject_has_role": "member"}, "effect": "permit"}],
-            "decision": "permit",
+            "combining_algorithm": "all_rules_must_apply",
             "rationale": "Members may submit tickets.",
         }
     }
@@ -2094,7 +2094,7 @@ def test_delegated_and_outer_access_policies_are_both_evaluated(tmp_path: Path) 
             {"condition": {"subject_has_role": "reviewer"}, "effect": "permit"},
             {"condition": {"input_present": "approved_by"}, "effect": "permit"},
         ],
-        "decision": "permit",
+        "combining_algorithm": "all_rules_must_apply",
         "rationale": "CLI approval requires reviewer role and an explicit approver argument.",
     }
     author["external_interfaces"]["external_interface.cli.project.approve"]["access_policy"] = outer_policy

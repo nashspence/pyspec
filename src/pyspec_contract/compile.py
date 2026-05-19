@@ -455,7 +455,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
             "resource": copy.deepcopy(spec["resource"]),
             "action": copy.deepcopy(spec["action"]),
             "environment": copy.deepcopy(spec["environment"]),
-            "decision": spec["decision"],
+            "combining_algorithm": spec["combining_algorithm"],
             "rules": copy.deepcopy(spec["rules"]),
             "rationale": spec["rationale"],
         }
@@ -1355,8 +1355,8 @@ def _validate_access_policies(contract: dict[str, Any]) -> None:
             raise ContractError(f"External interface {entry_id} access_policy {policy_id} must cover external interface or invoked resource")
     for policy_id, policy in access_policies.items():
         rule_effects = {rule["effect"] for rule in policy.get("rules", [])}
-        if rule_effects != {policy["decision"]}:
-            raise ContractError(f"Access policy {policy_id} decision must match rule effect for authored permit/deny policies")
+        if policy["combining_algorithm"] == "all_rules_must_apply" and len(rule_effects) != 1:
+            raise ContractError(f"Access policy {policy_id} combining_algorithm all_rules_must_apply requires all rule effects to match")
         if not policy["resource"] and not policy["action"]:
             raise ContractError(f"Access policy {policy_id} must cover at least one resource or action")
         for action in policy["action"]:
@@ -1401,7 +1401,7 @@ def _validate_access_policy_reuse(access_policies: dict[str, Any]) -> None:
         existing = fingerprints.get(fingerprint)
         if existing:
             raise ContractError(
-                f"Access policies {existing} and {policy_id} have identical subject, action, rule effects, environment, and rules; "
+                f"Access policies {existing} and {policy_id} have identical subject, resource, action, environment, combining behavior, and rules; "
                 "reuse one access_policy with combined resource/action coverage instead of duplicating rule sets"
             )
         fingerprints[fingerprint] = policy_id
@@ -1409,14 +1409,17 @@ def _validate_access_policy_reuse(access_policies: dict[str, Any]) -> None:
 
 def _access_policy_rule_fingerprint(policy: dict[str, Any]) -> str:
     subject = sorted(_canonical_json(subject_item) for subject_item in policy.get("subject", []))
+    resource = sorted(_canonical_json(resource_item) for resource_item in policy.get("resource", []))
     action = sorted(policy.get("action", []))
     rules = sorted(_canonical_json(rule) for rule in policy.get("rules", []))
     environment = sorted(_canonical_json(rule) for rule in policy.get("environment", []))
     return _canonical_json(
         {
             "subject": subject,
+            "resource": resource,
             "action": action,
             "environment": environment,
+            "combining_algorithm": policy.get("combining_algorithm"),
             "rules": rules,
         }
     )

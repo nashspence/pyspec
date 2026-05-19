@@ -1,6 +1,6 @@
 <svg width="1438pt" height="607pt"
  viewBox="0.00 0.00 1438.00 607.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 91e4206a3d226c2559cb3966f9144cb1cb3b7f2bb11180a7a633243c1b81bb8f -->
+<!-- pyspec-contract-input-sha256: f7324b61734aa28c1968bbd18dd31ebc6b2ffe53cf3aa696528d22ad0fe584c5 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 589)">
 <title>command_command_project_submit</title>
 <!-- command_input_command_project_submit -->
@@ -26,8 +26,8 @@
 <text text-anchor="start" x="185.5" y="-471.1" font-family="Arial" font-size="8.00" fill="#64748b">authorization gate</text>
 <text text-anchor="start" x="185.5" y="-453.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Workspace members may create, read, list, and</text>
 <text text-anchor="start" x="185.5" y="-442.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">submit dispatch projects.</text>
-<text text-anchor="start" x="186.5" y="-422.5" font-family="Arial" font-weight="bold" font-size="10.00">decision:</text>
-<text text-anchor="start" x="229.5" y="-422.5" font-family="Arial" font-size="10.00">  permit</text>
+<text text-anchor="start" x="186.5" y="-422.5" font-family="Arial" font-weight="bold" font-size="10.00">combining_algorithm:</text>
+<text text-anchor="start" x="290.5" y="-422.5" font-family="Arial" font-size="10.00">  all_rules_must_apply</text>
 <text text-anchor="start" x="186.5" y="-410.5" font-family="Arial" font-weight="bold" font-size="10.00">subject:</text>
 <text text-anchor="start" x="223.5" y="-410.5" font-family="Arial" font-size="10.00">  actor</text>
 <text text-anchor="start" x="185.5" y="-390.5" font-family="Arial" font-weight="bold" font-size="10.00">action</text>
