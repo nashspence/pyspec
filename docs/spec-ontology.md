@@ -448,7 +448,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:behavior_scenario_ref --> `$defs/behavior_scenario_ref`: typed reference definition for its namespace.
 - <!-- schema-def:scheduled_adapter --> `$defs/scheduled_adapter`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:slot_binding --> `$defs/slot_binding`: renderer contract component scoped to HTML and/or Textual invocations.
-- <!-- schema-def:local_no_effect --> `$defs/local_no_effect`: explicit local no-effect outcome coverage contract component.
+- <!-- schema-def:no_local_effect --> `$defs/no_local_effect`: explicit no-local-effect outcome coverage contract component.
 - <!-- schema-def:state_machine_command_binding --> `$defs/state_machine_command_binding`: state-machine command binding contract component.
 - <!-- schema-def:state_machine_command_binding_local_outcome_effect --> `$defs/state_machine_command_binding_local_outcome_effect`: state-machine command binding local_outcome_effect contract component.
 - <!-- schema-def:state_machine_command_binding_local_effects --> `$defs/state_machine_command_binding_local_effects`: state-machine command binding local_outcome_effect map.

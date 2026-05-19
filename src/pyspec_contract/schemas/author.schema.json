@@ -1969,7 +1969,7 @@
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },
-    "local_no_effect": {
+    "no_local_effect": {
       "additionalProperties": false,
       "properties": {
         "rationale": {
@@ -2587,7 +2587,7 @@
           "additionalProperties": false,
           "properties": {
             "no_local_effect": {
-              "$ref": "#/$defs/local_no_effect"
+              "$ref": "#/$defs/no_local_effect"
             }
           },
           "required": [
@@ -2677,7 +2677,7 @@
           "type": "object"
         },
         "no_local_effect": {
-          "$ref": "#/$defs/local_no_effect"
+          "$ref": "#/$defs/no_local_effect"
         },
         "raise": {
           "$ref": "#/$defs/state_machine_signal_raise"
@@ -2733,7 +2733,7 @@
           "type": "object"
         },
         "no_local_effect": {
-          "$ref": "#/$defs/local_no_effect"
+          "$ref": "#/$defs/no_local_effect"
         },
         "raise": {
           "$ref": "#/$defs/state_machine_signal_raise"
