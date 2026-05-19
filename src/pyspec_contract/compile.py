@@ -4381,7 +4381,7 @@ def _validate_behavior_scenario_system_under_test(contract: dict[str, Any], beha
     if sut_kind == "external_interface" and external_interface_ref != sut_ref:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.external_interface must match the external interface under test")
     if sut_kind in {"command", "query"} and command_ref != sut_ref:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.command must match the command under test")
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.{sut_kind} must match the {sut_kind} under test")
     if sut_kind == "domain_event" and domain_event_ref != sut_ref and sut_ref not in (then.get("domain_events") or {}).get("emitted", []):
         raise ContractError(f"Behavior scenario {behavior_scenario_id} system_under_test_ref.domain_event must match the emitted domain event under test")
     if sut_kind == "state_machine":
@@ -4395,7 +4395,7 @@ def _validate_behavior_scenario_system_under_test(contract: dict[str, Any], beha
 
 
 def _behavior_scenario_command_ref(contract: dict[str, Any], when_kind: str, when_body: dict[str, Any]) -> str | None:
-    if when_kind == "invoke_command":
+    if when_kind in {"invoke_command", "invoke_query"}:
         return when_body["ref"]
     if when_kind == "call_external_interface":
         return _external_interface_effective_command_ref(contract, when_body["ref"])
@@ -4455,7 +4455,7 @@ def _validate_behavior_scenario_then(contract: dict[str, Any], behavior_scenario
     for field in ["enables", "forbids", "invoked"]:
         for behavior_ref in then.get(field, []):
             if behavior_ref not in _command_query_map(contract):
-                raise ContractError(f"Behavior scenario {behavior_scenario_id} {field} unknown command {behavior_ref}")
+                raise ContractError(f"Behavior scenario {behavior_scenario_id} {field} unknown command/query {behavior_ref}")
     authorization_assertion = then.get("authorization") or {}
     for effect in ("allowed", "denied"):
         for assertion in authorization_assertion.get(effect, []):
@@ -4590,7 +4590,7 @@ def _validate_behavior_scenario_outcome(contract: dict[str, Any], behavior_scena
     outcome_id = then.get("outcome")
     behavior: dict[str, Any] | None = None
     external_interface: dict[str, Any] | None = None
-    if when_kind == "invoke_command":
+    if when_kind in {"invoke_command", "invoke_query"}:
         behavior = _command_query_map(contract)[when_body["ref"]]
     elif when_kind == "call_external_interface":
         external_interface = contract["external_interfaces"][when_body["ref"]]
@@ -4599,10 +4599,10 @@ def _validate_behavior_scenario_outcome(contract: dict[str, Any], behavior_scena
             behavior = _command_query_map(contract)[target_ref]
     if behavior is None:
         if outcome_id:
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts outcome but does not execute an command")
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts outcome but does not execute a command or query")
         return
     if not outcome_id:
-        raise ContractError(f"Behavior scenario {behavior_scenario_id} must assert an command outcome")
+        raise ContractError(f"Behavior scenario {behavior_scenario_id} must assert a command or query outcome")
     if outcome_id not in behavior["outcomes"]:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts unknown outcome {outcome_id}")
     if external_interface is None:
@@ -4646,8 +4646,8 @@ def _validate_behavior_scenario_archetype(behavior_scenario_id: str, behavior_sc
         if when_kind != "open_external_interface" or not state_machine_assert.get("instances"):
             raise ContractError(f"Behavior scenario {behavior_scenario_id} state_machine_composition requires open_external_interface and state_machine.instances")
     elif archetype == "command_outcome":
-        if when_kind != "invoke_command" or "outcome" not in then:
-            raise ContractError(f"Behavior scenario {behavior_scenario_id} command_outcome requires invoke_command and outcome")
+        if when_kind not in {"invoke_command", "invoke_query"} or "outcome" not in then:
+            raise ContractError(f"Behavior scenario {behavior_scenario_id} command_outcome requires invoke_command or invoke_query and outcome")
     elif archetype == "external_interface_response":
         if when_kind != "call_external_interface" or "outcome" not in then or "response" not in then:
             raise ContractError(f"Behavior scenario {behavior_scenario_id} external_interface_response requires call_external_interface, outcome, and response")

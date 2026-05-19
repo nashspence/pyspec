@@ -378,6 +378,35 @@ def test_invocation_assertion_must_follow_when() -> None:
         compile_author(author)
 
 
+def test_behavior_scenario_query_availability_and_invocation_assertions_are_supported() -> None:
+    author = _author()
+    board_then = author["behavior_scenarios"]["behavior_scenario.project.board.empty"]["then"]
+    board_then["enables"].append("query.project.list")
+    board_then["forbids"] = ["query.project.read"]
+    author["behavior_scenarios"]["behavior_scenario.project.list.success"] = {
+        "archetype": "command_outcome",
+        "feature_tag": "project.query",
+        "system_under_test_ref": {"query": "query.project.list"},
+        "title": "List projects",
+        "given": {"seed_fixtures": ["fixture.workspace.member"]},
+        "when": {
+            "invoke_query": {
+                "ref": "query.project.list",
+                "input": {"workspace_id": {"from": "$fixture.workspace.id"}},
+            }
+        },
+        "then": {
+            "outcome": "listed",
+            "invoked": ["query.project.list"],
+        },
+    }
+    contract = compile_author(author)
+    board_assertions = contract["behavior_scenarios"]["behavior_scenario.project.board.empty"]["then"]
+    assert "query.project.list" in board_assertions["enables"]
+    assert board_assertions["forbids"] == ["query.project.read"]
+    assert contract["behavior_scenarios"]["behavior_scenario.project.list.success"]["then"]["invoked"] == ["query.project.list"]
+
+
 def test_named_assertion_expands_into_compiled_behavior_scenario() -> None:
     author = _author()
     author["assertions"] = {

@@ -128,6 +128,7 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
     },
 }
 ALLOWED_ONE_OF_WITHOUT_OBJECT_DISCRIMINATORS = {
+    "$defs.command_or_query_ref.oneOf",
     "$defs.authored_content_example.properties.ref.oneOf",
     "$defs.content_example_item.properties.ref.oneOf",
     "$defs.given.properties.preconditions.items.oneOf",

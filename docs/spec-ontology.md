@@ -456,6 +456,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:command_domain_event_emit --> `$defs/command_domain_event_emit`: command-level domain-event emission mapping keyed by outcome.
 - <!-- schema-def:command_entity_changes --> `$defs/command_entity_changes`: non-empty command entity-change summary containing creates, updates, deletes, or entity_lifecycle_transition entries.
 - <!-- schema-def:command_ref --> `$defs/command_ref`: typed reference definition for its namespace.
+- <!-- schema-def:command_or_query_ref --> `$defs/command_or_query_ref`: union reference to exactly one command_ref or query_ref.
 - <!-- schema-def:query_ref --> `$defs/query_ref`: typed reference definition for its namespace.
 - <!-- schema-def:command_outcome --> `$defs/command_outcome`: command outcome without embedded domain-event emission metadata.
 - <!-- schema-def:command_outcomes --> `$defs/command_outcomes`: map from outcome names to command outcomes.

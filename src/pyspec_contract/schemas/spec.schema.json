@@ -71,6 +71,16 @@
       "pattern": "^command\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
+    "command_or_query_ref": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/command_ref"
+        },
+        {
+          "$ref": "#/$defs/query_ref"
+        }
+      ]
+    },
     "aria_role": {
       "enum": [
         "alert",
@@ -3181,7 +3191,7 @@
         },
         "enables": {
           "items": {
-            "$ref": "#/$defs/command_ref"
+            "$ref": "#/$defs/command_or_query_ref"
           },
           "type": "array",
           "uniqueItems": true
@@ -3210,14 +3220,14 @@
         },
         "forbids": {
           "items": {
-            "$ref": "#/$defs/command_ref"
+            "$ref": "#/$defs/command_or_query_ref"
           },
           "type": "array",
           "uniqueItems": true
         },
         "invoked": {
           "items": {
-            "$ref": "#/$defs/command_ref"
+            "$ref": "#/$defs/command_or_query_ref"
           },
           "type": "array",
           "uniqueItems": true
