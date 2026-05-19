@@ -353,7 +353,7 @@
           "$ref": "#/$defs/instance_id"
         },
         "initial_state": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         },
         "selected": {
           "$ref": "#/$defs/child_state_machine_selected"
@@ -718,7 +718,7 @@
           "$ref": "#/$defs/entity_type_ref"
         },
         "initial_state": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -735,7 +735,7 @@
           },
           "minProperties": 1,
           "propertyNames": {
-            "$ref": "#/$defs/state_id"
+            "$ref": "#/$defs/state_machine_state_id"
           },
           "type": "object"
         },
@@ -1044,7 +1044,7 @@
           "$ref": "#/$defs/context_condition"
         },
         "state": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         }
       },
       "required": [
@@ -2866,13 +2866,13 @@
           "type": "array"
         },
         "from": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
         "to": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         },
         "trigger": {
           "$ref": "#/$defs/state_machine_signal_trigger"
@@ -3259,7 +3259,7 @@
               "$ref": "#/$defs/signal_sync_assertion"
             },
             "state": {
-              "$ref": "#/$defs/state_id"
+              "$ref": "#/$defs/state_machine_state_id"
             }
           },
           "required": [
@@ -3302,7 +3302,7 @@
       "additionalProperties": false,
       "properties": {
         "state": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         }
       },
       "required": [
@@ -3313,7 +3313,7 @@
     "state_query_binding": {
       "$ref": "#/$defs/state_machine_query_binding"
     },
-    "state_id": {
+    "state_machine_state_id": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },

@@ -475,7 +475,7 @@
           "$ref": "#/$defs/instance_id"
         },
         "initial_state": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         },
         "selected": {
           "$ref": "#/$defs/child_state_machine_selected"
@@ -502,7 +502,7 @@
           "$ref": "#/$defs/context_condition"
         },
         "state": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         }
       },
       "required": [
@@ -2525,7 +2525,7 @@
           "$ref": "#/$defs/entity_type_ref"
         },
         "initial_state": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
@@ -2538,11 +2538,11 @@
         },
         "states": {
           "additionalProperties": {
-            "$ref": "#/$defs/state"
+            "$ref": "#/$defs/state_machine_state"
           },
           "minProperties": 1,
           "propertyNames": {
-            "$ref": "#/$defs/state_id"
+            "$ref": "#/$defs/state_machine_state_id"
           },
           "type": "object"
         },
@@ -2736,13 +2736,13 @@
           "type": "array"
         },
         "from": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
         },
         "to": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         },
         "trigger": {
           "oneOf": [
@@ -3237,7 +3237,7 @@
               "type": "string"
             },
             "state": {
-              "$ref": "#/$defs/state_id"
+              "$ref": "#/$defs/state_machine_state_id"
             }
           },
           "required": [
@@ -3276,7 +3276,7 @@
       },
       "type": "object"
     },
-    "state": {
+    "state_machine_state": {
       "additionalProperties": false,
       "properties": {
         "command_bindings": {
@@ -3366,7 +3366,7 @@
           "type": "string"
         },
         "state": {
-          "$ref": "#/$defs/state_id"
+          "$ref": "#/$defs/state_machine_state_id"
         }
       },
       "required": [
@@ -3374,7 +3374,7 @@
       ],
       "type": "object"
     },
-    "state_id": {
+    "state_machine_state_id": {
       "pattern": "^[a-z][a-z0-9_]*$",
       "type": "string"
     },

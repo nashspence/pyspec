@@ -473,7 +473,7 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:html_route_adapter --> `$defs/html_route_adapter`: HTML renderer contract component.
 - <!-- schema-def:value_map --> `$defs/value_map`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:state_assertion --> `$defs/state_assertion`: state-machine contract component.
-- <!-- schema-def:state_id --> `$defs/state_id`: state-machine contract component.
+- <!-- schema-def:state_machine_state_id --> `$defs/state_machine_state_id`: state-machine state identifier.
 - <!-- schema-def:html_renderer_contract --> `$defs/html_renderer_contract`: HTML renderer contract component.
 - <!-- schema-def:html_renderer_layout --> `$defs/html_renderer_layout`: HTML renderer contract component.
 - <!-- schema-def:html_renderer_presentation --> `$defs/html_renderer_presentation`: HTML renderer contract component.
@@ -538,6 +538,6 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:query_item --> `$defs/query_item`: compiled query with input_schema, result_schema, and outcomes.
 - <!-- schema-def:behavior_scenario_item --> `$defs/behavior_scenario_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:state_machine_item --> `$defs/state_machine_item`: compiled-output object for this resource or nested contract.
-- <!-- schema-def:state --> `$defs/state`: compiled-output object for this resource or nested contract.
+- <!-- schema-def:state_machine_state --> `$defs/state_machine_state`: compiled state-machine state object.
 - <!-- schema-def:workflow_item --> `$defs/workflow_item`: compiled-output object for this resource or nested contract.
 - <!-- schema-def:schema_item --> `$defs/schema_item`: compiled-output object for this resource or nested contract.

@@ -93,7 +93,7 @@ STALE_SCHEMA_DEFINITION_NAMES = {
 }
 ALLOWED_DUPLICATE_DEFINITION_GROUPS = {
     frozenset({"html_route_adapter", "webhook_adapter"}),
-    frozenset({"instance_id", "state_id"}),
+    frozenset({"instance_id", "state_machine_state_id"}),
     frozenset({"entity_type_ref", "python_class_name"}),
 }
 ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
