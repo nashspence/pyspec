@@ -1,6 +1,6 @@
 # Spec Ontology
 
-This glossary is the vocabulary contract for the authored-source, layer-pruned authored-source, and compiled-output schemas. The authored schema describes sparse human-authored input. Layer-pruned authored schemas are generated from the same source schema and hide sections outside the active authoring layers. The compiled schema describes normalized output in `spec/generated/compiled/spec.yaml`, including generated references, derived domain events, derived HTML routes, HTTP operation expansions, and expanded empty-collection states.
+This glossary is the vocabulary contract for the authored-source, layer-pruned authored-source, and compiled-output schemas. The authored schema describes sparse human-authored input. Layer-pruned authored schemas are generated from the same source schema and hide sections outside the active authoring layers. The compiled schema describes normalized output in `spec/generated/compiled/spec.yaml`, including generated references, derived domain events, derived HTML routes, generated `http_operation` OpenAPI projections, and expanded empty-collection states.
 
 ## Terminology Boundaries
 
