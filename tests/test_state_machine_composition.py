@@ -51,7 +51,7 @@ def test_composed_state_machine_contract_is_closed_and_projected() -> None:
 def test_state_machine_composition_rejects_unknown_html_region() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    state_machine["child_state_machines"][0]["html_region"] = "ghost"
+    state_machine["child_state_machines"]["list"]["html_region"] = "ghost"
     with pytest.raises(ContractError, match="undeclared HTML region"):
         compile_source(author)
 
@@ -59,7 +59,7 @@ def test_state_machine_composition_rejects_unknown_html_region() -> None:
 def test_state_machine_composition_rejects_context_binding_drift() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    del state_machine["child_state_machines"][0]["context_bindings"]["workspace_id"]
+    del state_machine["child_state_machines"]["list"]["context_bindings"]["workspace_id"]
     with pytest.raises(ContractError, match="context bindings must satisfy state machine context"):
         compile_source(author)
 
@@ -67,7 +67,7 @@ def test_state_machine_composition_rejects_context_binding_drift() -> None:
 def test_state_machine_composition_rejects_sync_local_signal_not_emitted_by_source_instance() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    state_machine["local_signal_sync_rules"][0]["trigger"]["local_signal"] = "unannounced"
+    state_machine["local_signal_sync_rules"]["select_project_updates_state_machines"]["trigger"]["local_signal"] = "unannounced"
     with pytest.raises(ContractError, match="sync listens for signal the source does not emit"):
         compile_source(author)
 

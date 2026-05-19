@@ -135,3 +135,36 @@ def test_state_machine_media_asset_slot_vocabulary_is_canonical() -> None:
         }
         assert ("media_asset_slot",) in required_keys, schema_name
         assert ("asset_slot",) not in required_keys, schema_name
+
+
+def test_authored_local_id_collections_are_keyed_maps() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        state_properties = schema["$defs"]["authored_state_machine_state"]["properties"]
+        child_state_machines = state_properties["child_state_machines"]
+        assert child_state_machines["type"] == "object", schema_name
+        assert child_state_machines["propertyNames"]["$ref"] == "#/$defs/instance_id", schema_name
+        assert child_state_machines["additionalProperties"]["$ref"] == "#/$defs/authored_child_state_machine", schema_name
+
+        local_signal_sync_rules = state_properties["local_signal_sync_rules"]
+        assert local_signal_sync_rules["type"] == "object", schema_name
+        assert local_signal_sync_rules["propertyNames"]["$ref"] == "#/$defs/local_signal_sync_rule_id", schema_name
+        assert local_signal_sync_rules["additionalProperties"]["$ref"] == "#/$defs/local_signal_sync_rule", schema_name
+
+        activities = schema["$defs"]["authored_workflow"]["properties"]["activities"]
+        assert activities["type"] == "object", schema_name
+        assert activities["propertyNames"]["$ref"] == "#/$defs/workflow_activity_id", schema_name
+        assert activities["additionalProperties"]["$ref"] == "#/$defs/workflow_activity", schema_name
+        assert activities["minProperties"] == 1, schema_name
+
+        for definition_name in ("authored_child_state_machine", "local_signal_sync_rule", "workflow_activity"):
+            definition = schema["$defs"][definition_name]
+            assert "id" not in definition["properties"], f"{schema_name} {definition_name}"
+            assert "id" not in definition.get("required", []), f"{schema_name} {definition_name}"

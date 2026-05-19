@@ -943,16 +943,15 @@ def test_workflow_input_mapping_supports_binding_sources_and_literal_values() ->
                     "completed": {"kind": "success", "result": D("schema.ticket.notice")},
                     "failed": {"kind": "failure", "result": M("Problem")},
                 },
-                "activities": [
-                    {
-                        "id": "notify",
+                "activities": {
+                    "notify": {
                         "command": "command.ticket.notify",
                         "input_mapping": {
                             "source_id": {"from": "$workflow_input.payload.source_id"},
                             "title": {"value": "Literal title"},
                         },
                     }
-                ],
+                },
                 "gateways": {},
                 "sequence_flows": {
                     "notify_sent": {"source_ref": {"activity": "notify"}, "source_outcome": "sent", "target_ref": {"terminal": "completed"}},
@@ -1077,7 +1076,7 @@ def test_state_machine_data_inputs_must_come_from_context() -> None:
     del state_machine["context_schema"]["properties"]["workspace_id"]
     state_machine["context_schema"]["required"].remove("workspace_id")
     board = _item(author, "state_machines", "state_machine.project.board")
-    for mount in board["states"]["ready"]["child_state_machines"]:
+    for mount in board["states"]["ready"]["child_state_machines"].values():
         if mount["state_machine"] == "state_machine.project.list":
             mount["context_bindings"].pop("workspace_id", None)
     with pytest.raises(
@@ -1667,7 +1666,7 @@ def test_missing_referenced_command_is_rejected() -> None:
 def test_state_machine_composition_rejects_unknown_mounted_state_machine() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    state_machine["child_state_machines"][0]["state_machine"] = "state_machine.project.ghost"
+    state_machine["child_state_machines"]["list"]["state_machine"] = "state_machine.project.ghost"
     with pytest.raises(ContractError, match="mounts unknown state machine"):
         compile_source(author)
 
@@ -1675,7 +1674,7 @@ def test_state_machine_composition_rejects_unknown_mounted_state_machine() -> No
 def test_state_machine_composition_rejects_unknown_sync_target_local_signal() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    for effect in state_machine["local_signal_sync_rules"][0]["local_effects"]:
+    for effect in state_machine["local_signal_sync_rules"]["select_project_updates_state_machines"]["local_effects"]:
         if "send" in effect:
             effect["send"]["local_signal"] = "ghost_message"
             break
@@ -1698,7 +1697,8 @@ def test_state_machine_emit_data_must_exactly_match_emitted_local_signal_payload
 def test_sync_send_data_must_exactly_match_target_local_signal_payload() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    send = next(effect["send"] for effect in state_machine["local_signal_sync_rules"][0]["local_effects"] if "send" in effect)
+    sync_rule = state_machine["local_signal_sync_rules"]["select_project_updates_state_machines"]
+    send = next(effect["send"] for effect in sync_rule["local_effects"] if "send" in effect)
     send["payload_bindings"] = {}
     with pytest.raises(ContractError, match=r"sync send selection_changed to detail payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
@@ -1707,7 +1707,8 @@ def test_sync_send_data_must_exactly_match_target_local_signal_payload() -> None
 def test_sync_send_data_must_match_target_local_signal_payload_type() -> None:
     author = _author()
     state_machine = _item(author, "state_machines", "state_machine.project.board")["states"]["ready"]
-    send = next(effect["send"] for effect in state_machine["local_signal_sync_rules"][0]["local_effects"] if "send" in effect)
+    sync_rule = state_machine["local_signal_sync_rules"]["select_project_updates_state_machines"]
+    send = next(effect["send"] for effect in sync_rule["local_effects"] if "send" in effect)
     send["payload_bindings"]["project_id"] = {"value": 1}
     with pytest.raises(ContractError, match=r"payload_bindings\.project_id literal value is not compatible with string"):
         compile_source(author)
@@ -1732,7 +1733,7 @@ def test_state_machine_signal_direction_must_be_unambiguous() -> None:
 def test_state_machine_trigger_payload_uses_trigger_root_not_signal_root() -> None:
     author = _author()
     ready = author["state_machines"]["state_machine.project.board"]["states"]["ready"]
-    ready["local_signal_sync_rules"][0]["local_effects"][0]["set"]["from"] = "$" + "signal.payload.project_id"
+    ready["local_signal_sync_rules"]["select_project_updates_state_machines"]["local_effects"][0]["set"]["from"] = "$" + "signal.payload.project_id"
     with pytest.raises(ContractError, match=r"references unavailable binding root: \$signal"):
         compile_source(author)
 
@@ -1957,7 +1958,7 @@ def test_binding_expressions_are_context_scoped() -> None:
 
 def test_binding_expressions_validate_declared_fields() -> None:
     author = _author()
-    author["workflows"]["workflow.project.approval_notice"]["activities"][0]["input_mapping"]["project_id"] = {"from": "$workflow_input.payload.missing"}
+    author["workflows"]["workflow.project.approval_notice"]["activities"]["send_notice"]["input_mapping"]["project_id"] = {"from": "$workflow_input.payload.missing"}
     with pytest.raises(ContractError, match=r"input project_id references unknown schema\.project\.approved field: missing"):
         compile_source(author)
 

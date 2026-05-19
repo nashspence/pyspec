@@ -658,61 +658,61 @@ state_machines:
               list:
                 state: ready
         child_state_machines:
-        - context_bindings:
-            selected_project_id:
-              from: $state_machine.selected_project_id
-            workspace_id:
-              from: $state_machine.workspace_id
-          id: list
-          state_machine: state_machine.project.list
-          html_region: nav
-          textual_container: nav
-          initial_state: loading
-        - context_bindings:
-            project_id:
-              from: $state_machine.selected_project_id
-          id: detail
-          selected:
-            condition:
-              context_non_null: selected_project_id
-            state: loading
-          state_machine: state_machine.project.detail
-          html_region: main
-          textual_container: main
-          initial_state: none
-        - context_bindings:
-            project_id:
-              from: $state_machine.selected_project_id
-          id: activity
-          selected:
-            condition:
-              context_non_null: selected_project_id
-            state: ready
-          state_machine: state_machine.project.activity
-          html_region: aside
-          textual_container: aside
-          initial_state: empty
+          list:
+            context_bindings:
+              selected_project_id:
+                from: $state_machine.selected_project_id
+              workspace_id:
+                from: $state_machine.workspace_id
+            state_machine: state_machine.project.list
+            html_region: nav
+            textual_container: nav
+            initial_state: loading
+          detail:
+            context_bindings:
+              project_id:
+                from: $state_machine.selected_project_id
+            selected:
+              condition:
+                context_non_null: selected_project_id
+              state: loading
+            state_machine: state_machine.project.detail
+            html_region: main
+            textual_container: main
+            initial_state: none
+          activity:
+            context_bindings:
+              project_id:
+                from: $state_machine.selected_project_id
+            selected:
+              condition:
+                context_non_null: selected_project_id
+              state: ready
+            state_machine: state_machine.project.activity
+            html_region: aside
+            textual_container: aside
+            initial_state: empty
         local_signal_sync_rules:
-        - local_effects:
-          - set:
-              context: selected_project_id
-              from: $trigger.payload.project_id
-          - send:
-              instance: detail
-              local_signal: selection_changed
-              payload_bindings:
-                project_id:
-                  from: $trigger.payload.project_id
-          - send:
-              instance: activity
-              local_signal: selection_changed
-              payload_bindings:
-                project_id:
-                  from: $trigger.payload.project_id
-          id: select_project_updates_state_machines
-          trigger:
-            instance: list
-            local_signal: project_selected
+          select_project_updates_state_machines:
+            local_effects:
+            - set:
+                context: selected_project_id
+                from: $trigger.payload.project_id
+            - send:
+                instance: detail
+                local_signal: selection_changed
+                payload_bindings:
+                  project_id:
+                    from: $trigger.payload.project_id
+            - send:
+                instance: activity
+                local_signal: selection_changed
+                payload_bindings:
+                  project_id:
+                    from: $trigger.payload.project_id
+            trigger:
+              instance: list
+              local_signal: project_selected
         renderers:
           textual:
             layout:
@@ -1562,13 +1562,13 @@ workflows:
   workflow.project.approval_notice:
     rationale: Approval domain event sends a downstream notice.
     activities:
-    - id: send_notice
-      command: command.project.send_approval_notice
-      input_mapping:
-        approved_by:
-          from: $workflow_input.payload.approved_by
-        project_id:
-          from: $workflow_input.payload.project_id
+      send_notice:
+        command: command.project.send_approval_notice
+        input_mapping:
+          approved_by:
+            from: $workflow_input.payload.approved_by
+          project_id:
+            from: $workflow_input.payload.project_id
     gateways:
       notice_success:
         gateway_type: exclusive

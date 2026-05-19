@@ -525,7 +525,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "workflow":
         return {
             "inputs": spec["inputs"],
-            "activities": spec["activities"],
+            "activities": _compile_local_id_map(spec["activities"]),
             "gateways": spec["gateways"],
             "sequence_flows": spec["sequence_flows"],
             "outputs": spec["outputs"],
@@ -568,6 +568,10 @@ def _compile_query_bindings(invocations: dict[str, Any], *, scope: str) -> dict[
     return compiled
 
 
+def _compile_local_id_map(items: dict[str, Any] | None) -> list[dict[str, Any]]:
+    return [{"id": item_id, **copy.deepcopy(item)} for item_id, item in (items or {}).items()]
+
+
 def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
     subject = _ref_subject(owner_id)
     compiled = {}
@@ -584,7 +588,7 @@ def _compile_states(owner_id: str, states: dict[str, Any]) -> dict[str, Any]:
             item["renderers"] = state["renderers"]
         for field in ["child_state_machines", "local_signal_sync_rules"]:
             if field in state:
-                item[field] = state[field]
+                item[field] = _compile_local_id_map(state[field])
         if state.get("render_examples"):
             item["render_examples"] = {
                 case_name: _compile_render_example(owner_id, state_name, case_name, case)

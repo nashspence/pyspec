@@ -373,9 +373,6 @@
         "html_region": {
           "$ref": "#/$defs/region_id"
         },
-        "id": {
-          "$ref": "#/$defs/instance_id"
-        },
         "initial_state": {
           "$ref": "#/$defs/state_machine_state_id"
         },
@@ -390,7 +387,6 @@
         }
       },
       "required": [
-        "id",
         "state_machine",
         "initial_state",
         "context_bindings"
@@ -884,10 +880,13 @@
           "uniqueItems": true
         },
         "child_state_machines": {
-          "items": {
+          "additionalProperties": {
             "$ref": "#/$defs/authored_child_state_machine"
           },
-          "type": "array"
+          "propertyNames": {
+            "$ref": "#/$defs/instance_id"
+          },
+          "type": "object"
         },
         "query_bindings": {
           "additionalProperties": {
@@ -919,10 +918,13 @@
           "$ref": "#/$defs/renderer_contracts"
         },
         "local_signal_sync_rules": {
-          "items": {
+          "additionalProperties": {
             "$ref": "#/$defs/local_signal_sync_rule"
           },
-          "type": "array"
+          "propertyNames": {
+            "$ref": "#/$defs/local_signal_sync_rule_id"
+          },
+          "type": "object"
         },
         "text_slots": {
           "items": {
@@ -941,11 +943,14 @@
           "$ref": "#/$defs/rationale"
         },
         "activities": {
-          "items": {
+          "additionalProperties": {
             "$ref": "#/$defs/workflow_activity"
           },
-          "minItems": 1,
-          "type": "array"
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/workflow_activity_id"
+          },
+          "type": "object"
         },
         "gateways": {
           "additionalProperties": {
@@ -2464,15 +2469,11 @@
           "minItems": 1,
           "type": "array"
         },
-        "id": {
-          "$ref": "#/$defs/local_signal_sync_rule_id"
-        },
         "trigger": {
           "$ref": "#/$defs/local_signal_sync_trigger"
         }
       },
       "required": [
-        "id",
         "trigger",
         "local_effects"
       ],
@@ -3616,15 +3617,11 @@
         "command": {
           "$ref": "#/$defs/command_ref"
         },
-        "id": {
-          "$ref": "#/$defs/workflow_activity_id"
-        },
         "input_mapping": {
           "$ref": "#/$defs/binding_map"
         }
       },
       "required": [
-        "id",
         "command",
         "input_mapping"
       ],
