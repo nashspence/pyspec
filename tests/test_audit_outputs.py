@@ -234,7 +234,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "access_policy.project.member" in state_machine
     assert "<B>entity_type:</B>" not in state_machine
     assert "<B>context:</B>" not in state_machine
-    assert "$signal.payload." not in state_machine
+    assert "$trigger.payload." not in state_machine
     assert "$domain_event." not in state_machine
     assert "emitted local signal" in composition
     assert "sent local signal" in composition
@@ -294,7 +294,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "query.project.board.list" not in composition
     assert "<B>entity_type:</B>" not in composition
     assert "<B>context</B>" not in composition
-    assert "$signal.payload." not in composition
+    assert "$trigger.payload." not in composition
     assert "$domain_event." not in composition
     assert "$state_machine." not in composition
     assert "<B>from:</B>" not in composition
@@ -479,8 +479,8 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
                     "id": "sync_alpha_beta",
                 "trigger": {"instance": "publisher", "local_signal": "ready"},
                 "local_effects": [
-                    {"send": {"instance": "receiver", "local_signal": "consume", "payload_bindings": {"item_id": {"from": "$signal.payload.id"}}}},
-                    {"set": {"context": "selected_id", "from": "$signal.payload.id"}},
+                    {"send": {"instance": "receiver", "local_signal": "consume", "payload_bindings": {"item_id": {"from": "$trigger.payload.id"}}}},
+                    {"set": {"context": "selected_id", "from": "$trigger.payload.id"}},
                 ],
             }
         ],
@@ -502,7 +502,7 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
                         "trigger": {"local_signal": "submit"},
                         "from": "idle",
                         "to": "ready",
-                        "local_effects": [{"emit": {"local_signal": "ready", "payload_bindings": {"id": {"from": "$signal.payload.id"}}}}],
+                        "local_effects": [{"emit": {"local_signal": "ready", "payload_bindings": {"id": {"from": "$trigger.payload.id"}}}}],
                     }
                 ]
             },
@@ -541,7 +541,7 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
     assert 'item_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT><FONT POINT-SIZE="8">&#160;←&#160;id</FONT>' in composition
     assert "item_id &lt;- state_machine.selected_id" not in composition
     assert "context binding" not in composition
-    assert "$signal.payload." not in composition
+    assert "$trigger.payload." not in composition
     assert "$domain_event." not in composition
     assert "$state_machine." not in composition
     assert "<B>target:</B>" not in composition
@@ -629,7 +629,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "declared, no arrow" not in list_fsm
     assert "transition domain_events" not in list_fsm
     assert "emitted domain_events" not in list_fsm
-    assert "$signal.payload." not in list_fsm
+    assert "$trigger.payload." not in list_fsm
     assert "$domain_event." not in list_fsm
     assert "text_resource.project.detail.ready.heading" in detail_fsm
     assert "query.project.read fields" in detail_fsm
@@ -691,7 +691,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "context binding" not in composition
     assert "state_machine.selected_project_id" not in composition
     assert "state machine context" not in composition
-    assert "$signal.payload." not in composition
+    assert "$trigger.payload." not in composition
     assert "$domain_event." not in composition
     assert "$state_machine." not in composition
     assert "region:" not in composition

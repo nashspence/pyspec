@@ -1697,6 +1697,14 @@ def test_state_machine_signal_direction_must_be_unambiguous() -> None:
         compile_source(author)
 
 
+def test_state_machine_trigger_payload_uses_trigger_root_not_signal_root() -> None:
+    author = _author()
+    ready = author["state_machines"]["state_machine.project.board"]["states"]["ready"]
+    ready["signal_sync_rules"][0]["local_effects"][0]["set"]["from"] = "$signal.payload.project_id"
+    with pytest.raises(ContractError, match=r"references unavailable binding root: \$signal"):
+        compile_source(author)
+
+
 def test_signal_names_that_match_states_emit_lint_warnings() -> None:
     author = {
         "project": "signal_lint",

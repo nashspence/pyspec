@@ -107,7 +107,8 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `local_outcome_effect`: mapping from a command/query-binding outcome to context updates, result binding, a local signal raise, or explicit `no_local_effect` handling.
 - `No local effect`: explicit declaration that an outcome is covered but intentionally has no local state-machine effect. It is not omission and does not suppress durable domain events. Reasons are scope-sensitive: response-surface handling needs a real adapter/renderer surface, query refresh needs explicit result/context refresh, result-bound-without-signal needs result binding or context/cache update, and failure outcomes must use proven response-surface handling or `intentionally_unobservable` with rationale.
 - `Authored value`: explicit literal-or-fixture-reference value used in authored test, precondition, content-example, and render-example value maps. Use `{value: ...}` for JSON literals, including literal strings beginning with `$`, and `{from: $fixture...}` for fixture references. Raw `$...` strings are not interpreted as references.
-- `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$signal.payload`, and `$state_machine`; command domain-event payload mappings use `$command_input` and `$command_outcome`; external-interface response mappings use `$invocation_outcome`; adapter/delegation bindings use `$adapter_input` and `$adapter_response`; workflow activity bindings use `$workflow_input` and `$activity_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
+- `Binding root`: the first segment of a binding expression. Local state-machine bindings use `$state_context`, `$principal`, `$trigger.payload`, and `$state_machine`; command domain-event payload mappings use `$command_input` and `$command_outcome`; external-interface response mappings use `$invocation_outcome`; adapter/delegation bindings use `$adapter_input` and `$adapter_response`; workflow activity bindings use `$workflow_input` and `$activity_outcome`. `$message` is reserved for AsyncAPI/wire-level messages, not local state-machine signaling.
+- `state_machine_trigger`: the current state-machine-local trigger, sourced from either a `local_signal` or `data_refresh_signal`.
 - `Actor/user binding source`: local command bindings should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$principal.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
 - `Local signal raise`: creation of a state-machine-local `local_signal` or `data_refresh_signal`.
 - `Data refresh signal`: local state-machine signal commonly used for data refresh, invalidation, loaded/missing states, or render updates. Data-refresh signals are not sent between child state-machine instances.
@@ -248,7 +249,7 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 | Command binding local_effects | `$command_outcome`, `$command_binding`, `$state_context` |
 | Query binding `input_mapping` | `$state_context`, `$principal` |
 | Query binding local_effects | `$query_outcome`, `$query_binding`, `$state_context` |
-| State-machine transition local_effects | `$signal.payload`, `$state_context` |
+| State-machine transition local_effects | `$trigger.payload`, `$state_context` |
 | Child state-machine `context_bindings` and `selected.condition` guards | `$state_machine` for parent state-machine context |
 | Command domain-event-emission payload mappings | `$command_input`, `$command_outcome` |
 | External-interface command/query/state-machine/workflow invocation mappings | `$adapter_input` |
@@ -279,7 +280,7 @@ The visual audit includes state-machine and composition diagrams, external-inter
 
 - `$fixture.<path>` reads merged seed fixture data in behavior scenarios, preconditions, assertions, content examples, and render examples.
 - `$state_machine.<field>` reads parent state-machine context in child state-machine context bindings and composition guards.
-- `$signal.payload.<field>` reads the current state-machine local-signal payload in transition local_effects and sync sends.
+- `$trigger.payload.<field>` reads the current `state_machine_trigger` payload in transition local_effects and sync sends.
 - `$state_context.<field>` reads current state-machine context in transition local_effects, command/query binding input mappings, and local_outcome_effect signal payload mappings.
 - `$principal.id` reads the authenticated principal id available to the current state-machine binding.
 - `$principal.roles[*]` reads the authenticated principal's role names when role data is available.

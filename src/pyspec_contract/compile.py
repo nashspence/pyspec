@@ -2206,7 +2206,7 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
                     f"state machine {state_machine_id} transition set {body['context']}",
                     binding,
                     context[body["context"]],
-                    {"signal": _prefixed_type_scope(("payload",), local_signal_payload), "state_context": _type_scope(context)},
+                    {"trigger": _prefixed_type_scope(("payload",), local_signal_payload), "state_context": _type_scope(context)},
                     allow_null_source=False,
                 )
             elif kind == "emit":
@@ -2216,7 +2216,7 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
                     label=f"state machine {state_machine_id} transition emit {body['local_signal']} payload_bindings",
                     bindings=body["payload_bindings"],
                     payload=emitted_payload,
-                    scopes={"signal": _prefixed_type_scope(("payload",), local_signal_payload), "state_context": _type_scope(_state_machine_context(state_machine))},
+                    scopes={"trigger": _prefixed_type_scope(("payload",), local_signal_payload), "state_context": _type_scope(_state_machine_context(state_machine))},
                 )
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"state machine {state_machine_id} unsupported transition local_effect: {kind}")
@@ -2750,7 +2750,7 @@ def _validate_sync_rules(
                     f"composed state machine state {label} sync set {body['context']}",
                     binding,
                     context[body["context"]],
-                    {"signal": _prefixed_type_scope(("payload",), source_payload), "state_machine": _type_scope(context)},
+                    {"trigger": _prefixed_type_scope(("payload",), source_payload), "state_machine": _type_scope(context)},
                     allow_null_source=False,
                 )
             elif kind == "send":
@@ -2766,7 +2766,7 @@ def _validate_sync_rules(
                     label=f"composed state machine state {label} sync send {body['local_signal']} to {target_id} payload_bindings",
                     bindings=body["payload_bindings"],
                     payload=target_payload,
-                    scopes={"signal": _prefixed_type_scope(("payload",), source_payload), "state_machine": _type_scope(context)},
+                    scopes={"trigger": _prefixed_type_scope(("payload",), source_payload), "state_machine": _type_scope(context)},
                 )
             else:  # pragma: no cover - schema prevents this.
                 raise ContractError(f"composed state machine state {label} unsupported sync local_effect: {kind}")

@@ -204,7 +204,7 @@
             {
               "set": {
                 "context": "selected_project_id",
-                "from": "$signal.payload.project_id"
+                "from": "$trigger.payload.project_id"
               }
             },
             {
@@ -213,7 +213,7 @@
                 "local_signal": "selection_changed",
                 "payload_bindings": {
                   "project_id": {
-                    "from": "$signal.payload.project_id"
+                    "from": "$trigger.payload.project_id"
                   }
                 }
               }
@@ -224,7 +224,7 @@
                 "local_signal": "selection_changed",
                 "payload_bindings": {
                   "project_id": {
-                    "from": "$signal.payload.project_id"
+                    "from": "$trigger.payload.project_id"
                   }
                 }
               }
@@ -1197,7 +1197,7 @@
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$signal.payload.project_id"
+                      "from": "$trigger.payload.project_id"
                     }
                   }
                 }
@@ -1323,7 +1323,7 @@
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$signal.payload.project_id"
+                      "from": "$trigger.payload.project_id"
                     }
                   }
                 }
@@ -1448,7 +1448,7 @@
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$signal.payload.project_id"
+                      "from": "$trigger.payload.project_id"
                     }
                   }
                 }
@@ -1676,7 +1676,7 @@
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
-                      "from": "$signal.payload.project_id"
+                      "from": "$trigger.payload.project_id"
                     }
                   }
                 }

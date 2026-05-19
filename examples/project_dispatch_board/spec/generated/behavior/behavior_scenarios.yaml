@@ -304,19 +304,19 @@ behavior_scenarios:
             local_effects:
             - set:
                 context: selected_project_id
-                from: $signal.payload.project_id
+                from: $trigger.payload.project_id
             - send:
                 instance: detail
                 local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $signal.payload.project_id
+                    from: $trigger.payload.project_id
             - send:
                 instance: activity
                 local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $signal.payload.project_id
+                    from: $trigger.payload.project_id
             trigger:
               instance: list
               local_signal: project_selected
@@ -524,19 +524,19 @@ behavior_scenarios:
             local_effects:
             - set:
                 context: selected_project_id
-                from: $signal.payload.project_id
+                from: $trigger.payload.project_id
             - send:
                 instance: detail
                 local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $signal.payload.project_id
+                    from: $trigger.payload.project_id
             - send:
                 instance: activity
                 local_signal: selection_changed
                 payload_bindings:
                   project_id:
-                    from: $signal.payload.project_id
+                    from: $trigger.payload.project_id
             trigger:
               instance: list
               local_signal: project_selected
