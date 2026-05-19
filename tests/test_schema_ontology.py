@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import pytest
@@ -89,3 +90,22 @@ def test_compiled_schema_uses_item_defs_for_compiled_collections() -> None:
 
     for section, singular in COLLECTION_SECTIONS.items():
         assert schema["properties"][section]["additionalProperties"]["$ref"] == f"#/$defs/{singular}_item"
+
+
+def test_entity_type_ref_allows_dotted_domain_segments() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        pattern = schema["$defs"]["entity_type_ref"]["pattern"]
+        assert re.fullmatch(pattern, "entity_type.project"), schema_name
+        assert re.fullmatch(pattern, "entity_type.billing.invoice"), schema_name
+        assert not re.fullmatch(pattern, "entity_type."), schema_name
+        assert not re.fullmatch(pattern, "entity_type.billing."), schema_name
+        assert not re.fullmatch(pattern, "entity_type.billing..invoice"), schema_name

@@ -1454,7 +1454,7 @@
       "type": "string"
     },
     "entity_type_ref": {
-      "pattern": "^entity_type\\.[a-z][a-z0-9_]*$",
+      "pattern": "^entity_type\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
     "external_interface_adapter": {
