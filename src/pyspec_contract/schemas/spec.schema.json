@@ -808,7 +808,7 @@
       "additionalProperties": false,
       "properties": {
         "args": {
-          "$ref": "#/$defs/binding_map"
+          "$ref": "#/$defs/value_map"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"

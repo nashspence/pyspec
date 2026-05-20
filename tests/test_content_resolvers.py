@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import copy
 from pathlib import Path
 
 import pytest
 
-from pyspec_contract.compile import ContractError, compile_source
+from pyspec_contract.compile import ContractError, compile_source, validate_against_schema
 from pyspec_contract.content import ContentContext, call_media_asset, call_text_resource
 from pyspec_contract.io import read_yaml
 from pyspec_contract.paths import COMPILED_SPEC_PATH, SOURCE_SPEC_PATH
@@ -68,3 +69,19 @@ def test_content_example_args_must_match_declared_signature() -> None:
     del author["content_examples"]["content_example.project.detail.heading.high_priority"]["args"]["customer"]
     with pytest.raises(ContractError, match="args"):
         compile_source(author)
+
+
+def test_content_example_args_use_authored_value_map_semantics() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["content_examples"]["content_example.project.detail.heading.high_priority"]["args"]["customer"] = {
+        "from": "$state_context.customer"
+    }
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    contract = copy.deepcopy(read_yaml(ROOT / COMPILED_SPEC_PATH))
+    contract["content_examples"]["content_example.project.detail.heading.high_priority"]["args"]["customer"] = {
+        "from": "$state_context.customer"
+    }
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(contract, "spec.schema.json")
