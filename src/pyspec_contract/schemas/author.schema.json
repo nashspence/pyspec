@@ -825,6 +825,222 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "http_api"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "output_mapping": {
+                "allOf": [
+                  {
+                    "not": {
+                      "required": [
+                        "ingress_responses"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "required": [
+                        "response_handlers"
+                      ]
+                    }
+                  }
+                ],
+                "required": [
+                  "responses"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "html_route"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "output_mapping": {
+                "allOf": [
+                  {
+                    "not": {
+                      "required": [
+                        "ingress_responses"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "required": [
+                        "response_handlers"
+                      ]
+                    }
+                  }
+                ],
+                "required": [
+                  "responses"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "cli"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "output_mapping": {
+                "allOf": [
+                  {
+                    "not": {
+                      "required": [
+                        "ingress_responses"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "required": [
+                        "responses"
+                      ]
+                    }
+                  }
+                ],
+                "required": [
+                  "response_handlers"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "worker"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "output_mapping": {
+                "allOf": [
+                  {
+                    "not": {
+                      "required": [
+                        "response_handlers"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "required": [
+                        "responses"
+                      ]
+                    }
+                  }
+                ],
+                "required": [
+                  "ingress_responses"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "webhook"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "output_mapping": {
+                "allOf": [
+                  {
+                    "not": {
+                      "required": [
+                        "response_handlers"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "required": [
+                        "responses"
+                      ]
+                    }
+                  }
+                ],
+                "required": [
+                  "ingress_responses"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "scheduled"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "output_mapping": {
+                "allOf": [
+                  {
+                    "not": {
+                      "required": [
+                        "response_handlers"
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "required": [
+                        "responses"
+                      ]
+                    }
+                  }
+                ],
+                "required": [
+                  "ingress_responses"
+                ]
+              }
+            }
+          }
         }
       ],
       "properties": {
@@ -4266,6 +4482,24 @@
     },
     "external_interface_output_mapping": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "responses"
+          ]
+        },
+        {
+          "required": [
+            "response_handlers"
+          ]
+        },
+        {
+          "required": [
+            "ingress_responses"
+          ]
+        }
+      ],
+      "minProperties": 1,
       "properties": {
         "ingress_responses": {
           "$ref": "#/$defs/external_interface_responses"

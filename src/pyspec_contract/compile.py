@@ -2989,8 +2989,7 @@ def _validate_external_interfaces(contract: dict[str, Any]) -> None:
                 _validate_target_bindings(contract, eid, external_interface, args)
                 target_renderer = external_interface_state_machine_renderer(external_interface)
                 assert target_renderer is not None
-                if external_interface_output_response_handlers(external_interface):
-                    raise ContractError(f"CLI external interface {eid} targeting a state machine must not declare response_handlers")
+                _validate_cli_state_machine_response_handlers(contract, eid, external_interface)
             elif kind == "workflow":
                 if value not in contract["workflows"]:
                     raise ContractError(f"CLI external interface {eid} must invoke a known workflow")
@@ -3458,6 +3457,27 @@ def _validate_cli_delegated_response_handlers(
                 f"CLI external interface {external_interface_id} response handler {outcome_id} retry_policy requires delegated external interface "
                 f"{delegated_external_interface_id} and its final invocation to be retryable or query"
             ),
+            exit_codes=exit_codes,
+        )
+
+
+def _validate_cli_state_machine_response_handlers(
+    contract: dict[str, Any],
+    external_interface_id: str,
+    external_interface: dict[str, Any],
+) -> None:
+    exit_codes: dict[int, str] = {}
+    for outcome_id, handler in external_interface_output_response_handlers(external_interface).items():
+        _validate_cli_response_handler(
+            contract,
+            external_interface_id,
+            outcome_id,
+            handler,
+            outcome_kind=None,
+            source_scopes={"adapter_input": _external_interface_input_source_types(contract, external_interface)},
+            delegated_external_interface_id=None,
+            retry_allowed=False,
+            retry_error=f"CLI external interface {external_interface_id} response handler {outcome_id} retry_policy is not supported for state-machine launchers",
             exit_codes=exit_codes,
         )
 

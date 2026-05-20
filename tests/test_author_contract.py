@@ -179,6 +179,37 @@ def test_external_interface_input_mapping_matches_adapter_shape() -> None:
         validate_against_schema(contract, "spec.schema.json")
 
 
+def test_external_interface_output_mapping_requires_section_and_matches_adapter() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["external_interfaces"]["external_interface.api.project.create"]["output_mapping"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    cases = [
+        ("external_interface.api.project.create", None, {"response_handlers": {"created": {"exit_code": 0}}}),
+        ("external_interface.html.project.board", None, {"response_handlers": {"opened": {"exit_code": 0}}}),
+        ("external_interface.cli.project.approve", None, {"responses": {"approved": {"status": 200}}}),
+        ("external_interface.worker.project.approval_notice", None, {"responses": {"accepted": {"disposition": "acknowledge"}}}),
+        ("external_interface.worker.project.approval_notice", {"webhook": {"path": "/webhooks/approval"}}, {"responses": {"accepted": {"status": 202}}}),
+        ("external_interface.worker.project.approval_notice", {"scheduled": {"schedule_expression": "0 * * * *"}}, {"responses": {"accepted": {"disposition": "acknowledge"}}}),
+    ]
+    for external_interface_id, adapter, output_mapping in cases:
+        author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+        external_interface = author["external_interfaces"][external_interface_id]
+        if adapter is not None:
+            external_interface["adapter"] = adapter
+        if adapter and "scheduled" in adapter:
+            external_interface["input_mapping"].pop("payload", None)
+        external_interface["output_mapping"] = output_mapping
+        with pytest.raises(ContractError, match="Schema validation failed"):
+            validate_against_schema(author, "author.schema.json")
+
+    contract = copy.deepcopy(read_yaml(ROOT / COMPILED_SPEC_PATH))
+    contract["external_interfaces"]["external_interface.html.project.board"]["output_mapping"]["ingress_responses"] = {"opened": {"status": 200}}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(contract, "spec.schema.json")
+
+
 def test_author_no_local_effect_reasons_are_closed_vocabulary() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     effect = author["state_machines"]["state_machine.project.list"]["states"]["ready"]["command_bindings"]["create"]["local_effects"]["validation_failed"]
@@ -222,7 +253,7 @@ def test_author_async_adapters_use_ingress_responses() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     worker_output = author["external_interfaces"]["external_interface.worker.project.approval_notice"]["output_mapping"]
     worker_output["responses"] = worker_output.pop("ingress_responses")
-    with pytest.raises(ContractError, match="must use output_mapping.ingress_responses"):
+    with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 

@@ -1924,7 +1924,7 @@ def test_authoring_layers_reject_wrong_external_interface_renderer() -> None:
         "adapter": {"html_route": {"path": "/tickets"}},
         "invokes": {"state_machine": {"ref": "state_machine.ticket.list", "renderer": "html"}},
         "input_mapping": {"bindings": {}},
-        "output_mapping": {},
+        "output_mapping": {"responses": {"opened": {"status": 200}}},
     }
     with pytest.raises(ContractError, match="external interface adapter html_route requires ui"):
         compile_author(author, layers=parse_layers("core,http"))

@@ -1,12 +1,12 @@
 version: 1
 project: project_dispatch_board
 summary:
-  required_visual_pointers: 894
+  required_visual_pointers: 895
   missing_required_visual_pointers: 0
-  required_visual_text_witnesses: 284
-  optional_visual_pointers: 503
+  required_visual_text_witnesses: 287
+  optional_visual_pointers: 507
   optional_visual_pointers_not_shown: 6
-  non_visual_pointers: 149
+  non_visual_pointers: 151
   visual_evidence_sets: 34
 visual_evidence_sets:
   V0001:
@@ -236,6 +236,7 @@ render_presence:
     - text_resource.project.approve.not_found
     - text_resource.project.approve.success
     - text_resource.project.approve.unavailable
+    - text_resource.project.board.opened
     - text_resource.project.detail.error.body
     - text_resource.project.detail.error.heading
     - text_resource.project.detail.loading.message
@@ -601,7 +602,8 @@ visual_audit:
       /external_interfaces/external_interface.cli.project.board/input_mapping/bindings/workspace_id/from: V0017
       /external_interfaces/external_interface.cli.project.board/invokes/state_machine/ref: V0017
       /external_interfaces/external_interface.cli.project.board/invokes/state_machine/renderer: V0017
-      /external_interfaces/external_interface.cli.project.board/output_mapping: V0017
+      /external_interfaces/external_interface.cli.project.board/output_mapping/response_handlers/opened/exit_code: V0017
+      /external_interfaces/external_interface.cli.project.board/output_mapping/response_handlers/opened/stdout/text: V0017
       /external_interfaces/external_interface.cli.project.board/rationale: V0017
       /external_interfaces/external_interface.html.project.board/adapter/html_route/path: V0005
       /external_interfaces/external_interface.html.project.board/html_route: V0005
@@ -609,7 +611,7 @@ visual_audit:
       /external_interfaces/external_interface.html.project.board/input_mapping/path_params/workspace_id/type: V0005
       /external_interfaces/external_interface.html.project.board/invokes/state_machine/ref: V0005
       /external_interfaces/external_interface.html.project.board/invokes/state_machine/renderer: V0005
-      /external_interfaces/external_interface.html.project.board/output_mapping: V0005
+      /external_interfaces/external_interface.html.project.board/output_mapping/responses/opened/status: V0005
       /external_interfaces/external_interface.html.project.board/rationale: V0005
       /external_interfaces/external_interface.worker.project.approval_notice/adapter/worker: V0018
       /external_interfaces/external_interface.worker.project.approval_notice/input_mapping/bindings/approved_by/from: V0018
@@ -2206,6 +2208,15 @@ visual_audit:
         visual_evidence_set: V0017
         tokens:
         - state_machine.project.board
+      /external_interfaces/external_interface.cli.project.board/output_mapping/response_handlers/opened/exit_code:
+        visual_evidence_set: V0017
+        tokens:
+        - exit_code
+        - '0'
+      /external_interfaces/external_interface.cli.project.board/output_mapping/response_handlers/opened/stdout/text:
+        visual_evidence_set: V0017
+        tokens:
+        - text_resource.project.board.opened
       /external_interfaces/external_interface.html.project.board/adapter/html_route/path:
         visual_evidence_set: V0005
         tokens:
@@ -2227,6 +2238,11 @@ visual_audit:
         visual_evidence_set: V0005
         tokens:
         - state_machine.project.board
+      /external_interfaces/external_interface.html.project.board/output_mapping/responses/opened/status:
+        visual_evidence_set: V0005
+        tokens:
+        - status
+        - '200'
       /external_interfaces/external_interface.worker.project.approval_notice/input_mapping/bindings/approved_by/from:
         visual_evidence_set: V0018
         tokens:
@@ -3207,6 +3223,10 @@ visual_audit:
       /text_resources/text_resource.project.approve.unavailable/max_chars: V0016
       /text_resources/text_resource.project.approve.unavailable/placeholder: V0016
       /text_resources/text_resource.project.approve.unavailable/rationale: V0016
+      /text_resources/text_resource.project.board.opened/intent: V0017
+      /text_resources/text_resource.project.board.opened/max_chars: V0017
+      /text_resources/text_resource.project.board.opened/placeholder: V0017
+      /text_resources/text_resource.project.board.opened/rationale: V0017
       /text_resources/text_resource.project.detail.error.body/intent: V0027
       /text_resources/text_resource.project.detail.error.body/max_chars: V0027
       /text_resources/text_resource.project.detail.error.body/placeholder: V0027
@@ -3312,6 +3332,8 @@ visual_audit:
     /reference_index/cli_response_handler/4:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/cli_response_handler/5:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/cli_response_handler/6:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/command_binding/0:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
@@ -3562,6 +3584,8 @@ visual_audit:
     /reference_index/text_resource/2:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text_resource/20:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/text_resource/21:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/text_resource/3:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers

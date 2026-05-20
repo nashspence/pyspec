@@ -1,6 +1,6 @@
-<svg width="752pt" height="187pt"
- viewBox="0.00 0.00 752.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: f7f47d5a539c810d1ab1a8a58accb1011e43fde4cff40a5d2a48bc5528313cb0 -->
+<svg width="884pt" height="187pt"
+ viewBox="0.00 0.00 884.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 5f27a7dd6f8d0e331de84fd34e27ae043419d8b62ef27d90df0e56fb156cff54 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
 <title>external_interface_external_interface_html_project_board</title>
 <!-- external_interface_external_interface_html_project_board -->
@@ -51,6 +51,24 @@
 <title>external_interface_external_interface_html_project_board&#45;&gt;external_interface_invocation_state_machine_project_board</title>
 <path fill="none" stroke="#3f3f46" d="M347.12,-75.5C364.49,-75.5 382.09,-75.5 399.34,-75.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="399.78,-78.3 407.78,-75.5 399.78,-72.7 399.78,-78.3"/>
+</g>
+<!-- external_interface_response_external_interface_html_project_board_opened -->
+<g id="node3" class="node">
+<title>external_interface_response_external_interface_html_project_board_opened</title>
+<polygon fill="#ffffff" stroke="transparent" points="777,-44.5 777,-106.5 848,-106.5 848,-44.5 777,-44.5"/>
+<polygon fill="#9333ea" stroke="transparent" points="778.5,-97.5 778.5,-105.5 847.5,-105.5 847.5,-97.5 778.5,-97.5"/>
+<polygon fill="#faf5ff" stroke="transparent" points="778.5,-66.5 778.5,-97.5 847.5,-97.5 847.5,-66.5 778.5,-66.5"/>
+<text text-anchor="start" x="782.5" y="-84.1" font-family="Arial" font-weight="bold" font-size="13.00">response</text>
+<text text-anchor="start" x="782.5" y="-73.1" font-family="Arial" font-size="8.00" fill="#64748b">opened</text>
+<text text-anchor="start" x="783.5" y="-54.5" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
+<text text-anchor="start" x="814.5" y="-54.5" font-family="Arial" font-size="10.00">  200</text>
+<polygon fill="none" stroke="#9333ea" points="777,-44.5 777,-106.5 848,-106.5 848,-44.5 777,-44.5"/>
+</g>
+<!-- external_interface_invocation_state_machine_project_board&#45;&gt;external_interface_response_external_interface_html_project_board_opened -->
+<g id="edge2" class="edge">
+<title>external_interface_invocation_state_machine_project_board&#45;&gt;external_interface_response_external_interface_html_project_board_opened</title>
+<path fill="none" stroke="#3f3f46" d="M716.13,-75.5C735.18,-75.5 753.27,-75.5 768.47,-75.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="768.6,-78.3 776.6,-75.5 768.6,-72.7 768.6,-78.3"/>
 </g>
 </g>
 </svg>

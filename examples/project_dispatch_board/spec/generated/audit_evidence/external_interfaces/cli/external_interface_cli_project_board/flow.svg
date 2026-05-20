@@ -1,6 +1,6 @@
-<svg width="715pt" height="187pt"
- viewBox="0.00 0.00 715.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 913aba36166ecbe6341b2a719a90a81bacac1c8540b27194c516a73049f2b4fb -->
+<svg width="981pt" height="187pt"
+ viewBox="0.00 0.00 981.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- pyspec-contract-input-sha256: 18f99f1f5f1dd90f7d89a18ba7f34ddcfc31d1dba6129919e5ac6b91a1ada0b0 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
 <title>external_interface_external_interface_cli_project_board</title>
 <!-- external_interface_external_interface_cli_project_board -->
@@ -51,6 +51,26 @@
 <title>external_interface_external_interface_cli_project_board&#45;&gt;external_interface_invocation_state_machine_project_board</title>
 <path fill="none" stroke="#3f3f46" d="M310.2,-75.5C327.61,-75.5 345.38,-75.5 362.88,-75.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="362.9,-78.3 370.9,-75.5 362.9,-72.7 362.9,-78.3"/>
+</g>
+<!-- external_interface_response_external_interface_cli_project_board_opened -->
+<g id="node3" class="node">
+<title>external_interface_response_external_interface_cli_project_board_opened</title>
+<polygon fill="#ffffff" stroke="transparent" points="740,-38.5 740,-112.5 945,-112.5 945,-38.5 740,-38.5"/>
+<polygon fill="#9333ea" stroke="transparent" points="741.5,-103.5 741.5,-111.5 944.5,-111.5 944.5,-103.5 741.5,-103.5"/>
+<polygon fill="#faf5ff" stroke="transparent" points="741.5,-72.5 741.5,-103.5 944.5,-103.5 944.5,-72.5 741.5,-72.5"/>
+<text text-anchor="start" x="745.5" y="-90.1" font-family="Arial" font-weight="bold" font-size="13.00">opened</text>
+<text text-anchor="start" x="745.5" y="-79.1" font-family="Arial" font-size="8.00" fill="#64748b">response handler</text>
+<text text-anchor="start" x="746.5" y="-60.5" font-family="Arial" font-weight="bold" font-size="10.00">stdout:</text>
+<text text-anchor="start" x="779.5" y="-60.5" font-family="Arial" font-size="10.00">  text_resource.project.board.opened</text>
+<text text-anchor="start" x="746.5" y="-48.5" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
+<text text-anchor="start" x="794.5" y="-48.5" font-family="Arial" font-size="10.00">  0</text>
+<polygon fill="none" stroke="#9333ea" points="740,-38.5 740,-112.5 945,-112.5 945,-38.5 740,-38.5"/>
+</g>
+<!-- external_interface_invocation_state_machine_project_board&#45;&gt;external_interface_response_external_interface_cli_project_board_opened -->
+<g id="edge2" class="edge">
+<title>external_interface_invocation_state_machine_project_board&#45;&gt;external_interface_response_external_interface_cli_project_board_opened</title>
+<path fill="none" stroke="#3f3f46" d="M679.13,-75.5C696.8,-75.5 714.56,-75.5 731.5,-75.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="731.75,-78.3 739.75,-75.5 731.75,-72.7 731.75,-78.3"/>
 </g>
 </g>
 </svg>

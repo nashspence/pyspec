@@ -1534,7 +1534,12 @@ external_interfaces:
       bindings:
         workspace_id:
           from: $adapter_input.args.workspace_id
-    output_mapping: {}
+    output_mapping:
+      response_handlers:
+        opened:
+          exit_code: 0
+          stdout:
+            text: text_resource.project.board.opened
   external_interface.html.project.board:
     adapter:
       html_route:
@@ -1551,7 +1556,10 @@ external_interfaces:
       bindings:
         workspace_id:
           from: $adapter_input.path_params.workspace_id
-    output_mapping: {}
+    output_mapping:
+      responses:
+        opened:
+          status: 200
   external_interface.worker.project.approval_notice:
     adapter:
       worker: {}
@@ -1859,6 +1867,11 @@ behavior_scenarios:
             from: $fixture.workspace.id
         ref: external_interface.api.project.create
 text_resources:
+  text_resource.project.board.opened:
+    rationale: CLI board launch success message.
+    max_chars: 80
+    placeholder: Dispatch board opened.
+    intent: success
   text_resource.project.approve.access_denied:
     rationale: CLI approval access_denied message.
     max_chars: 120

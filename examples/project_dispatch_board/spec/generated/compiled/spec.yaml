@@ -1253,7 +1253,12 @@ external_interfaces:
       state_machine:
         ref: state_machine.project.board
         renderer: textual
-    output_mapping: {}
+    output_mapping:
+      response_handlers:
+        opened:
+          exit_code: 0
+          stdout:
+            text: text_resource.project.board.opened
     rationale: CLI launcher for the Textual dispatch board.
   external_interface.html.project.board:
     adapter:
@@ -1271,7 +1276,10 @@ external_interfaces:
       state_machine:
         ref: state_machine.project.board
         renderer: html
-    output_mapping: {}
+    output_mapping:
+      responses:
+        opened:
+          status: 200
     rationale: HTML external_interface for the dispatch board.
   external_interface.worker.project.approval_notice:
     adapter:
@@ -1475,6 +1483,7 @@ reference_index:
   - cli_response_handler.cli.project.approve.lifecycle_transition_not_allowed
   - cli_response_handler.cli.project.approve.not_found
   - cli_response_handler.cli.project.approve.unavailable
+  - cli_response_handler.cli.project.board.opened
   command_binding:
   - command_binding.project.detail.ready.approve
   - command_binding.project.detail.ready.archive
@@ -1609,6 +1618,7 @@ reference_index:
   - text_resource.project.approve.not_found
   - text_resource.project.approve.success
   - text_resource.project.approve.unavailable
+  - text_resource.project.board.opened
   - text_resource.project.detail.error.body
   - text_resource.project.detail.error.heading
   - text_resource.project.detail.loading.message
@@ -2593,6 +2603,11 @@ text_resources:
     max_chars: 120
     placeholder: Approval service is unavailable. Retry later.
     rationale: CLI approval unavailable message.
+  text_resource.project.board.opened:
+    intent: success
+    max_chars: 80
+    placeholder: Dispatch board opened.
+    rationale: CLI board launch success message.
   text_resource.project.detail.error.body:
     intent: error
     max_chars: 120

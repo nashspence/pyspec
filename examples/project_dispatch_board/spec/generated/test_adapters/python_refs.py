@@ -33,6 +33,7 @@ class CliResponseHandler:
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_LIFECYCLE_TRANSITION_NOT_ALLOWED = 'cli_response_handler.cli.project.approve.lifecycle_transition_not_allowed'
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_NOT_FOUND = 'cli_response_handler.cli.project.approve.not_found'
     CLI_RESPONSE_HANDLER_CLI_PROJECT_APPROVE_UNAVAILABLE = 'cli_response_handler.cli.project.approve.unavailable'
+    CLI_RESPONSE_HANDLER_CLI_PROJECT_BOARD_OPENED = 'cli_response_handler.cli.project.board.opened'
 
 class Command:
     COMMAND_PROJECT_APPROVE = 'command.project.approve'
@@ -223,6 +224,7 @@ class TextResource:
     TEXT_RESOURCE_PROJECT_APPROVE_NOT_FOUND = 'text_resource.project.approve.not_found'
     TEXT_RESOURCE_PROJECT_APPROVE_SUCCESS = 'text_resource.project.approve.success'
     TEXT_RESOURCE_PROJECT_APPROVE_UNAVAILABLE = 'text_resource.project.approve.unavailable'
+    TEXT_RESOURCE_PROJECT_BOARD_OPENED = 'text_resource.project.board.opened'
     TEXT_RESOURCE_PROJECT_DETAIL_ERROR_BODY = 'text_resource.project.detail.error.body'
     TEXT_RESOURCE_PROJECT_DETAIL_ERROR_HEADING = 'text_resource.project.detail.error.heading'
     TEXT_RESOURCE_PROJECT_DETAIL_LOADING_MESSAGE = 'text_resource.project.detail.loading.message'
