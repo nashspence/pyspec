@@ -2373,6 +2373,30 @@ def test_workflow_sequence_flow_target_refs_must_be_exclusive() -> None:
         compile_source(author)
 
 
+def test_workflow_activity_sequence_flow_requires_source_outcome() -> None:
+    author = _author()
+    transition = author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["send_notice_delivery_failed"]
+    del transition["source_outcome"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_workflow_activity_sequence_flow_rejects_condition() -> None:
+    author = _author()
+    transition = author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["send_notice_delivery_failed"]
+    transition["condition"] = "$workflow_input.payload.project_id"
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_workflow_gateway_sequence_flow_rejects_source_outcome() -> None:
+    author = _author()
+    transition = author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["notice_success_completed"]
+    transition["source_outcome"] = "sent"
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
 def test_workflow_sequence_flows_must_reference_known_outputs() -> None:
     author = _author()
     transition = author["workflows"]["workflow.project.approval_notice"]["sequence_flows"]["send_notice_delivery_failed"]

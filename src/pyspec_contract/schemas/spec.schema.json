@@ -4478,6 +4478,53 @@
     },
     "workflow_sequence_flow": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source_ref": {
+                "required": [
+                  "activity"
+                ]
+              }
+            },
+            "required": [
+              "source_ref"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "condition"
+              ]
+            },
+            "required": [
+              "source_outcome"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "source_ref": {
+                "required": [
+                  "gateway"
+                ]
+              }
+            },
+            "required": [
+              "source_ref"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "source_outcome"
+              ]
+            }
+          }
+        }
+      ],
       "properties": {
         "condition": {
           "$ref": "#/$defs/binding_expression"

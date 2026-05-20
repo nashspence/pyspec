@@ -295,3 +295,25 @@ def test_authored_local_id_collections_are_keyed_maps() -> None:
     compiled_activity = compiled_schema["$defs"]["workflow_activity"]
     assert "id" not in compiled_activity["properties"]
     assert "id" not in compiled_activity.get("required", [])
+
+
+def test_workflow_sequence_flow_source_constraints_match_ontology() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        all_of = schema["$defs"]["workflow_sequence_flow"]["allOf"]
+        activity_rule = next(rule for rule in all_of if rule["if"]["properties"]["source_ref"]["required"] == ["activity"])
+        assert activity_rule["if"]["required"] == ["source_ref"], schema_name
+        assert activity_rule["then"]["required"] == ["source_outcome"], schema_name
+        assert activity_rule["then"]["not"]["required"] == ["condition"], schema_name
+
+        gateway_rule = next(rule for rule in all_of if rule["if"]["properties"]["source_ref"]["required"] == ["gateway"])
+        assert gateway_rule["if"]["required"] == ["source_ref"], schema_name
+        assert gateway_rule["then"]["not"]["required"] == ["source_outcome"], schema_name
