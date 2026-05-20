@@ -1,327 +1,229 @@
 # Chart Ontology
 
-This glossary records the current visual-audit chart ontology as a starting
-baseline. It follows the vocabulary boundaries in `docs/spec-ontology.md`: chart
-terms should describe visual evidence for the product contract without replacing
-the product-domain, projection, behavior, workflow, state-machine, or
-access-policy vocabulary they display.
+This glossary defines the vocabulary for generated chart artifacts used as visual audit evidence. Chart terms name visual carriers, diagram families, rendered glyphs, edge conventions, and tone roles. They do not redefine the product-domain, projection, workflow, state-machine, behavior, access-control, or visual-audit coverage terms defined by `docs/spec-ontology.md`.
 
 ## Ontology Goal and Change Principles
 
-The goal of the chart ontology is to make generated diagrams, rendered audit
-captures, symbols, and colors intentional enough that visual evidence can be
-reviewed as a contract artifact rather than decorative output.
+The goal of the chart ontology is to make generated Graphviz charts reviewable as contract evidence. A reviewer should be able to tell which product contract a chart is witnessing without mistaking a visual convention for a new product concept.
 
 When modifying or extending the chart ontology:
 
-- Use chart terms only for visual representation. Product concepts such as
-  `command`, `query`, `domain_event`, `workflow_activity`, `state_machine_state`,
-  `local_signal`, and `access_policy` keep their meanings from
-  `docs/spec-ontology.md`.
-- Prefer qualified visual terms such as `chart_card`, `card_subtitle`,
-  `flow_edge`, `render_capture`, `style_token`, or `placeholder_symbol` over
-  generic terms such as `box`, `label`, `line`, `color`, or `icon`.
-- Do not introduce a new color role without naming the semantic distinction it
-  carries. If the distinction is visual-only, keep it in this document rather
-  than the product ontology.
-- Keep generated artifact names stable. A chart term that maps to a file path,
-  function name, schema key, or visual coverage concept should use one canonical
-  spelling.
-- Treat generated SVG diagrams and rendered captures differently. Diagrams use
-  Graphviz/DOT chart cards; rendered captures use renderer contracts, CSS/TCSS,
-  content resolvers, media assets, and viewport profiles.
-- Record current behavior before tightening it. If implementation behavior and
-  intended semantic color differ, document both rather than silently renaming.
+- Use chart-owned terms only for visual representation, chart artifact families, layout mechanics, visible text witnesses, edge conventions, glyphs, rows, sections, and tones.
+- Do not introduce a chart-owned term that exactly matches a canonical source-ontology term. If a chart displays a source term, qualify the chart carrier, for example `workflow_activity_card`, `access_policy_check_card`, or `domain_event_emission_card`.
+- Do not introduce visual synonyms for product concepts. A chart may display a `command`, `query`, `domain_event`, `state_machine_state`, or `access_policy`, but the chart-owned vocabulary must describe the card, edge, row, label, or tone that carries that source concept.
+- Prefer stable visualization terms over generic drawing words. Use `chart_card`, `chart_edge`, `chart_card_role`, `chart_section_label`, `chart_tone_role`, or `chart_layout_edge` rather than `box`, `line`, `label`, `color`, or `icon`.
+- Treat edge labels, card titles, section labels, and reference prefixes as visible source witnesses. Their text may quote canonical source names or generated reference ids, but that text is not a new chart ontology term.
+- Do not introduce a new tone role unless the tone carries a reviewable semantic distinction. Pure aesthetic differences belong in renderer implementation notes, not in the ontology.
+- Keep generated chart artifact paths stable. A chart term that maps to a generated file path, function name, schema key, or test fixture should have one canonical spelling.
+- Record migration aliases when tightening existing terminology. Deprecated names should point to the canonical chart-owned term instead of remaining parallel vocabulary.
 
 ## Scope
 
-The current chart ontology covers:
+The chart ontology covers Graphviz SVG charts generated under `spec/generated/audit_evidence/**` for state machines, state-machine compositions, external interfaces, workflows, commands, and queries.
 
-- Graphviz SVG diagrams generated for state machines, state-machine
-  compositions, external interfaces, workflows, commands, and queries.
-- HTML render sources and PNG screenshots generated for state-machine renderer
-  surfaces and render examples.
-- Textual render sources and SVG captures generated for state-machine renderer
-  surfaces and render examples.
-- Scoped audit inputs generated beside render captures, including
-  `text_resources.yaml`, `fixtures.yaml`, and `media_assets/*.svg`.
-- Visual coverage metadata in `audit_evidence/coverage.yaml`.
+The chart ontology does not cover rendered application captures, screenshots, scoped audit input files, generated coverage indexes, authored product schemas, compiled product schemas, renderer contracts, OpenAPI projections, AsyncAPI projections, CWL projections, behavior scenarios, or generated code.
 
-This document does not define OpenAPI, AsyncAPI, CWL, BDD, JSON Schema,
-HTML, CSS, Textual, TCSS, or Graphviz vocabulary except where those terms are
-used as visual projection vocabulary.
+## Source-Domain Alignment
+
+Chart vocabulary is intentionally an evidence layer over the source ontology. Each chart-owned carrier should align to exactly one source domain, even when the visible card text includes several source references.
+
+| Chart evidence area | Canonical chart-owned carriers | Source domain witnessed | Boundary rule |
+| --- | --- | --- | --- |
+| Visual audit evidence | `chart_svg_artifact`, `chart_text_witness` | visual-audit coverage | Coverage pointers, witness requirements, and evidence-set membership remain owned by the spec ontology. |
+| Graphviz rendering | `chart_dot_source`, `chart_card`, `chart_edge`, `chart_layout_edge` | renderer implementation | DOT and SVG mechanics explain rendering only; they do not create product resources. |
+| State-machine behavior | `state_machine_chart`, `state_machine_state_card`, `state_machine_trigger_card` | state-machine contracts | Cards witness states, triggers, guards, local effects, loads, and raises without redefining state-machine vocabulary. |
+| State-machine composition | `state_composition_chart`, `child_machine_mount_card`, `local_signal_emission_card`, `local_signal_sync_rule_card`, `local_signal_send_effect_card`, `state_context_update_card` | composed state-machine contracts | Composition cards witness child instances, local signal synchronization, send effects, and parent context updates. |
+| External-interface invocation | `external_interface_flow_chart`, `adapter_boundary_card`, `invocation_target_card`, `invocation_target_preview_card` | adapter and invocation contracts | Adapter-facing shape and invoked target stay separate from command/query/workflow semantics. |
+| Adapter responses | `invoked_outcome_response_card`, `adapter_ingress_response_card`, `cli_response_handler_card` | adapter output mappings | Synchronous invoked-outcome responses and asynchronous ingress responses remain separate. |
+| Workflow behavior | `workflow_flow_chart`, `workflow_input_card`, `workflow_summary_card`, `workflow_activity_card`, `workflow_gateway_card`, `workflow_outcome_card` | BPMN-like workflow contracts | Workflow card terms may use BPMN-like roles only for workflow charts. |
+| Command behavior | `command_flow_chart`, `behavior_input_card`, `authorization_check_card`, `entity_resource_card`, `schema_resource_card`, `behavior_outcome_card`, `domain_event_emission_card` | command contracts | State-changing behavior, authorization, entity changes, outcomes, and durable event emissions remain source-owned. |
+| Query behavior | `query_flow_chart`, `behavior_input_card`, `authorization_check_card`, `schema_resource_card`, `behavior_outcome_card` | query contracts | Read-only behavior cards do not imply state changes or domain-event emission. |
+| Access control | `authorization_check_card`, `authorization_policy_tone` | access-policy and command-authorization contracts | Authorization cards show policy checks and mapped failures; authorization decisions remain source vocabulary. |
+| Reusable data contracts | `chart_schema_field_row`, `chart_reference_field_row`, `entity_resource_card`, `schema_resource_card` | JSON Schema, entity types, reusable schemas | Field rows and resource cards witness declared schemas and refs; they are not generated schemas themselves. |
 
 ## Artifact Families
 
-- `graphviz_diagram`: a generated SVG produced from DOT source. Current
-  diagram families are state-machine diagrams, composition diagrams,
-  external-interface flow diagrams, workflow flow diagrams, and command/query
-  flow diagrams.
-- `state_machine_diagram`: a Graphviz diagram at
-  `audit_evidence/state_machines/{state_machine}/state_machine.svg` that shows
-  state cards and transition-signal cards.
-- `composition_diagram`: a Graphviz diagram at
-  `audit_evidence/state_machines/{state_machine}/states/{state}/composition.svg`
-  that shows mounted child state machines, emitted local signals, local-signal
-  sync rules, sent local signals, and parent context updates.
-- `external_interface_flow_diagram`: a Graphviz diagram at
-  `audit_evidence/external_interfaces/{adapter}/{external_interface}/flow.svg`
-  that shows an adapter-facing external interface, its invoked target, optional
-  target tail cards, and response or response-handler cards.
-- `workflow_flow_diagram`: a Graphviz diagram at
-  `audit_evidence/workflows/{workflow}/flow.svg` that shows workflow input,
-  the workflow summary, activities, gateways, sequence-flow edges, and terminal
-  workflow outcomes.
-- `command_query_flow_diagram`: a Graphviz diagram at
-  `audit_evidence/{commands|queries}/{command_or_query}/flow.svg` that shows
-  chronological product behavior: input, optional authorization gate, touched
-  resources, outcomes, and emitted domain events.
-- `render_source`: generated HTML or Python source used to produce a render
-  capture.
-- `render_capture`: generated PNG or SVG visual output produced from a renderer
-  surface and viewport. HTML render captures are PNG screenshots; Textual render
-  captures are SVG captures.
-- `scoped_audit_input`: generated local input data for a state or render
-  example, such as `text_resources.yaml`, `fixtures.yaml`, and scoped
-  `media_assets/*.svg`.
+Artifact terms identify generated chart SVG files only. Sibling DOT files, render sources, screenshots, captured application renderings, scoped audit inputs, and coverage indexes are outside this artifact family.
 
-## Visual Coverage Terms
+- `chart_svg_artifact`: a generated SVG chart produced from Graphviz DOT source and used as visual contract evidence.
+- `state_machine_chart`: a chart at `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg` that shows local state cards and state-machine trigger cards.
+- `state_composition_chart`: a chart at `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/composition.svg` that shows mounted child state machines, emitted local signals, synchronization rules, send effects, and parent context updates for one composed state.
+- `external_interface_flow_chart`: a chart at `spec/generated/audit_evidence/external_interfaces/{adapter}/{external_interface}/flow.svg` that shows an adapter-facing boundary, invoked target, optional target preview cards, and adapter response cards.
+- `workflow_flow_chart`: a chart at `spec/generated/audit_evidence/workflows/{workflow}/flow.svg` that shows workflow input, workflow summary, activities, gateways, sequence routing, and terminal workflow outcomes.
+- `command_flow_chart`: a chart at `spec/generated/audit_evidence/commands/{command}/flow.svg` that shows chronological state-changing product behavior, including input, optional authorization, touched resources, outcomes, and emitted durable events.
+- `query_flow_chart`: a chart at `spec/generated/audit_evidence/queries/{query}/flow.svg` that shows chronological read-only product behavior, including input, optional authorization, result resources, and outcomes.
 
-The visual coverage terms below are defined in `docs/spec-ontology.md` and are
-part of the chart ontology because they decide which charts count as evidence.
+## Graphviz and Card Grammar
 
-- `visual_evidence_set`: a shared set of generated diagrams or render captures
-  that evidence one or more compiled JSON Pointers.
-- `required_visual_pointer`: a compiled JSON Pointer that must have visual
-  evidence.
-- `required_visual_text_witness`: a durable visible SVG token that proves a
-  required value is rendered as text.
-- `optional_visual_pointer`: a compiled JSON Pointer that may have visual
-  evidence but is allowed to be absent.
-- `non_visual_pointer`: compiled metadata intentionally outside visual-audit
-  scope.
-- `render_presence`: resource-level visibility in actual render captures for
-  media assets, text resources, fixtures, preconditions, assertions, and content
-  examples.
+- `chart_dot_source`: DOT source generated for a `chart_svg_artifact`. Current DOT source uses left-to-right rank direction, transparent background, spline edges, Arial fonts, and Graphviz HTML-like table nodes.
+- `chart_card`: the main visible node carrier. A chart card is currently rendered as a Graphviz HTML-like table with a white body, semantic border, narrow top bar, and tinted header.
+- `chart_card_title`: the primary visible identifier or surface title in a chart card. Examples include a local state id, resource reference, route path, CLI command surface, workflow id, signal display name, or outcome id.
+- `chart_card_role`: the secondary visible role line under a chart title. It may display text such as state, initial state, transition signal, workflow activity, authorization check, success outcome, or failure response handler. Role text is a visible label, not a source ontology term unless it quotes one.
+- `chart_card_rationale`: optional italic body text copied from source rationale. It explains why the represented contract exists; it is not an independent chart node or source term.
+- `chart_card_section`: a grouped area of body rows inside a chart card.
+- `chart_section_label`: the visible heading for a `chart_card_section`. Section labels may quote source schema keys such as text resources, media assets, query bindings, command bindings, access policies, payload, fields, sequence flows, result, status, disposition, retry, stdout, stderr, or exit code. These labels are source witnesses, not chart-owned terms.
+- `chart_field_row`: a body row that displays a field-like item.
+- `chart_schema_field_row`: a field row that pairs a field name with a displayed JSON Schema-derived type.
+- `chart_transition_field_row`: a field row that displays a source-state to target-state change, currently used for entity lifecycle transitions.
+- `chart_reference_field_row`: a field row whose displayed value or type column is a canonical source reference rather than a JSON Schema type.
+- `chart_edge`: a directed visible connector between chart cards. Edges currently share one gray stroke unless a renderer implementation explicitly introduces a new reviewed semantic distinction.
+- `chart_edge_label`: visible text attached to a `chart_edge`. Edge labels may quote source action names, outcome ids, workflow sequence-flow ids, gateway conditions, or signal names. Edge labels are source-derived witnesses, not chart-owned terms.
+- `chart_layout_edge`: an invisible DOT-only edge used to stabilize sibling order and rank layout. It is never visual evidence.
 
-## Graphviz Grammar
+## Edge Roles
 
-- `dot_graph`: the DOT source generated for a `graphviz_diagram`. Current DOT
-  graphs use left-to-right rank direction, transparent background, spline
-  edges, Arial fonts, and plain HTML-table nodes.
-- `chart_card`: the main visual node shape in Graphviz diagrams. A chart card is
-  an HTML table with a white body, a semantic border, a narrow semantic top bar,
-  and a tinted header.
-- `card_title`: the primary visible identifier or surface title in a chart card.
-  Examples include a state id, resource ref, route path, CLI command, workflow
-  id, signal name, or outcome id.
-- `card_subtitle`: the chart role displayed under a title, such as `state`,
-  `initial state`, `transition signal`, `workflow activity`,
-  `authorization gate`, `success outcome`, or `failure response handler`.
-- `card_rationale`: optional italic body text copied from contract rationale.
-  It explains why the represented contract exists; it is not a separate chart
-  node.
-- `card_section`: a titled group of body rows inside a chart card. Current
-  section names include `text_resources`, `media_assets`, `query_bindings`,
-  `command_bindings`, `access_policies`, `child_state_machines`, `payload`,
-  `fields`, `input mapping`, `sequence flows`, `rules`, `result`, `status`,
-  `body schema`, `stdout`, `stderr`, `exit_code`, `disposition`, and `retry`.
-- `typed_field_row`: a row that pairs a field name with a rendered type in muted
-  type color. This is used for JSON Schema-derived fields, payloads, inputs,
-  outputs, query results, command results, and transition fields.
-- `transition_field_row`: a typed field row that also displays a state change,
-  currently used for `entity_lifecycle_transition` values.
-- `reference_field_row`: a typed field row whose type column is a referenced
-  resource id rather than a JSON Schema type display.
-- `flow_edge`: a directed Graphviz edge between chart cards. Current generated
-  edges may carry labels such as `authorize`, `creates`, `reads`, `updates`,
-  `deletes`, `success`, `failure`, `emit`, workflow sequence-flow ids,
-  source outcomes, or gateway conditions.
-- `invisible_order_edge`: a DOT-only edge used to stabilize sibling ordering and
-  rank layout. It is not visual evidence.
+Edge roles describe how a visible edge functions in a chart. They do not require separate stroke colors.
 
-Current implementation note: `_dot_edge` deliberately strips any `color`
-attribute before emitting DOT, so rendered flow edges use the default edge color
-even when callers pass semantic edge colors. Pen width, labels, style, and
-weight still flow through.
+- `chart_sequence_edge`: an edge that shows chronological, transition, or control-flow order.
+- `chart_invocation_edge`: an edge that shows an adapter boundary invoking a target contract.
+- `chart_authorization_edge`: an edge that shows behavior passing through an authorization check before execution.
+- `chart_resource_access_edge`: an edge that shows behavior touching an entity or reusable schema resource. The visible label may be source-derived action text such as creates, reads, updates, deletes, or returns.
+- `chart_outcome_edge`: an edge that routes behavior, workflow, or adapter flow to a named outcome, response, disposition, or handler.
+- `chart_event_emission_edge`: an edge that shows a successful behavior outcome emitting a durable domain-event card.
+- `chart_signal_edge`: an edge that shows local-signal or data-refresh-signal routing inside state-machine and composition charts.
 
-## Diagram-Specific Terms
+## Card Role Vocabulary
 
-- `state_card`: a chart card for one local `state_machine_state`. The initial
-  state uses initial-state styling; other states use neutral styling.
-- `transition_signal_card`: a chart card between source and target states. It
-  displays a state-machine trigger as `local_signal.<name>` or
-  `data_refresh_signal.<name>` and includes relevant bindings, effects, loads,
-  and raises.
-- `mount_card`: a composition chart card for a child state-machine instance. Its
-  subtitle is the placement mount, such as `nav mount`.
-- `emitted_local_signal_card`: a composition chart card for a local signal
-  emitted by a mounted child machine.
-- `local_signal_sync_card`: a composition chart card for a
-  `local_signal_sync_rule`.
-- `sent_local_signal_card`: a composition chart card for a sync `send` effect.
-- `context_update_card`: a composition chart card for a parent state-machine
-  context `set` effect.
-- `external_interface_card`: a chart card for the adapter-facing boundary. Its
-  title is surface-specific: HTTP method and path, HTML route path, CLI command,
-  schedule expression, worker workflow ref, or webhook path.
-- `invoked_target_card`: a chart card for the command, query, state machine,
-  workflow, delegated external interface, or domain event invoked by an external
-  interface.
-- `target_tail_card`: a compact card appended after an invoked target to expose
-  mounted state machines or state-machine states without repeating full
-  command/query flows.
-- `response_card`: an external-interface card for a mapped response,
-  disposition, or response handler. Success/failure styling follows the invoked
-  outcome kind when available; otherwise it is inferred from adapter
-  disposition or problem shape.
-- `workflow_input_card`: a workflow chart card for workflow input, often a
-  `domain_event` input.
-- `workflow_summary_card`: a workflow chart card that summarizes activities,
-  gateways, and workflow outcomes.
-- `workflow_activity_card`: a workflow chart card for one
-  `workflow_activity`, including the command, input mapping, sequence flows,
-  and command reference metadata.
-- `workflow_gateway_card`: a workflow chart card for one `workflow_gateway`,
-  including gateway type and gateway-sourced sequence flows.
-- `workflow_outcome_card`: a terminal workflow outcome card. It uses
-  success/failure/target exit styling according to outcome kind.
-- `authorization_gate_card`: a command/query chart card for the access policy
-  checked before behavior execution.
-- `resource_card`: a command/query chart card for an entity type or reusable
-  schema touched by behavior.
-- `outcome_card`: a command/query chart card for a named behavior outcome.
-- `emitted_domain_event_card`: a command chart card for a domain event emitted
-  by a successful outcome.
+### State-machine chart cards
 
-## Symbol Ontology
+- `state_machine_state_card`: a card for one local state-machine state. The initial state uses `state_entry_tone`; other ordinary states use `neutral_structure_tone`.
+- `state_machine_trigger_card`: a card between source and target state cards. It displays the current state-machine trigger and relevant bindings, guards, effects, loads, or raises.
 
-- `right_arrow_symbol`: `→` is used inside chart-card text for sequence or
-  transition summaries, such as workflow activity-to-command references,
-  workflow sequence-flow destinations, retry-policy destinations, and entity
-  lifecycle changes.
-- `assignment_arrow_symbol`: `←` is used inside chart-card text for bindings
-  and source-derived values. It means "value comes from source"; it is not a
-  graph edge.
-- `typed_field_spacing`: typed rows place the rendered type after the field name
-  with non-breaking spacing and muted type color.
-- `reference_prefix_symbol`: resource identifiers keep their canonical typed
-  prefixes, such as `command.`, `query.`, `domain_event.`, `state_machine.`,
-  `external_interface.`, `schema.`, `entity_type.`, `access_policy.`,
-  `text_resource.`, and `media_asset.`. These prefixes are semantic witnesses,
-  not decoration.
-- `signal_prefix_symbol`: local signal labels render as `local_signal.<name>` or
-  `data_refresh_signal.<name>` even though authored signal names are local.
-- `style_token_reference`: `token.<name>` inside renderer style declarations is
-  a symbolic reference to a renderer style token. HTML generation currently
-  expands it to `var(--<name-with-dashes>)`.
-- `placeholder_symbol`: a media-asset placeholder symbol enum carried by
-  `media_asset.placeholder.placeholder_symbol`. Current schema values are
-  `folder`, `document`, `chart`, `person`, `box`, `list`, `star`, `circle`,
-  `square`, `card`, and `terminal`.
+### State composition chart cards
 
-Current implementation note: the generic placeholder SVG does not yet draw
-different shapes for each `placeholder_symbol`; it draws the same neutral
-abstract SVG for all placeholder symbols. Resolver-backed media assets may draw
-their own SVG symbols.
+- `child_machine_mount_card`: a composition card for one mounted child state-machine instance. The visible role may include the placement mount, such as nav mount.
+- `local_signal_emission_card`: a composition card for a local signal emitted by a mounted child machine.
+- `local_signal_sync_rule_card`: a composition card for one local-signal synchronization rule.
+- `local_signal_send_effect_card`: a composition card for a synchronization send effect.
+- `state_context_update_card`: a composition card for a parent state-machine context set effect.
 
-## Color Ontology
+### External-interface flow cards
 
-Graphviz card colors currently use paired roles: a saturated border/top-bar
-color and a pale header tint. Body fill is white.
+- `adapter_boundary_card`: a card for the adapter-facing external boundary. Its title is surface-specific: HTTP method and path, HTML route path, CLI command, schedule expression, worker workflow reference, or webhook path.
+- `invocation_target_card`: a card for the command, query, state machine, workflow, delegated external interface, or durable event target invoked through an external interface.
+- `invocation_target_preview_card`: a compact companion card appended after an invocation target to expose relevant mounted machines, states, or target details without repeating a full command, query, workflow, or state-machine chart.
+- `invoked_outcome_response_card`: a card for a synchronous adapter response keyed by an invoked target outcome.
+- `adapter_ingress_response_card`: a card for an asynchronous adapter acknowledgement, disposition, or dead-letter/retry response when receipt handling is distinct from invoked workflow execution.
+- `cli_response_handler_card`: a card for a CLI response handler that maps a named response outcome to stdout, stderr, exit code, and optional retry display.
 
-| Visual role | Border/top bar | Header tint | Current meaning |
+### Workflow flow cards
+
+- `workflow_input_card`: a card for workflow input, often sourced from a durable domain event.
+- `workflow_summary_card`: a card that summarizes workflow activities, gateways, retry policies, failure handlers, and terminal outcomes.
+- `workflow_activity_card`: a card for one workflow activity, including invoked command metadata, input mapping, and activity-sourced sequence routing.
+- `workflow_gateway_card`: a card for one workflow gateway, including gateway type and gateway-sourced routing conditions.
+- `workflow_outcome_card`: a terminal workflow outcome card. It uses success, failure, or non-terminal target tone according to the outcome kind displayed from the source contract.
+
+### Command and query flow cards
+
+- `behavior_input_card`: a card for command or query input.
+- `authorization_check_card`: a card for the access policy checked before behavior execution, including mapped authentication-required or access-denied outcomes when present.
+- `entity_resource_card`: a command/query flow card for an entity type touched by behavior.
+- `schema_resource_card`: a command/query flow card for a reusable schema returned, accepted, embedded, or otherwise witnessed by behavior.
+- `behavior_outcome_card`: a card for a named command or query outcome.
+- `domain_event_emission_card`: a command-flow card for a durable domain event emitted by a successful command outcome.
+
+## Glyph and Visible-Witness Ontology
+
+- `chart_sequence_glyph`: the `→` glyph used inside chart-card text for sequence, transition, destination, retry, and lifecycle-change summaries. It is text inside a card, not a graph edge.
+- `chart_binding_source_glyph`: the `←` glyph used inside chart-card text for bindings and source-derived values. It means value comes from source; it is not a graph edge.
+- `chart_type_spacing`: non-breaking spacing between a displayed field name and its muted type label in schema-derived rows.
+- `chart_reference_prefix_witness`: the convention that canonical typed reference prefixes remain visible on cards, such as command, query, domain event, state machine, external interface, reusable schema, entity type, access policy, text resource, and media asset prefixes.
+- `chart_signal_prefix_witness`: the convention that local signal labels are visibly qualified as local-signal or data-refresh-signal displays even though authored signal names are local.
+- `chart_text_witness`: any stable visible token intentionally rendered so the visual audit can witness a compiled pointer. Durable ids, typed references, local ids, field names, type labels, and renderer-owned tokens are valid text witnesses; incidental prose and hidden SVG metadata are not.
+
+## Tone Ontology
+
+Graphviz card colors currently use paired tone roles: a saturated border/top-bar color and a pale header tint. Card body fill is white. Tone role names are chart-owned visual vocabulary; they should not be bare source resource names.
+
+| Tone role | Border/top bar | Header tint | Current meaning |
 | --- | --- | --- | --- |
-| `edge` | `#3f3f46` | n/a | Default Graphviz edge stroke and arrow fill. |
-| `muted_text` | `#64748b` | n/a | Card subtitles and secondary metadata. |
-| `type_text` | `#94a3b8` | n/a | Rendered schema/type labels in typed rows. |
-| `audit_text` | `#3f3f46` | n/a | Italic rationale text in cards. |
-| `external_interface` | `#0891b2` | `#ecfeff` | Adapter-facing boundary cards. |
-| `initial_state` | `#0891b2` | `#ecfeff` | Initial state cards; currently shares the external-interface color pair. |
-| `neutral` | `#71717a` | `#f8fafc` | Ordinary states, workflow activities, generic inputs, and fallback cards. |
-| `boundary` | `#64748b` | `#f8fafc` | External input cards that are visually neutral but boundary-facing. |
-| `target` | `#9333ea` | `#faf5ff` | Invoked state-machine target cards and non-success/non-failure exits. |
-| `success_exit` | `#16a34a` | `#f0fdf4` | Success outcomes, responses, and dispositions. |
-| `failure_exit` | `#dc2626` | `#fef2f2` | Failure outcomes, responses, dispositions, and problems. |
-| `product_behavior` | `#2563eb` | `#eff6ff` | Commands, queries, transition signal cards, and invoked product behavior. |
-| `domain_event` | `#4f46e5` | `#eef2ff` | Domain-event cards and currently emitted local-signal cards. |
-| `state_machine` | `#047857` | `#ecfdf5` | Child state-machine mount cards. |
-| `workflow` | `#a16207` | `#fefce8` | Workflow summary, gateway, and local-signal-sync cards. |
-| `message` | `#be185d` | `#fdf2f8` | Sent local-signal cards in composition diagrams. |
-| `context` | `#15803d` | `#f0fdf4` | State-machine context update cards. |
-| `entity_type` | `#15803d` | `#f0fdfa` | Entity-type resource cards. |
-| `schema` | `#7c3aed` | `#f5f3ff` | Reusable schema resource cards. |
-| `policy` | `#c2410c` | `#fff7ed` | Access-policy and authorization-gate cards. |
+| `chart_edge_tone` | `#3f3f46` | n/a | Default visible edge stroke and arrow fill. |
+| `chart_muted_text_tone` | `#64748b` | n/a | Card roles and secondary metadata. |
+| `chart_type_text_tone` | `#94a3b8` | n/a | Displayed schema/type labels in schema-derived rows. |
+| `chart_rationale_text_tone` | `#3f3f46` | n/a | Italic rationale text in cards. |
+| `adapter_boundary_tone` | `#0891b2` | `#ecfeff` | Adapter-facing boundary cards. |
+| `state_entry_tone` | `#0369a1` | `#e0f2fe` | Initial state-machine entry cards; not an adapter boundary. |
+| `neutral_structure_tone` | `#71717a` | `#f8fafc` | Ordinary states, simple workflow activities, generic inputs, and fallback cards. |
+| `adapter_input_tone` | `#64748b` | `#f8fafc` | External input cards that are visually neutral but boundary-facing. |
+| `invocation_target_tone` | `#9333ea` | `#faf5ff` | Invoked state-machine target cards and non-success/non-failure target exits. |
+| `success_outcome_tone` | `#16a34a` | `#f0fdf4` | Success outcomes, responses, and dispositions. |
+| `failure_outcome_tone` | `#dc2626` | `#fef2f2` | Failure outcomes, responses, dispositions, and problem responses. |
+| `behavior_card_tone` | `#2563eb` | `#eff6ff` | Command, query, transition-trigger, and invoked product-behavior cards. |
+| `durable_event_tone` | `#4f46e5` | `#eef2ff` | Durable domain-event cards and event-emission evidence. |
+| `child_machine_tone` | `#047857` | `#ecfdf5` | Mounted child state-machine cards. |
+| `workflow_control_tone` | `#a16207` | `#fefce8` | Workflow summary and gateway cards. |
+| `local_signal_sync_tone` | `#a16207` | `#fefce8` | Local-signal synchronization rule cards. Current rendering may share the workflow-control palette, but the semantic role is distinct. |
+| `local_signal_card_tone` | `#be185d` | `#fdf2f8` | Emitted and sent local-signal cards in composition diagrams. |
+| `state_context_effect_tone` | `#0f766e` | `#ccfbf1` | State-machine context update cards. |
+| `entity_resource_tone` | `#15803d` | `#f0fdfa` | Entity-type resource cards. |
+| `schema_resource_tone` | `#7c3aed` | `#f5f3ff` | Reusable schema resource cards. |
+| `authorization_policy_tone` | `#c2410c` | `#fff7ed` | Access-policy and authorization-check cards. |
 
-HTML audit render colors are currently baseline renderer chrome, not product
-semantic colors:
+## Deprecated Name Migration
 
-- `#f7f7f8`: page background.
-- `#171717`: page text.
-- `#ffffff`: rendered surface background.
-- `#d0d0d0`: rendered surface border.
-- `#e4e4e7`: audit record border.
-- `#52525b`: audit field label text and some resolver-backed media asset
-  strokes.
-- `#222`: default button border.
+The following names should be treated as migration aliases only. New code, docs, and tests should use the canonical chart-owned terms.
 
-Generic media placeholder SVG colors are also visual chrome:
+| Deprecated/current name | Canonical replacement | Reason |
+| --- | --- | --- |
+| `graphviz_diagram` | `chart_svg_artifact` | Names the generated SVG evidence artifact rather than the renderer technology alone. |
+| `dot_graph` | `chart_dot_source` | Keeps DOT source separate from SVG artifact. |
+| `state_machine_diagram` | `state_machine_chart` | Uses one artifact-family suffix. |
+| `composition_diagram` | `state_composition_chart` | Qualifies composition by state-machine state scope. |
+| `command_query_flow_diagram` | `command_flow_chart` and `query_flow_chart` | Keeps state-changing and read-only behavior aligned with separate source domains. |
+| `card_title` | `chart_card_title` | Makes the term chart-owned. |
+| `card_subtitle` | `chart_card_role` | Avoids subtitle ambiguity and names the visual role line. |
+| `card_rationale` | `chart_card_rationale` | Makes the term chart-owned. |
+| `card_section` | `chart_card_section` | Makes the term chart-owned. |
+| `typed_field_row` | `chart_schema_field_row` | Names the JSON Schema-derived visual row role. |
+| `transition_field_row` | `chart_transition_field_row` | Makes the term chart-owned. |
+| `reference_field_row` | `chart_reference_field_row` | Makes the term chart-owned. |
+| `flow_edge` | `chart_edge` plus a specific edge role | Separates visual connector from semantic edge function. |
+| `invisible_order_edge` | `chart_layout_edge` | Clarifies this is layout-only and not evidence. |
+| `state_card` | `state_machine_state_card` | Aligns with the source state-machine domain. |
+| `transition_signal_card` | `state_machine_trigger_card` | Aligns with the source trigger vocabulary and supports local/data-refresh triggers. |
+| `mount_card` | `child_machine_mount_card` | Qualifies mount by composed child state-machine usage. |
+| `emitted_local_signal_card` | `local_signal_emission_card` | Names the emission evidence carrier. |
+| `sent_local_signal_card` | `local_signal_send_effect_card` | Distinguishes sync send effects from emitted local signals. |
+| `context_update_card` | `state_context_update_card` | Qualifies context as state-machine context. |
+| `external_interface_card` | `adapter_boundary_card` | Names the visual boundary rather than the source resource. |
+| `target_tail_card` | `invocation_target_preview_card` | Clarifies that the card previews target details without expanding the full target chart. |
+| `response_card` | `invoked_outcome_response_card` or `adapter_ingress_response_card` | Preserves the source distinction between invoked-outcome response and adapter ingress response. |
+| `authorization_gate_card` | `authorization_check_card` | Avoids gate ambiguity with workflow gateways. |
+| `resource_card` | `entity_resource_card` or `schema_resource_card` | Avoids generic resource ambiguity with access-policy resources. |
+| `outcome_card` | `behavior_outcome_card` | Qualifies outcome by behavior flow usage. |
+| `emitted_domain_event_card` | `domain_event_emission_card` | Names the emission evidence rather than the source resource alone. |
+| `right_arrow_symbol` | `chart_sequence_glyph` | Uses glyph vocabulary for rendered text. |
+| `assignment_arrow_symbol` | `chart_binding_source_glyph` | Uses glyph vocabulary for rendered text. |
+| `typed_field_spacing` | `chart_type_spacing` | Makes the spacing convention chart-owned. |
+| `reference_prefix_symbol` | `chart_reference_prefix_witness` | Treats prefixes as visible audit witnesses. |
+| `signal_prefix_symbol` | `chart_signal_prefix_witness` | Treats signal prefixes as visible audit witnesses. |
+| `external_interface` tone | `adapter_boundary_tone` | Avoids bare source-resource naming in tone roles. |
+| `initial_state` tone | `state_entry_tone` | Names the visual entry-state distinction. |
+| `neutral` tone | `neutral_structure_tone` | Clarifies visual fallback/ordinary structure role. |
+| `boundary` tone | `adapter_input_tone` | Qualifies boundary-facing input usage. |
+| `target` tone | `invocation_target_tone` | Qualifies target by invocation evidence. |
+| `success_exit` tone | `success_outcome_tone` | Aligns success styling with outcome/response/disposition usage. |
+| `failure_exit` tone | `failure_outcome_tone` | Aligns failure styling with outcome/response/disposition usage. |
+| `product_behavior` tone | `behavior_card_tone` | Avoids conflating command/query behavior with all product concepts. |
+| `domain_event` tone | `durable_event_tone` | Avoids bare source-resource naming while preserving durable-event meaning. |
+| `state_machine` tone | `child_machine_tone` | Clarifies this tone is for mounted child machine cards. |
+| `workflow` tone | `workflow_control_tone` and `local_signal_sync_tone` | Splits workflow control from local-signal synchronization. |
+| `local_signal` tone | `local_signal_card_tone` | Makes the tone role visual. |
+| `context` tone | `state_context_effect_tone` | Qualifies state-machine context update usage. |
+| `entity_type` tone | `entity_resource_tone` | Avoids bare source-resource naming in tone roles. |
+| `schema` tone | `schema_resource_tone` | Avoids bare source-resource naming in tone roles. |
+| `policy` tone | `authorization_policy_tone` | Qualifies access-policy/authorization visual usage. |
 
-- `#fafafa` to `#e4e4e7`: placeholder background gradient.
-- `#a1a1aa`: placeholder outer and inner strokes.
-- `#d4d4d8`: placeholder circle fill.
-- `#f4f4f5`: placeholder square fill.
-- `#71717a`: placeholder path stroke.
+## New Chart Vocabulary Checklist
 
-Textual capture colors are mostly emitted by Textual itself and should not be
-treated as contract-owned semantic colors unless a renderer style rule declares
-them. Current generated Textual TCSS owns selectors and declarations, not a
-global semantic palette.
+Before adding a chart-owned term, verify that:
 
-## Renderer Style Terms
-
-- `renderer_style_contract`: renderer-local styling for generated browser or
-  Textual artifacts. It is projection vocabulary, not product vocabulary.
-- `html_style_contract`: HTML-only style contract with `tokens` and CSS
-  selector-scoped `rules`.
-- `textual_style_contract`: Textual-only style contract with `tokens` and TCSS
-  selector-scoped `rules`.
-- `style_token`: a renderer-local named value under `style.tokens`. Token names
-  are lowercase snake_case. HTML output emits them as CSS custom properties on
-  the root selector.
-- `style_rule`: a selector plus declarations. Declarations are passed through as
-  CSS or TCSS values after `token.<name>` substitution.
-- `html_style_selector`: one of `root`, `slot.<slot>`,
-  `command_binding.<binding>`, `region.<region>`, or
-  `child_state_machine.<instance>`.
-- `textual_style_selector`: one of `screen`, `slot.<slot>`,
-  `command_binding.<binding>`, `container.<container>`, or
-  `child_state_machine.<instance>`.
-- `viewport_profile`: visual-audit viewport contract. HTML viewports use
-  `width` and `height`; Textual viewports use `columns` and `rows`.
-
-Current example style tokens are layout tokens rather than colors:
-`nav_width`, `aside_width`, and `gap`.
-
-## Current Tightening Targets
-
-These are baseline observations, not required changes:
-
-- Edge color intent is present at call sites but not emitted into DOT. Decide
-  whether semantic edge colors should remain intentionally suppressed or become
-  part of the rendered ontology.
-- `initial_state` and `external_interface` currently share a color pair. Decide
-  whether that overlap is intentional because both are entry boundaries, or
-  whether initial state needs a distinct role color.
-- `domain_event` styling is also used for emitted local-signal cards in
-  composition diagrams. That may blur the `domain_event` vs `local_signal`
-  boundary from `docs/spec-ontology.md`.
-- `context` and `entity_type` share a green border. Decide whether they are
-  distinct enough through header tint alone.
-- `placeholder_symbol` values are schema-level intent, but generic placeholder
-  rendering does not yet vary by symbol.
-- Renderer style tokens currently allow arbitrary CSS/TCSS values and are not
-  separated into color, spacing, sizing, typography, or layout token classes.
-- Resolver-backed SVG media assets may introduce colors outside the central
-  chart palette. Decide whether final media assets should remain resolver-owned
-  or declare their own asset-local color ontology.
+1. The term names a visual carrier, visual role, diagram family, row, edge, glyph, visible witness, layout mechanic, or tone role.
+2. The term does not exactly match a canonical source-ontology term.
+3. The term is qualified by visual role, source domain, or chart layer when it displays a source concept.
+4. The term is not a synonym for an existing chart-owned term.
+5. The term maps to exactly one source domain or is explicitly renderer-only.
+6. Edge labels and card section labels remain visible source witnesses rather than becoming independent chart terms.
+7. Tone roles carry a reviewable distinction and are not merely decorative color names.
+8. Generated artifact paths, function names, tests, and documentation are updated to the canonical spelling.
