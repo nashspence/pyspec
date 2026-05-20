@@ -285,3 +285,13 @@ def test_authored_local_id_collections_are_keyed_maps() -> None:
             definition = schema["$defs"][definition_name]
             assert "id" not in definition["properties"], f"{schema_name} {definition_name}"
             assert "id" not in definition.get("required", []), f"{schema_name} {definition_name}"
+
+    compiled_schema = read_json(ROOT / "schemas" / "spec.schema.json")
+    compiled_activities = compiled_schema["$defs"]["workflow_item"]["properties"]["activities"]
+    assert compiled_activities["type"] == "object"
+    assert compiled_activities["propertyNames"]["$ref"] == "#/$defs/workflow_activity_id"
+    assert compiled_activities["additionalProperties"]["$ref"] == "#/$defs/workflow_activity"
+    assert compiled_activities["minProperties"] == 1
+    compiled_activity = compiled_schema["$defs"]["workflow_activity"]
+    assert "id" not in compiled_activity["properties"]
+    assert "id" not in compiled_activity.get("required", [])

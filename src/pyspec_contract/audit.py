@@ -1058,7 +1058,7 @@ def _command_query_evidence_files(contract: dict[str, Any], behavior_ref: str) -
                 if delegated_target_kind in {"command", "query"} and delegated_target_value == behavior_ref:
                     files.extend(_external_interface_evidence_files(contract, external_interface_id))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
-        if any(activity.get("command") == behavior_ref for activity in workflow.get("activities", [])):
+        if any(activity.get("command") == behavior_ref for activity in workflow.get("activities", {}).values()):
             files.extend(_workflow_evidence_files(contract, workflow_id))
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
         if _value_contains_string(state_machine, behavior_ref):
@@ -1926,7 +1926,10 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     trigger_kind, trigger_value = _target_pair(workflow["inputs"])
     trigger_node = _dot_node_id("workflow_input", f"{trigger_kind}_{trigger_value}")
     workflow_node = _dot_node_id("workflow", workflow_id)
-    activity_nodes = [(_dot_node_id("workflow_activity", f"{workflow_id}_{activity['id']}"), activity) for activity in workflow["activities"]]
+    activity_nodes = [
+        (_dot_node_id("workflow_activity", f"{workflow_id}_{activity_id}"), activity_id, activity)
+        for activity_id, activity in workflow["activities"].items()
+    ]
     gateway_nodes = [
         (_dot_node_id("workflow_gateway", f"{workflow_id}_{gateway_id}"), gateway_id, gateway)
         for gateway_id, gateway in sorted(workflow["gateways"].items())
@@ -1935,7 +1938,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
         (_dot_node_id("workflow_outcome", f"{workflow_id}_{outcome_id}"), outcome_id, outcome)
         for outcome_id, outcome in sorted(workflow["outputs"].items())
     ]
-    activity_node_by_id = {activity["id"]: node_id for node_id, activity in activity_nodes}
+    activity_node_by_id = {activity_id: node_id for node_id, activity_id, _ in activity_nodes}
     gateway_node_by_id = {gateway_id: node_id for node_id, gateway_id, _ in gateway_nodes}
     outcome_node_by_id = {outcome_id: node_id for node_id, outcome_id, _ in outcome_nodes}
     lines = _dot_graph_preamble("workflow_" + safe_id(workflow_id))
@@ -1949,7 +1952,7 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
                     "workflow",
                     [
                         ("ref", [workflow.get("ref", "")]),
-                        ("activities", [f"{activity['id']} {_DOT_ARROW_FORWARD} {activity['command']}" for activity in workflow["activities"]]),
+                        ("activities", [f"{activity_id} {_DOT_ARROW_FORWARD} {activity['command']}" for activity_id, activity in workflow["activities"].items()]),
                         ("gateways", sorted(workflow["gateways"]) or ["none"]),
                         ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outputs"].items())]),
                     ],
@@ -1959,8 +1962,8 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
             ),
         ]
     )
-    for node_id, activity in activity_nodes:
-        lines.append(_dot_html_node(node_id, _workflow_activity_card(activity, workflow, contract)))
+    for node_id, activity_id, activity in activity_nodes:
+        lines.append(_dot_html_node(node_id, _workflow_activity_card(activity_id, activity, workflow, contract)))
     for node_id, gateway_id, gateway in gateway_nodes:
         lines.append(_dot_html_node(node_id, _workflow_gateway_card(gateway_id, gateway, workflow)))
     for node_id, outcome_id, outcome in outcome_nodes:
@@ -2334,7 +2337,7 @@ def _external_interface_target_card(
             "invoked workflow",
             [
                 ("trigger", [_target_label(*_target_pair(workflow["inputs"]))]),
-                ("activities", [f"{activity['id']} {_DOT_ARROW_FORWARD} {activity['command']}" for activity in workflow["activities"]]),
+                ("activities", [f"{activity_id} {_DOT_ARROW_FORWARD} {activity['command']}" for activity_id, activity in workflow["activities"].items()]),
                 ("gateways", sorted(workflow["gateways"]) or ["none"]),
                 ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outputs"].items())]),
             ],
@@ -2450,16 +2453,16 @@ def _workflow_input_card(trigger_kind: str, trigger_value: str, contract: dict[s
     return _dot_card(trigger_value, f"{trigger_kind} input", [], style=_DOT_STYLE_DOMAIN_EVENT)
 
 
-def _workflow_activity_card(activity: dict[str, Any], workflow: dict[str, Any], contract: dict[str, Any]) -> str:
+def _workflow_activity_card(activity_id: str, activity: dict[str, Any], workflow: dict[str, Any], contract: dict[str, Any]) -> str:
     behavior = _command_query_map(contract)[activity["command"]]
     sections: list[tuple[str, list[object]]] = [
         ("command", [activity["command"]]),
         ("input mapping", _format_binding_lines(activity["input_mapping"])),
-        ("sequence flows", _workflow_sequence_flow_lines(activity, workflow)),
+        ("sequence flows", _workflow_sequence_flow_lines(activity_id, workflow)),
     ]
     sections.extend(_command_query_reference_sections(activity["command"], behavior))
     return _dot_card(
-        activity["id"],
+        activity_id,
         "workflow activity",
         sections,
         rationale=behavior.get("rationale", ""),
@@ -2480,12 +2483,12 @@ def _workflow_gateway_card(gateway_id: str, gateway: dict[str, Any], workflow: d
     )
 
 
-def _workflow_sequence_flow_lines(activity: dict[str, Any], workflow: dict[str, Any]) -> list[str]:
+def _workflow_sequence_flow_lines(activity_id: str, workflow: dict[str, Any]) -> list[str]:
     lines: list[str] = []
     sequence_flows = {
         sequence_flow_id: sequence_flow
         for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
-        if sequence_flow["source_ref"].get("activity") == activity["id"]
+        if sequence_flow["source_ref"].get("activity") == activity_id
     }
     for sequence_flow_id, sequence_flow in sorted(sequence_flows.items()):
         lines.append(f"{sequence_flow['source_outcome']}: {_workflow_sequence_flow_destination(sequence_flow)}")

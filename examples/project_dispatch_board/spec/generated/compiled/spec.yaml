@@ -2695,13 +2695,13 @@ viewport_profiles:
 workflows:
   workflow.project.approval_notice:
     activities:
-    - command: command.project.send_approval_notice
-      id: send_notice
-      input_mapping:
-        approved_by:
-          from: $workflow_input.payload.approved_by
-        project_id:
-          from: $workflow_input.payload.project_id
+      send_notice:
+        command: command.project.send_approval_notice
+        input_mapping:
+          approved_by:
+            from: $workflow_input.payload.approved_by
+          project_id:
+            from: $workflow_input.payload.project_id
     failure_handlers: {}
     gateways:
       notice_success:

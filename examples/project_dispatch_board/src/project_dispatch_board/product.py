@@ -285,9 +285,9 @@ class ProductApp:
                 self.workflow_outcomes[workflow_id] = self._run_workflow(workflow, payload)
 
     def _run_workflow(self, workflow: Mapping[str, Any], payload: Mapping[str, Any]) -> str:
-        activity_by_id = {activity["id"]: activity for activity in workflow["activities"]}
+        activity_by_id = workflow["activities"]
         current_kind = "activity"
-        current_id = workflow["activities"][0]["id"]
+        current_id = next(iter(activity_by_id))
         namespace: dict[str, Any] = {"workflow_input": {"payload": dict(payload)}, "activity_outcome": {}}
         while True:
             if current_kind == "activity":
@@ -295,8 +295,8 @@ class ProductApp:
                 input_values = {name: resolve_binding(source, namespace) for name, source in activity["input_mapping"].items()}
                 result = self.invoke_behavior(activity["command"], input_values)
                 assert self.last_outcome is not None
-                namespace["activity_outcome"].setdefault(activity["id"], {})[self.last_outcome] = {"result": result}
-                transition = _workflow_sequence_flow_for_activity_result(workflow, activity["id"], self.last_outcome)
+                namespace["activity_outcome"].setdefault(current_id, {})[self.last_outcome] = {"result": result}
+                transition = _workflow_sequence_flow_for_activity_result(workflow, current_id, self.last_outcome)
             else:
                 transition = _workflow_sequence_flow_for_gateway(workflow, current_id, namespace)
             current_kind, current_id = _workflow_sequence_flow_target_ref(transition)

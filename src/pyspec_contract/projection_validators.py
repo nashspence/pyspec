@@ -574,24 +574,24 @@ def validate_workflows(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         if item.get("inputs") != expected_inputs or item.get("outputs") != expected_outputs:
             raise ContractError(f"CWL workflow {workflow_id} inputs/outputs malformed")
         steps = item.get("steps")
-        if set(steps) != {activity["id"] for activity in workflow["activities"]}:
+        if set(steps) != set(workflow["activities"]):
             raise ContractError(f"CWL workflow {workflow_id} steps mismatch")
-        for activity in workflow["activities"]:
-            actual = steps[activity["id"]]
+        for activity_id, activity in workflow["activities"].items():
+            actual = steps[activity_id]
             run_id = f"#{safe_id(activity['command'])}"
             if actual.get("run") != run_id or run_id not in by_id:
-                raise ContractError(f"CWL workflow {workflow_id} activity {activity['id']} references unknown run")
+                raise ContractError(f"CWL workflow {workflow_id} activity {activity_id} references unknown run")
             behavior = _command_query_map(contract)[activity["command"]]
             expected_in = {name: _workflow_cwl_source(source) for name, source in sorted(activity["input_mapping"].items())}
             expected_out = sorted(behavior["outcomes"])
             sequence_flows = {
                 sequence_flow_id: sequence_flow
                 for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
-                if sequence_flow["source_ref"].get("activity") == activity["id"]
+                if sequence_flow["source_ref"].get("activity") == activity_id
             }
-            expected_doc = f"activity={activity['id']}; input_mapping={activity['input_mapping']}; sequence_flows={sequence_flows}"
+            expected_doc = f"activity={activity_id}; input_mapping={activity['input_mapping']}; sequence_flows={sequence_flows}"
             if set(actual) != {"doc", "run", "in", "out"} or actual.get("doc") != expected_doc or actual.get("in") != expected_in or actual.get("out") != expected_out:
-                raise ContractError(f"CWL workflow {workflow_id} activity {activity['id']} malformed")
+                raise ContractError(f"CWL workflow {workflow_id} activity {activity_id} malformed")
 
     for behavior_ref in _cwl_command_query_ids(contract):
         behavior = _command_query_map(contract)[behavior_ref]

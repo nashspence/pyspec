@@ -671,15 +671,15 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
     graph = []
     for workflow_id, workflow in sorted(contract["workflows"].items()):
         steps = {}
-        for activity in workflow["activities"]:
+        for activity_id, activity in workflow["activities"].items():
             behavior = _command_query_map(contract)[activity["command"]]
             sequence_flows = {
                 sequence_flow_id: sequence_flow
                 for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
-                if sequence_flow["source_ref"].get("activity") == activity["id"]
+                if sequence_flow["source_ref"].get("activity") == activity_id
             }
-            steps[activity["id"]] = {
-                "doc": f"activity={activity['id']}; input_mapping={activity['input_mapping']}; sequence_flows={sequence_flows}",
+            steps[activity_id] = {
+                "doc": f"activity={activity_id}; input_mapping={activity['input_mapping']}; sequence_flows={sequence_flows}",
                 "run": f"#{safe_id(activity['command'])}",
                 "in": {name: _workflow_cwl_source(source) for name, source in sorted(activity["input_mapping"].items())},
                 "out": sorted(behavior["outcomes"]),
@@ -691,7 +691,7 @@ def workflows_projection(contract: dict[str, Any]) -> dict[str, Any]:
             "label": workflow_id,
             "doc": (
                 f"BPMN-like contract workflow {workflow_id}; inputs={workflow['inputs']}; "
-                f"activities={[activity['id'] for activity in workflow['activities']]}; gateways={list(workflow['gateways'])}; "
+                f"activities={list(workflow['activities'])}; gateways={list(workflow['gateways'])}; "
                 f"sequence_flows={workflow['sequence_flows']}; outputs={list(workflow['outputs'])}; ref={workflow['ref']}; projected_to=CWL"
             ),
             "inputs": {"workflow_input_payload": {"type": cwl_type(workflow_input_payload_type)}},
@@ -721,7 +721,7 @@ def _cwl_command_query_ids(contract: dict[str, Any]) -> list[str]:
     command_query_refs = {
         activity["command"]
         for workflow in contract.get("workflows", {}).values()
-        for activity in workflow.get("activities", [])
+        for activity in workflow.get("activities", {}).values()
     }
     for external_interface in contract.get("external_interfaces", {}).values():
         adapter_kind, _ = external_interface_adapter_pair(external_interface)

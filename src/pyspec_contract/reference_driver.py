@@ -421,9 +421,9 @@ class ReferenceSpecDriver:
                 self.workflow_outputs[workflow_id] = self._run_workflow(workflow, payload)
 
     def _run_workflow(self, workflow: dict[str, Any], payload: dict[str, Any]) -> str:
-        activity_by_id = {activity["id"]: activity for activity in workflow["activities"]}
+        activity_by_id = workflow["activities"]
         current_kind = "activity"
-        current_id = workflow["activities"][0]["id"]
+        current_id = next(iter(activity_by_id))
         namespace: dict[str, Any] = {"workflow_input": {"payload": payload}, "activity_outcome": {}}
         while True:
             if current_kind == "activity":
@@ -432,8 +432,8 @@ class ReferenceSpecDriver:
                 result = self._invoke(activity["command"], input_values)
                 outcome_id = self.last_outcome
                 assert outcome_id is not None
-                namespace["activity_outcome"].setdefault(activity["id"], {})[outcome_id] = {"result": result}
-                transition = _workflow_sequence_flow_for_activity_result(workflow, activity["id"], outcome_id)
+                namespace["activity_outcome"].setdefault(current_id, {})[outcome_id] = {"result": result}
+                transition = _workflow_sequence_flow_for_activity_result(workflow, current_id, outcome_id)
             else:
                 transition = _workflow_sequence_flow_for_gateway(workflow, current_id, namespace)
             current_kind, current_id = _workflow_sequence_flow_target_ref(transition)

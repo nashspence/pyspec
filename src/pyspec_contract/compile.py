@@ -522,7 +522,7 @@ def _compile_entity(entity: str, spec: dict[str, Any] | None, contract: dict[str
     if entity == "workflow":
         return {
             "inputs": spec["inputs"],
-            "activities": _compile_local_id_map(spec["activities"]),
+            "activities": copy.deepcopy(spec["activities"]),
             "gateways": spec["gateways"],
             "sequence_flows": spec["sequence_flows"],
             "outputs": spec["outputs"],
@@ -3948,26 +3948,23 @@ def _validate_workflows(contract: dict[str, Any]) -> None:
         if kind in {"command", "query"} and value not in _command_query_map(contract):
             raise ContractError(f"Workflow {wid} trigger references unknown command {value}")
         _validate_workflow_outputs(wid, workflow)
-        activity_ids = [activity["id"] for activity in workflow["activities"]]
-        if len(activity_ids) != len(set(activity_ids)):
-            raise ContractError(f"Workflow {wid} activity ids must be unique")
-        activity_id_set = set(activity_ids)
+        activity_id_set = set(workflow["activities"])
         gateway_id_set = set(workflow["gateways"])
         for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items():
             _validate_workflow_sequence_flow_refs(wid, sequence_flow_id, sequence_flow, activity_id_set, gateway_id_set, set(workflow["outputs"]))
         source_types = _workflow_input_source_types(contract, wid, workflow)
         condition_source_types = copy.deepcopy(source_types)
-        for activity in workflow["activities"]:
+        for activity_id, activity in workflow["activities"].items():
             if activity["command"] in _command_query_map(contract):
-                _merge_type_scopes(condition_source_types, _workflow_activity_source_types(contract, activity, _command_query_map(contract)[activity["command"]]))
+                _merge_type_scopes(condition_source_types, _workflow_activity_source_types(contract, activity_id, activity, _command_query_map(contract)[activity["command"]]))
         terminal_outcomes: set[str] = set()
-        for activity in workflow["activities"]:
+        for activity_id, activity in workflow["activities"].items():
             if activity["command"] not in _command_query_map(contract):
                 raise ContractError(f"Workflow {wid} activity references unknown command {activity['command']}")
             behavior = _command_query_map(contract)[activity["command"]]
-            _validate_workflow_activity_bindings(contract, wid, activity, behavior, source_types)
-            terminal_outcomes.update(_validate_workflow_activity_sequence_flows(wid, workflow, activity, behavior, activity_id_set, gateway_id_set))
-            _merge_type_scopes(source_types, _workflow_activity_source_types(contract, activity, behavior))
+            _validate_workflow_activity_bindings(contract, wid, activity_id, activity, behavior, source_types)
+            terminal_outcomes.update(_validate_workflow_activity_sequence_flows(wid, workflow, activity_id, activity, behavior, activity_id_set, gateway_id_set))
+            _merge_type_scopes(source_types, _workflow_activity_source_types(contract, activity_id, activity, behavior))
         terminal_outcomes.update(_validate_workflow_gateway_sequence_flows(contract, wid, workflow, gateway_id_set, condition_source_types))
         if terminal_outcomes != set(workflow["outputs"]):
             missing = sorted(set(workflow["outputs"]) - terminal_outcomes)
@@ -4012,10 +4009,10 @@ def _workflow_input_payload_fields(contract: dict[str, Any], workflow_id: str, w
     return {"payload": payload_type}
 
 
-def _workflow_activity_source_types(contract: dict[str, Any], activity: dict[str, Any], command: dict[str, Any]) -> TypeScopes:
+def _workflow_activity_source_types(contract: dict[str, Any], activity_id: str, activity: dict[str, Any], command: dict[str, Any]) -> TypeScopes:
     sources: TypeScope = {}
     for outcome_id, outcome in command["outcomes"].items():
-        sources.update(_typed_source_paths(contract, (activity["id"], outcome_id, "result"), outcome["result"]))
+        sources.update(_typed_source_paths(contract, (activity_id, outcome_id, "result"), outcome["result"]))
     return {"activity_outcome": sources}
 
 
@@ -4065,6 +4062,7 @@ def _workflow_sequence_flow_terminal(sequence_flow: dict[str, Any]) -> str | Non
 def _validate_workflow_activity_bindings(
     contract: dict[str, Any],
     workflow_id: str,
+    activity_id: str,
     activity: dict[str, Any],
     command: dict[str, Any],
     source_types: TypeScopes,
@@ -4079,18 +4077,18 @@ def _validate_workflow_activity_bindings(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} activity {activity['id']} input_mapping must exactly map command input" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} activity {activity_id} input_mapping must exactly map command input" + (": " + "; ".join(parts) if parts else ""))
     for name, source in bindings.items():
         actual_type = _expression_type(
             contract,
             source,
             source_types,
-            f"Workflow {workflow_id} activity {activity['id']} input {name}",
+            f"Workflow {workflow_id} activity {activity_id} input {name}",
         )
         expected_type = expected[name]
         if actual_type and not _type_assignable(actual_type, expected_type):
             raise ContractError(
-                f"Workflow {workflow_id} activity {activity['id']} input {name} source {source} type must be "
+                f"Workflow {workflow_id} activity {activity_id} input {name} source {source} type must be "
                 f"{type_display(_effective_type(expected_type))}, got {type_display(_effective_type(actual_type))}"
             )
 
@@ -4098,6 +4096,7 @@ def _validate_workflow_activity_bindings(
 def _validate_workflow_activity_sequence_flows(
     workflow_id: str,
     workflow: dict[str, Any],
+    activity_id: str,
     activity: dict[str, Any],
     command: dict[str, Any],
     activity_ids: set[str],
@@ -4106,7 +4105,7 @@ def _validate_workflow_activity_sequence_flows(
     sequence_flows = {
         sequence_flow_id: sequence_flow
         for sequence_flow_id, sequence_flow in workflow["sequence_flows"].items()
-        if sequence_flow["source_ref"].get("activity") == activity["id"]
+        if sequence_flow["source_ref"].get("activity") == activity_id
     }
     flow_by_outcome: dict[str, tuple[str, dict[str, Any]]] = {}
     duplicate_outcomes: list[str] = []
@@ -4116,7 +4115,7 @@ def _validate_workflow_activity_sequence_flows(
             duplicate_outcomes.append(source_outcome)
         flow_by_outcome[source_outcome] = (sequence_flow_id, sequence_flow)
     if duplicate_outcomes:
-        raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flows duplicate source_outcome: {', '.join(sorted(duplicate_outcomes))}")
+        raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flows duplicate source_outcome: {', '.join(sorted(duplicate_outcomes))}")
     if set(flow_by_outcome) != set(command["outcomes"]):
         missing = sorted(set(command["outcomes"]) - set(flow_by_outcome))
         extra = sorted(set(flow_by_outcome) - set(command["outcomes"]))
@@ -4125,29 +4124,29 @@ def _validate_workflow_activity_sequence_flows(
             parts.append("missing: " + ", ".join(missing))
         if extra:
             parts.append("extra: " + ", ".join(extra))
-        raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flows must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
+        raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flows must exactly map command outcomes" + (": " + "; ".join(parts) if parts else ""))
 
     terminal_outcomes: set[str] = set()
     for outcome_id, (sequence_flow_id, sequence_flow) in flow_by_outcome.items():
         outcome = command["outcomes"][outcome_id]
         if "condition" in sequence_flow:
-            raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} condition is only valid for gateway sources")
+            raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} condition is only valid for gateway sources")
         target_kind, target_id = _workflow_sequence_flow_target_ref(sequence_flow)
         if target_kind == "activity":
             if target_id not in activity_ids:
-                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} references unknown target activity {target_id}")
-            if target_id == activity["id"]:
-                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} cannot loop to itself")
+                raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} references unknown target activity {target_id}")
+            if target_id == activity_id:
+                raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} cannot loop to itself")
         elif target_kind == "gateway":
             if target_id not in gateway_ids:
-                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} references unknown target gateway {target_id}")
+                raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} references unknown target gateway {target_id}")
         else:
             routed_outcome_id = target_id
             routed_outcome = workflow["outputs"].get(routed_outcome_id)
             if not routed_outcome:
-                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} references unknown workflow outcome {routed_outcome_id}")
+                raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} references unknown workflow outcome {routed_outcome_id}")
             if outcome["kind"] != routed_outcome["kind"]:
-                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} must preserve {outcome['kind']} outcome semantics")
+                raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} must preserve {outcome['kind']} outcome semantics")
             if not type_equals(routed_outcome["result"], outcome["result"]):
                 raise ContractError(
                     f"Workflow {workflow_id} outcome {routed_outcome_id} result must be "
@@ -4155,22 +4154,22 @@ def _validate_workflow_activity_sequence_flows(
                 )
             if outcome_id in _command_authorization_outcomes(command) and not _is_explicit_authorization_workflow_outcome(routed_outcome_id) and not sequence_flow.get("rationale"):
                 raise ContractError(
-                    f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} collapses authorization failure into {routed_outcome_id}; declare an explicit authorization outcome or add rationale"
+                    f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} collapses authorization failure into {routed_outcome_id}; declare an explicit authorization outcome or add rationale"
                 )
             terminal_outcomes.add(routed_outcome_id)
         if "retry_policy" in sequence_flow:
             if outcome["kind"] != "failure":
-                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} retry_policy is only valid for failure outcomes")
+                raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} retry_policy is only valid for failure outcomes")
             if target_kind != "terminal":
-                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} retry_policy requires a terminal target_ref")
+                raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} retry_policy requires a terminal target_ref")
             if not _command_retryable(command):
                 raise ContractError(
-                    f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} retry_policy requires "
+                    f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} retry_policy requires "
                     "a query or retryable invoked behavior"
                 )
             retry = sequence_flow["retry_policy"]
             if retry["attempts"] < 1 or retry["attempts"] > 10:
-                raise ContractError(f"Workflow {workflow_id} activity {activity['id']} sequence_flow {sequence_flow_id} retry_policy attempts must be between 1 and 10")
+                raise ContractError(f"Workflow {workflow_id} activity {activity_id} sequence_flow {sequence_flow_id} retry_policy attempts must be between 1 and 10")
     return terminal_outcomes
 
 
@@ -4612,7 +4611,7 @@ def _validate_behavior_scenario_invocations(contract: dict[str, Any], behavior_s
         domain_event_id = when_body["ref"]
         for workflow in contract["workflows"].values():
             if workflow["inputs"] == {"domain_event": domain_event_id}:
-                expected.update(activity["command"] for activity in workflow["activities"])
+                expected.update(activity["command"] for activity in workflow["activities"].values())
     unexpected = sorted(invoked - expected)
     if unexpected:
         raise ContractError(f"Behavior scenario {behavior_scenario_id} asserts command/query bindings unrelated to when: {unexpected}")

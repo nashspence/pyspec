@@ -4254,10 +4254,14 @@
           "type": "string"
         },
         "activities": {
-          "items": {
+          "additionalProperties": {
             "$ref": "#/$defs/workflow_activity"
           },
-          "type": "array"
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/workflow_activity_id"
+          },
+          "type": "object"
         },
         "gateways": {
           "additionalProperties": {
@@ -4406,15 +4410,11 @@
         "command": {
           "$ref": "#/$defs/command_ref"
         },
-        "id": {
-          "$ref": "#/$defs/workflow_activity_id"
-        },
         "input_mapping": {
           "$ref": "#/$defs/binding_map"
         }
       },
       "required": [
-        "id",
         "command",
         "input_mapping"
       ],

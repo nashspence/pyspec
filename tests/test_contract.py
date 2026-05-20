@@ -1030,7 +1030,7 @@ def test_workflow_input_mapping_supports_binding_sources_and_literal_values() ->
         },
     }
     contract = compile_author(author)
-    bindings = contract["workflows"]["workflow.ticket.notice"]["activities"][0]["input_mapping"]
+    bindings = contract["workflows"]["workflow.ticket.notice"]["activities"]["notify"]["input_mapping"]
     assert bindings["source_id"] == {"from": "$workflow_input.payload.source_id"}
     assert bindings["title"] == {"value": "Literal title"}
 
