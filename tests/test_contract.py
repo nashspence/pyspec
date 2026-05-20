@@ -484,6 +484,13 @@ def test_access_policy_rule_effect_is_permit_only() -> None:
         compile_author(author)
 
 
+def test_access_policy_action_requires_at_least_one_action() -> None:
+    author = _authorized_transition_author()
+    author["access_policies"]["access_policy.ticket.submit"]["action"] = []
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_author(author)
+
+
 def _authorized_transition_author() -> dict:
     author = _explicit_transition_author()
     command = author["commands"]["command.ticket.submit"]
@@ -2259,7 +2266,7 @@ def test_delegated_and_outer_access_policies_are_both_evaluated(tmp_path: Path) 
     author.setdefault("access_policies", {})[outer_policy] = {
         "subject": [{"kind": "actor"}],
         "resource": [{"external_interface": "external_interface.cli.project.approve"}],
-        "action": [],
+        "action": ["command.project.approve"],
         "environment": [],
         "rules": [
             {"condition": {"subject_has_role": "reviewer"}, "effect": "permit"},

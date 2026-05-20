@@ -317,3 +317,18 @@ def test_workflow_sequence_flow_source_constraints_match_ontology() -> None:
         gateway_rule = next(rule for rule in all_of if rule["if"]["properties"]["source_ref"]["required"] == ["gateway"])
         assert gateway_rule["if"]["required"] == ["source_ref"], schema_name
         assert gateway_rule["then"]["not"]["required"] == ["source_outcome"], schema_name
+
+
+def test_access_policy_action_requires_explicit_action() -> None:
+    schema_cases: list[tuple[str, dict[str, Any], str]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json"), "authored_access_policy"),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json"), "access_policy_item"),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers), "authored_access_policy")
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema, definition_name in schema_cases:
+        action = schema["$defs"][definition_name]["properties"]["action"]
+        assert action["minItems"] == 1, schema_name

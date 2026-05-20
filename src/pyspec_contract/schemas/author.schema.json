@@ -279,6 +279,7 @@
               }
             ]
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
