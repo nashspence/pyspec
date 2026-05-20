@@ -1675,13 +1675,31 @@ def test_query_binding_load_policy_is_scope_sensitive() -> None:
     author = _author()
     invocation = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]
     invocation["load"] = {"on_enter": True}
-    with pytest.raises(ContractError, match=r"state-machine-level load policy must use on_start or on_mount, not on_enter"):
+    with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
     author = _author()
     invocation = _item(author, "state_machines", "state_machine.project.detail")["states"]["loading"]["query_bindings"]["read_project"]
     invocation["load"] = {"on_start": True}
-    with pytest.raises(ContractError, match=r"view-state-level load policy must use on_enter, not on_start or on_mount"):
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]
+    invocation["load"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.list")["query_bindings"]["list_projects"]
+    invocation["load"] = {"on_start": True, "on_mount": True}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+    author = _author()
+    invocation = _item(author, "state_machines", "state_machine.project.detail")["states"]["loading"]["query_bindings"]["read_project"]
+    invocation["load"] = {"refresh_on": []}
+    with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 

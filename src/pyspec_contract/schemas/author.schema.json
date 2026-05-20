@@ -2078,22 +2078,74 @@
       "$ref": "#/$defs/local_name",
       "description": "Local query binding identifier within a state_machine or state_machine_state."
     },
-    "query_binding_load_policy": {
+    "state_machine_query_binding_load_policy": {
       "additionalProperties": false,
-      "properties": {
-        "on_enter": {
-          "type": "boolean"
+      "anyOf": [
+        {
+          "required": [
+            "on_start"
+          ]
         },
+        {
+          "required": [
+            "on_mount"
+          ]
+        },
+        {
+          "required": [
+            "refresh_on"
+          ]
+        }
+      ],
+      "minProperties": 1,
+      "not": {
+        "required": [
+          "on_start",
+          "on_mount"
+        ]
+      },
+      "properties": {
         "on_mount": {
-          "type": "boolean"
+          "const": true
         },
         "on_start": {
-          "type": "boolean"
+          "const": true
         },
         "refresh_on": {
           "items": {
             "$ref": "#/$defs/state_machine_signal_trigger"
           },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "type": "object"
+    },
+    "state_machine_state_query_binding_load_policy": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "on_enter"
+          ]
+        },
+        {
+          "required": [
+            "refresh_on"
+          ]
+        }
+      ],
+      "minProperties": 1,
+      "properties": {
+        "on_enter": {
+          "const": true
+        },
+        "refresh_on": {
+          "items": {
+            "$ref": "#/$defs/state_machine_signal_trigger"
+          },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         }
@@ -3277,7 +3329,7 @@
       "additionalProperties": false,
       "properties": {
         "load": {
-          "$ref": "#/$defs/query_binding_load_policy"
+          "$ref": "#/$defs/state_machine_query_binding_load_policy"
         },
         "local_effects": {
           "$ref": "#/$defs/state_machine_query_binding_local_effects"
@@ -4033,7 +4085,37 @@
       "type": "object"
     },
     "state_machine_state_query_binding": {
-      "$ref": "#/$defs/state_machine_query_binding"
+      "additionalProperties": false,
+      "properties": {
+        "load": {
+          "$ref": "#/$defs/state_machine_state_query_binding_load_policy"
+        },
+        "local_effects": {
+          "$ref": "#/$defs/state_machine_query_binding_local_effects"
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
+        },
+        "result_scope": {
+          "enum": [
+            "local",
+            "shared",
+            "prefetch"
+          ],
+          "type": "string"
+        },
+        "query": {
+          "$ref": "#/$defs/query_ref"
+        },
+        "input_mapping": {
+          "$ref": "#/$defs/binding_map"
+        }
+      },
+      "required": [
+        "query",
+        "local_effects"
+      ],
+      "type": "object"
     },
     "state_machine_state_id": {
       "pattern": "^[a-z][a-z0-9_]*$",

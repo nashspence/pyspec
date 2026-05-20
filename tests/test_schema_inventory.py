@@ -120,8 +120,10 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
         "$defs.command_entity_changes.anyOf",
         "$defs.external_interface_output_mapping.anyOf",
         "$defs.schema.properties.anyOf",
+        "$defs.state_machine_query_binding_load_policy.anyOf",
         "$defs.state_machine_query_conditional_local_effect.anyOf",
         "$defs.state_machine_query_binding_local_outcome_effect.anyOf",
+        "$defs.state_machine_state_query_binding_load_policy.anyOf",
         "$defs.then.anyOf",
     },
     "spec.schema.json": {
@@ -137,8 +139,10 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
         "$defs.command_entity_changes.anyOf",
         "$defs.external_interface_output_mapping.anyOf",
         "$defs.schema.properties.anyOf",
+        "$defs.state_machine_query_binding_load_policy.anyOf",
         "$defs.state_machine_query_conditional_local_effect.anyOf",
         "$defs.state_machine_query_binding_local_outcome_effect.anyOf",
+        "$defs.state_machine_state_query_binding_load_policy.anyOf",
         "$defs.then.anyOf",
     },
 }

@@ -470,7 +470,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:python_class_name --> `$defs/python_class_name`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:python_identifier --> `$defs/python_identifier`: shared schema component used by authored source or compiled output.
 - <!-- schema-def:query_binding_id --> `$defs/query_binding_id`: local state-machine or `state_machine_state` query binding identifier.
-- <!-- schema-def:query_binding_load_policy --> `$defs/query_binding_load_policy`: query binding load and refresh trigger policy.
+- <!-- schema-def:state_machine_query_binding_load_policy --> `$defs/state_machine_query_binding_load_policy`: state-machine-level query load and refresh trigger policy. It allows `on_start`, `on_mount`, or `refresh_on`, and forbids `on_enter`.
+- <!-- schema-def:state_machine_state_query_binding_load_policy --> `$defs/state_machine_state_query_binding_load_policy`: state-machine-state-level query load and refresh trigger policy. It allows `on_enter` or `refresh_on`, and forbids `on_start`/`on_mount`.
 - <!-- schema-def:query_result_condition --> `$defs/query_result_condition`: explicit query-result shape condition for empty/non-empty array handling.
 - <!-- schema-def:query_result_binding --> `$defs/query_result_binding`: explicit query result binding to a named local `data_key`.
 - <!-- schema-def:renderer_contracts --> `$defs/renderer_contracts`: renderer contract component scoped to HTML and/or Textual invocations.

@@ -200,6 +200,39 @@ def test_authored_state_machine_states_require_content_or_explicit_empty_marker(
         assert state["allOf"][0]["then"]["required"] == ["rationale"], schema_name
 
 
+def test_query_binding_load_policies_are_context_specific() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        defs = schema["$defs"]
+        assert "query_binding_load_policy" not in defs, schema_name
+
+        machine_load = defs["state_machine_query_binding_load_policy"]
+        assert machine_load["minProperties"] == 1, schema_name
+        assert "on_enter" not in machine_load["properties"], schema_name
+        assert machine_load["properties"]["on_start"]["const"] is True, schema_name
+        assert machine_load["properties"]["on_mount"]["const"] is True, schema_name
+        assert machine_load["properties"]["refresh_on"]["minItems"] == 1, schema_name
+        assert machine_load["not"]["required"] == ["on_start", "on_mount"], schema_name
+
+        state_load = defs["state_machine_state_query_binding_load_policy"]
+        assert state_load["minProperties"] == 1, schema_name
+        assert "on_start" not in state_load["properties"], schema_name
+        assert "on_mount" not in state_load["properties"], schema_name
+        assert state_load["properties"]["on_enter"]["const"] is True, schema_name
+        assert state_load["properties"]["refresh_on"]["minItems"] == 1, schema_name
+
+        assert defs["state_machine_query_binding"]["properties"]["load"]["$ref"] == "#/$defs/state_machine_query_binding_load_policy", schema_name
+        assert defs["state_machine_state_query_binding"]["properties"]["load"]["$ref"] == "#/$defs/state_machine_state_query_binding_load_policy", schema_name
+
+
 def test_authored_local_id_collections_are_keyed_maps() -> None:
     schema_cases: list[tuple[str, dict[str, Any]]] = [
         ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
