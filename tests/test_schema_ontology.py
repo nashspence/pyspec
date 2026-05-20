@@ -201,6 +201,33 @@ def test_state_machine_media_asset_slot_vocabulary_is_canonical() -> None:
         assert ("asset_slot",) not in required_keys, schema_name
 
 
+def test_schema_descriptions_use_canonical_vocabulary() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        assert "expanded HTTP operations" not in schema["description"], schema_name
+        assert "HTTP operation expansions" not in schema["description"], schema_name
+        if schema_name in {"author.schema.json", "spec.schema.json"}:
+            assert "generated http_operation OpenAPI projections" in schema["description"], schema_name
+
+        query_result_binding = schema["$defs"]["query_result_binding"]["description"]
+        assert "view-state" not in query_result_binding, schema_name
+        assert "state-machine data" in query_result_binding, schema_name
+
+        assert schema["$defs"]["outcome_name"]["description"] == "Local command, query, or workflow outcome identifier.", schema_name
+
+        response_value_properties = schema["$defs"]["external_interface_response_value"]["properties"]
+        assert "schema" in response_value_properties, schema_name
+        assert "type" not in response_value_properties, schema_name
+
+
 def test_authored_state_machine_states_require_content_or_explicit_empty_marker() -> None:
     schema_cases: list[tuple[str, dict[str, Any]]] = [
         ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),

@@ -2325,7 +2325,7 @@
     },
     "outcome_name": {
       "$ref": "#/$defs/local_name",
-      "description": "Local command or workflow outcome identifier."
+      "description": "Local command, query, or workflow outcome identifier."
     },
     "precondition_body": {
       "oneOf": [
@@ -2497,7 +2497,7 @@
     },
     "query_result_binding": {
       "additionalProperties": false,
-      "description": "Explicitly binds a query outcome value into named state-machine or view-state data for rendering or later bindings.",
+      "description": "Explicitly binds a query outcome value into named state-machine data for rendering or later bindings.",
       "properties": {
         "data_key": {
           "$ref": "#/$defs/local_name"
@@ -4891,7 +4891,7 @@
   "$id": "https://example.invalid/compiled-output-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Compiler-normalized output schema for the compiled specification file at spec/generated/compiled/spec.yaml. Contains normalized ids, derived domain_events, derived HTML routes, generated references, HTTP operation expansions, and empty collection expansions.",
+  "description": "Compiler-normalized output schema for the compiled specification file at spec/generated/compiled/spec.yaml. Contains normalized ids, derived domain_events, derived HTML routes, generated references, generated http_operation OpenAPI projections, and empty collection expansions.",
   "properties": {
     "access_policies": {
       "additionalProperties": {

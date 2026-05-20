@@ -2792,7 +2792,7 @@
     },
     "outcome_name": {
       "$ref": "#/$defs/local_name",
-      "description": "Local command or workflow outcome identifier."
+      "description": "Local command, query, or workflow outcome identifier."
     },
     "precondition": {
       "oneOf": [
@@ -2878,7 +2878,7 @@
     },
     "query_result_binding": {
       "additionalProperties": false,
-      "description": "Explicitly binds a query outcome value into named state-machine or view-state data for rendering or later bindings.",
+      "description": "Explicitly binds a query outcome value into named state-machine data for rendering or later bindings.",
       "properties": {
         "data_key": {
           "$ref": "#/$defs/local_name"
@@ -4885,7 +4885,7 @@
   "$id": "https://example.invalid/authored-source-product-spec.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Sparse, human-authored source product specification. The compiler produces the compiled specification at spec/generated/compiled/spec.yaml, including normalized identifiers, derived domain_events, derived HTML routes, generated references, expanded HTTP operations, and expanded empty-collection states.",
+  "description": "Sparse, human-authored source product specification. The compiler produces the compiled specification at spec/generated/compiled/spec.yaml, including normalized identifiers, derived domain_events, derived HTML routes, generated references, generated http_operation OpenAPI projections, and expanded empty-collection states.",
   "properties": {
     "access_policies": {
       "additionalProperties": {
