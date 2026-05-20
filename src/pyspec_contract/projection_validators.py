@@ -48,11 +48,11 @@ from .audit import (
     audit_coverage_file,
     audit_coverage_index,
     audit_expected_files,
-    composition_file,
-    external_interface_flow_file,
-    command_query_flow_file,
-    state_machine_graph_file,
-    workflow_flow_file,
+    state_composition_chart_file,
+    external_interface_flow_chart_file,
+    behavior_flow_chart_file,
+    state_machine_chart_file,
+    workflow_flow_chart_file,
 )
 from .paths import GENERATED_SPEC_DIR, SPEC_ROOT, generated_relative as g
 from .project import (
@@ -698,18 +698,18 @@ def validate_audit_outputs(root: Path, contract: dict[str, Any]) -> None:
     _validate_audit_coverage_index(root, contract)
 
     for state_machine_id in contract.get("state_machines", {}):
-        _assert_svg(root / state_machine_graph_file(state_machine_id), f"state machine {state_machine_id}")
+        _assert_svg(root / state_machine_chart_file(state_machine_id), f"state machine {state_machine_id}")
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
         for state_name, state in state_machine.get("states", {}).items():
             if state.get("child_state_machines"):
-                _assert_svg(root / composition_file(state_machine_id, state_name), f"composition {state_machine_id}.{state_name}")
+                _assert_svg(root / state_composition_chart_file(state_machine_id, state_name), f"composition {state_machine_id}.{state_name}")
     for external_interface_id, external_interface in contract.get("external_interfaces", {}).items():
         adapter_kind, _ = external_interface_adapter_pair(external_interface)
-        _assert_svg(root / external_interface_flow_file(external_interface_id, adapter_kind), f"external interface {external_interface_id}")
+        _assert_svg(root / external_interface_flow_chart_file(external_interface_id, adapter_kind), f"external interface {external_interface_id}")
     for workflow_id in contract.get("workflows", {}):
-        _assert_svg(root / workflow_flow_file(workflow_id), f"workflow {workflow_id}")
+        _assert_svg(root / workflow_flow_chart_file(workflow_id), f"workflow {workflow_id}")
     for behavior_ref in _command_query_map(contract):
-        _assert_svg(root / command_query_flow_file(behavior_ref), f"command/query {behavior_ref}")
+        _assert_svg(root / behavior_flow_chart_file(behavior_ref), f"command/query {behavior_ref}")
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):

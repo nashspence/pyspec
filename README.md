@@ -215,7 +215,7 @@ pyspec check examples/project_dispatch_board --layers full
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q -p pytest_bdd.plugin
 ```
 
-Graphviz is required for external-interface, command/query, workflow, state-machine, and composition SVGs. The devcontainer includes it. If `dot` lives elsewhere:
+Graphviz is required for external-interface, command, query, workflow, state-machine, and composition chart SVGs. The devcontainer includes it. If `dot` lives elsewhere:
 
 ```bash
 export CONTRACT_AUDIT_GRAPHVIZ_DOT=/path/to/dot

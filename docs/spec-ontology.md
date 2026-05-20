@@ -296,19 +296,19 @@ Layers are compile/validate guardrails and are not written into `spec/generated/
 
 ## Visual Audit Coverage
 
-- `visual_evidence_set`: a shared list of generated diagrams or rendered captures (`*.svg` diagrams/captures and `*.png` screenshots) that visually evidence one or more compiled JSON Pointers.
+- `visual_evidence_set`: a shared list of generated chart SVG artifacts or rendered captures (`*.svg` charts/captures and `*.png` screenshots) that visually evidence one or more compiled JSON Pointers.
 - `compiled_json_pointer`: a JSON Pointer location inside compiled `spec.yaml`.
 - `required_visual_pointer`: a compiled JSON Pointer that must have at least one `visual_evidence_set`; missing required pointers fail validation.
 - `required_visual_text_witness`: a stable token that must appear in visible SVG text for a required visual pointer whose value is explicitly rendered as text. These witnesses are intentionally limited to durable ids, references, field/type labels, and other renderer-owned tokens; they do not audit hidden SVG metadata, incidental prose, or render-only pixels.
-- `optional_visual_pointer`: a compiled JSON Pointer that may have visual evidence but is allowed to be absent from diagrams and render captures.
-- `missing_required_visual_pointer`: a required visual pointer with no diagram or render-capture evidence.
-- `optional_visual_pointer_not_shown`: an optional visual pointer with no diagram or render-capture evidence; this is reported but does not fail validation.
+- `optional_visual_pointer`: a compiled JSON Pointer that may have visual evidence but is allowed to be absent from chart SVG artifacts and render captures.
+- `missing_required_visual_pointer`: a required visual pointer with no chart or render-capture evidence.
+- `optional_visual_pointer_not_shown`: an optional visual pointer with no chart or render-capture evidence; this is reported but does not fail validation.
 - `non_visual_pointer`: compiled metadata that is intentionally outside visual-audit scope, such as `project` workspace metadata or the compiled `reference_index`.
 - `render_presence`: resource-level visibility in actual render captures, reported as `rendered` or `not_rendered` for `media_assets`, `text_resources`, `fixtures`, `preconditions`, `assertions`, and `content_examples`.
 
-Audit validation fails when any `missing_required_visual_pointer` exists or when a declared `required_visual_text_witness` is absent from its SVG evidence set. Required pointers without a text witness are still required to have diagram or render-capture evidence, but their semantics are audited through the visual artifact rather than a machine-readable token.
+Audit validation fails when any `missing_required_visual_pointer` exists or when a declared `required_visual_text_witness` is absent from its SVG evidence set. Required pointers without a text witness are still required to have chart or render-capture evidence, but their semantics are audited through the visual artifact rather than a machine-readable token.
 
-The visual audit includes state-machine and composition diagrams, external-interface and workflow flowcharts, plus command/query flows. Command/query flows are chronological branching data flows for input, authorization, touched resources, outcomes, and emitted domain events; other diagrams reference commands and queries compactly instead of repeating the same cards.
+The visual audit includes `state_machine_chart`, `state_composition_chart`, `external_interface_flow_chart`, `workflow_flow_chart`, `command_flow_chart`, and `query_flow_chart` SVG artifacts. Command and query flow charts are chronological branching data flows for input, authorization, touched resources, outcomes, and emitted domain events; other charts reference commands and queries compactly instead of repeating the same cards.
 
 ## Binding Expression Namespaces
 
@@ -357,13 +357,13 @@ Binding expressions appear inside binding objects. `authored_value` maps use `{f
 - `spec/generated/test_adapters/driver_protocol.py`: BDD driver protocol.
 - `spec/generated/test_adapters/pytest_bdd_steps.py`: BDD step glue.
 - `spec/generated/test_adapters/pytest_bdd_features/{feature}.feature`: generated behavior feature files.
-- `spec/generated/audit_evidence/external_interfaces/{adapter}/{external_interface}/flow.svg`: external-interface flow diagrams grouped by adapter kind.
-- `spec/generated/audit_evidence/coverage.yaml`: generated visual coverage index mapping compiled JSON Pointers to diagram and render-capture evidence, including explicit render coverage gaps for `media_assets`, `text_resources`, `fixtures`, `preconditions`, `assertions`, and `content_examples`.
-- `spec/generated/audit_evidence/workflows/{workflow}/flow.svg`: workflow flow diagrams.
-- `spec/generated/audit_evidence/commands/{command}/flow.svg`: chronological command flows showing input, authorization, touched resources, outcomes, and emitted domain events.
-- `spec/generated/audit_evidence/queries/{query}/flow.svg`: chronological query flows showing input, authorization, results, and outcomes.
-- `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg`: state-machine diagrams.
-- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/composition.svg`: composed state-machine state diagrams.
+- `spec/generated/audit_evidence/external_interfaces/{adapter}/{external_interface}/flow.svg`: `external_interface_flow_chart` artifacts grouped by adapter kind.
+- `spec/generated/audit_evidence/coverage.yaml`: generated visual coverage index mapping compiled JSON Pointers to chart and render-capture evidence, including explicit render coverage gaps for `media_assets`, `text_resources`, `fixtures`, `preconditions`, `assertions`, and `content_examples`.
+- `spec/generated/audit_evidence/workflows/{workflow}/flow.svg`: `workflow_flow_chart` artifacts.
+- `spec/generated/audit_evidence/commands/{command}/flow.svg`: `command_flow_chart` artifacts showing input, authorization, touched resources, outcomes, and emitted domain events.
+- `spec/generated/audit_evidence/queries/{query}/flow.svg`: `query_flow_chart` artifacts showing input, authorization, results, and outcomes.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg`: `state_machine_chart` artifacts.
+- `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/composition.svg`: `state_composition_chart` artifacts.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/{text_resources.yaml,fixtures.yaml,media_assets/*}`: state-scoped audit inputs.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/renders/*`: HTML/Textual state render source and captures.
 - `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/render_examples/{render_example}/**`: render_example scoped inputs and render captures.

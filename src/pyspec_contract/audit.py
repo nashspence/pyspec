@@ -20,7 +20,7 @@ from .compile import ContractError, render_examples
 from .content import MediaAssetResult, ContentContext, ContentError, call_media_asset, call_text_resource
 from .io import write_yaml
 from .layout import renderer_textual_presentation, renderer_html_layout, renderer_html_presentation, renderer_html_regions
-from .behaviors import invocation_command_or_query_ref, command_or_query_collection, command_or_query_resource_kind, command_query_map
+from .behaviors import invocation_command_or_query_ref, command_or_query_resource_kind, command_query_map
 from .paths import GENERATED_SPEC_DIR, generated_relative as g
 from .project import default_html_slots, format_attrs, humanize, state_machines_projection, state_machine_styles_projection, safe_id
 from .runtime import fixture_namespace, resolve
@@ -43,8 +43,8 @@ ROOT = Path(__file__).resolve().parent
 _DomainEventCardMode = Literal["reference", "emitted"]
 
 _DOT_FONT = "Arial"
-_DOT_ARROW_FORWARD = "→"
-_DOT_ARROW_ASSIGN = "←"
+_CHART_SEQUENCE_GLYPH = "→"
+_CHART_BINDING_SOURCE_GLYPH = "←"
 
 _DOT_SIZE_TITLE = 13
 _DOT_SIZE_BODY = 10
@@ -52,81 +52,80 @@ _DOT_SIZE_META = 8
 _DOT_SIZE_NODE = 9
 _DOT_SIZE_DEFAULT_NODE = 11
 
-_DOT_COLOR_EDGE = "#3f3f46"
-_DOT_COLOR_MUTED = "#64748b"
-_DOT_COLOR_TYPE = "#94a3b8"
-_DOT_COLOR_AUDIT_TEXT = "#3f3f46"
+_CHART_COLOR_EDGE_TONE = "#3f3f46"
+_CHART_COLOR_MUTED_TEXT_TONE = "#64748b"
+_CHART_COLOR_TYPE_TEXT_TONE = "#94a3b8"
+_CHART_COLOR_RATIONALE_TEXT_TONE = "#3f3f46"
 
-_DOT_COLOR_EXTERNAL_INTERFACE_BORDER = "#0891b2"
-_DOT_COLOR_EXTERNAL_INTERFACE_TEXT = "#155e75"
-_DOT_COLOR_EXTERNAL_INTERFACE_HEADER = "#ecfeff"
-_DOT_COLOR_INITIAL_STATE_BORDER = "#0891b2"
-_DOT_COLOR_INITIAL_STATE_HEADER = "#ecfeff"
+_CHART_COLOR_ADAPTER_BOUNDARY_BORDER = "#0891b2"
+_CHART_COLOR_ADAPTER_BOUNDARY_HEADER = "#ecfeff"
+_CHART_COLOR_STATE_ENTRY_BORDER = "#0369a1"
+_CHART_COLOR_STATE_ENTRY_HEADER = "#e0f2fe"
 
-_DOT_COLOR_NEUTRAL_BORDER = "#71717a"
-_DOT_COLOR_NEUTRAL_HEADER = "#f8fafc"
-_DOT_COLOR_BOUNDARY_BORDER = "#64748b"
-_DOT_COLOR_TARGET_BORDER = "#9333ea"
-_DOT_COLOR_TARGET_HEADER = "#faf5ff"
-_DOT_COLOR_SUCCESS_BORDER = "#16a34a"
-_DOT_COLOR_SUCCESS_HEADER = "#f0fdf4"
-_DOT_COLOR_FAILURE_BORDER = "#dc2626"
-_DOT_COLOR_FAILURE_HEADER = "#fef2f2"
+_CHART_COLOR_NEUTRAL_STRUCTURE_BORDER = "#71717a"
+_CHART_COLOR_NEUTRAL_STRUCTURE_HEADER = "#f8fafc"
+_CHART_COLOR_ADAPTER_INPUT_BORDER = "#64748b"
+_CHART_COLOR_INVOCATION_TARGET_BORDER = "#9333ea"
+_CHART_COLOR_INVOCATION_TARGET_HEADER = "#faf5ff"
+_CHART_COLOR_SUCCESS_OUTCOME_BORDER = "#16a34a"
+_CHART_COLOR_SUCCESS_OUTCOME_HEADER = "#f0fdf4"
+_CHART_COLOR_FAILURE_OUTCOME_BORDER = "#dc2626"
+_CHART_COLOR_FAILURE_OUTCOME_HEADER = "#fef2f2"
 
-_DOT_COLOR_PRODUCT_BEHAVIOR_BORDER = "#2563eb"
-_DOT_COLOR_PRODUCT_BEHAVIOR_HEADER = "#eff6ff"
-_DOT_COLOR_DOMAIN_EVENT_BORDER = "#4f46e5"
-_DOT_COLOR_DOMAIN_EVENT_TEXT = "#312e81"
-_DOT_COLOR_DOMAIN_EVENT_HEADER = "#eef2ff"
+_CHART_COLOR_BEHAVIOR_CARD_BORDER = "#2563eb"
+_CHART_COLOR_BEHAVIOR_CARD_HEADER = "#eff6ff"
+_CHART_COLOR_DURABLE_EVENT_BORDER = "#4f46e5"
+_CHART_COLOR_DURABLE_EVENT_HEADER = "#eef2ff"
 
-_DOT_COLOR_STATE_MACHINE_BORDER = "#047857"
-_DOT_COLOR_STATE_MACHINE_HEADER = "#ecfdf5"
-_DOT_COLOR_WORKFLOW_BORDER = "#a16207"
-_DOT_COLOR_WORKFLOW_HEADER = "#fefce8"
-_DOT_COLOR_MESSAGE_BORDER = "#be185d"
-_DOT_COLOR_MESSAGE_HEADER = "#fdf2f8"
-_DOT_COLOR_CONTEXT_BORDER = "#15803d"
-_DOT_COLOR_CONTEXT_HEADER = "#f0fdf4"
-_DOT_COLOR_ENTITY_TYPE_BORDER = "#15803d"
-_DOT_COLOR_ENTITY_TYPE_HEADER = "#f0fdfa"
-_DOT_COLOR_SCHEMA_BORDER = "#7c3aed"
-_DOT_COLOR_SCHEMA_HEADER = "#f5f3ff"
-_DOT_COLOR_POLICY_BORDER = "#c2410c"
-_DOT_COLOR_POLICY_HEADER = "#fff7ed"
+_CHART_COLOR_CHILD_MACHINE_BORDER = "#047857"
+_CHART_COLOR_CHILD_MACHINE_HEADER = "#ecfdf5"
+_CHART_COLOR_WORKFLOW_CONTROL_BORDER = "#a16207"
+_CHART_COLOR_WORKFLOW_CONTROL_HEADER = "#fefce8"
+_CHART_COLOR_LOCAL_SIGNAL_CARD_BORDER = "#be185d"
+_CHART_COLOR_LOCAL_SIGNAL_CARD_HEADER = "#fdf2f8"
+_CHART_COLOR_STATE_CONTEXT_EFFECT_BORDER = "#0f766e"
+_CHART_COLOR_STATE_CONTEXT_EFFECT_HEADER = "#ccfbf1"
+_CHART_COLOR_ENTITY_RESOURCE_BORDER = "#15803d"
+_CHART_COLOR_ENTITY_RESOURCE_HEADER = "#f0fdfa"
+_CHART_COLOR_SCHEMA_RESOURCE_BORDER = "#7c3aed"
+_CHART_COLOR_SCHEMA_RESOURCE_HEADER = "#f5f3ff"
+_CHART_COLOR_AUTHORIZATION_POLICY_BORDER = "#c2410c"
+_CHART_COLOR_AUTHORIZATION_POLICY_HEADER = "#fff7ed"
 
 _GRAPHVIZ_INPUT_HASH_PREFIX = "pyspec-contract-input-sha256:"
 _TEXTUAL_INPUT_HASH_PREFIX = "pyspec-contract-textual-input-sha256:"
 
 
 @dataclass(frozen=True)
-class _DotCardStyle:
+class _ChartCardTone:
     header_bg: str
     border: str
 
 
-_DOT_STYLE_EXTERNAL_INTERFACE = _DotCardStyle(header_bg=_DOT_COLOR_EXTERNAL_INTERFACE_HEADER, border=_DOT_COLOR_EXTERNAL_INTERFACE_BORDER)
-_DOT_STYLE_INITIAL_STATE = _DotCardStyle(header_bg=_DOT_COLOR_INITIAL_STATE_HEADER, border=_DOT_COLOR_INITIAL_STATE_BORDER)
-_DOT_STYLE_EXTERNAL = _DotCardStyle(header_bg=_DOT_COLOR_NEUTRAL_HEADER, border=_DOT_COLOR_BOUNDARY_BORDER)
-_DOT_STYLE_TARGET = _DotCardStyle(header_bg=_DOT_COLOR_TARGET_HEADER, border=_DOT_COLOR_TARGET_BORDER)
-_DOT_STYLE_SUCCESS_EXIT = _DotCardStyle(header_bg=_DOT_COLOR_SUCCESS_HEADER, border=_DOT_COLOR_SUCCESS_BORDER)
-_DOT_STYLE_FAILURE_EXIT = _DotCardStyle(header_bg=_DOT_COLOR_FAILURE_HEADER, border=_DOT_COLOR_FAILURE_BORDER)
-_DOT_STYLE_NEUTRAL = _DotCardStyle(header_bg=_DOT_COLOR_NEUTRAL_HEADER, border=_DOT_COLOR_NEUTRAL_BORDER)
-_DOT_STYLE_PRODUCT_BEHAVIOR = _DotCardStyle(header_bg=_DOT_COLOR_PRODUCT_BEHAVIOR_HEADER, border=_DOT_COLOR_PRODUCT_BEHAVIOR_BORDER)
-_DOT_STYLE_DOMAIN_EVENT = _DotCardStyle(header_bg=_DOT_COLOR_DOMAIN_EVENT_HEADER, border=_DOT_COLOR_DOMAIN_EVENT_BORDER)
-_DOT_STYLE_STATE_MACHINE = _DotCardStyle(header_bg=_DOT_COLOR_STATE_MACHINE_HEADER, border=_DOT_COLOR_STATE_MACHINE_BORDER)
-_DOT_STYLE_WORKFLOW = _DotCardStyle(header_bg=_DOT_COLOR_WORKFLOW_HEADER, border=_DOT_COLOR_WORKFLOW_BORDER)
-_DOT_STYLE_MESSAGE = _DotCardStyle(header_bg=_DOT_COLOR_MESSAGE_HEADER, border=_DOT_COLOR_MESSAGE_BORDER)
-_DOT_STYLE_CONTEXT = _DotCardStyle(header_bg=_DOT_COLOR_CONTEXT_HEADER, border=_DOT_COLOR_CONTEXT_BORDER)
-_DOT_STYLE_ENTITY_TYPE = _DotCardStyle(header_bg=_DOT_COLOR_ENTITY_TYPE_HEADER, border=_DOT_COLOR_ENTITY_TYPE_BORDER)
-_DOT_STYLE_SCHEMA = _DotCardStyle(header_bg=_DOT_COLOR_SCHEMA_HEADER, border=_DOT_COLOR_SCHEMA_BORDER)
-_DOT_STYLE_POLICY = _DotCardStyle(header_bg=_DOT_COLOR_POLICY_HEADER, border=_DOT_COLOR_POLICY_BORDER)
+_CHART_TONE_ADAPTER_BOUNDARY = _ChartCardTone(header_bg=_CHART_COLOR_ADAPTER_BOUNDARY_HEADER, border=_CHART_COLOR_ADAPTER_BOUNDARY_BORDER)
+_CHART_TONE_STATE_ENTRY = _ChartCardTone(header_bg=_CHART_COLOR_STATE_ENTRY_HEADER, border=_CHART_COLOR_STATE_ENTRY_BORDER)
+_CHART_TONE_ADAPTER_INPUT = _ChartCardTone(header_bg=_CHART_COLOR_NEUTRAL_STRUCTURE_HEADER, border=_CHART_COLOR_ADAPTER_INPUT_BORDER)
+_CHART_TONE_INVOCATION_TARGET = _ChartCardTone(header_bg=_CHART_COLOR_INVOCATION_TARGET_HEADER, border=_CHART_COLOR_INVOCATION_TARGET_BORDER)
+_CHART_TONE_SUCCESS_OUTCOME = _ChartCardTone(header_bg=_CHART_COLOR_SUCCESS_OUTCOME_HEADER, border=_CHART_COLOR_SUCCESS_OUTCOME_BORDER)
+_CHART_TONE_FAILURE_OUTCOME = _ChartCardTone(header_bg=_CHART_COLOR_FAILURE_OUTCOME_HEADER, border=_CHART_COLOR_FAILURE_OUTCOME_BORDER)
+_CHART_TONE_NEUTRAL_STRUCTURE = _ChartCardTone(header_bg=_CHART_COLOR_NEUTRAL_STRUCTURE_HEADER, border=_CHART_COLOR_NEUTRAL_STRUCTURE_BORDER)
+_CHART_TONE_BEHAVIOR_CARD = _ChartCardTone(header_bg=_CHART_COLOR_BEHAVIOR_CARD_HEADER, border=_CHART_COLOR_BEHAVIOR_CARD_BORDER)
+_CHART_TONE_DURABLE_EVENT = _ChartCardTone(header_bg=_CHART_COLOR_DURABLE_EVENT_HEADER, border=_CHART_COLOR_DURABLE_EVENT_BORDER)
+_CHART_TONE_CHILD_MACHINE = _ChartCardTone(header_bg=_CHART_COLOR_CHILD_MACHINE_HEADER, border=_CHART_COLOR_CHILD_MACHINE_BORDER)
+_CHART_TONE_WORKFLOW_CONTROL = _ChartCardTone(header_bg=_CHART_COLOR_WORKFLOW_CONTROL_HEADER, border=_CHART_COLOR_WORKFLOW_CONTROL_BORDER)
+_CHART_TONE_LOCAL_SIGNAL_SYNC = _ChartCardTone(header_bg=_CHART_COLOR_WORKFLOW_CONTROL_HEADER, border=_CHART_COLOR_WORKFLOW_CONTROL_BORDER)
+_CHART_TONE_LOCAL_SIGNAL_CARD = _ChartCardTone(header_bg=_CHART_COLOR_LOCAL_SIGNAL_CARD_HEADER, border=_CHART_COLOR_LOCAL_SIGNAL_CARD_BORDER)
+_CHART_TONE_STATE_CONTEXT_EFFECT = _ChartCardTone(header_bg=_CHART_COLOR_STATE_CONTEXT_EFFECT_HEADER, border=_CHART_COLOR_STATE_CONTEXT_EFFECT_BORDER)
+_CHART_TONE_ENTITY_RESOURCE = _ChartCardTone(header_bg=_CHART_COLOR_ENTITY_RESOURCE_HEADER, border=_CHART_COLOR_ENTITY_RESOURCE_BORDER)
+_CHART_TONE_SCHEMA_RESOURCE = _ChartCardTone(header_bg=_CHART_COLOR_SCHEMA_RESOURCE_HEADER, border=_CHART_COLOR_SCHEMA_RESOURCE_BORDER)
+_CHART_TONE_AUTHORIZATION_POLICY = _ChartCardTone(header_bg=_CHART_COLOR_AUTHORIZATION_POLICY_HEADER, border=_CHART_COLOR_AUTHORIZATION_POLICY_BORDER)
 
 
 def _under(relative: str, *parts: str) -> str:
     return "/".join([relative, *parts])
 
 
-def state_machine_graph_file(state_machine_id: str) -> str:
+def state_machine_chart_file(state_machine_id: str) -> str:
     return g("audit_evidence", "state_machines", safe_id(state_machine_id), "state_machine.svg")
 
 
@@ -134,20 +133,30 @@ def state_root(state_machine_id: str, state_name: str) -> str:
     return g("audit_evidence", "state_machines", safe_id(state_machine_id), "states", safe_id(state_name))
 
 
-def composition_file(state_machine_id: str, state_name: str = "ready") -> str:
+def state_composition_chart_file(state_machine_id: str, state_name: str = "ready") -> str:
     return g("audit_evidence", "state_machines", safe_id(state_machine_id), "states", safe_id(state_name), "composition.svg")
 
 
-def external_interface_flow_file(external_interface_id: str, adapter_kind: str) -> str:
+def external_interface_flow_chart_file(external_interface_id: str, adapter_kind: str) -> str:
     return g("audit_evidence", "external_interfaces", safe_id(adapter_kind), safe_id(external_interface_id), "flow.svg")
 
 
-def workflow_flow_file(workflow_id: str) -> str:
+def workflow_flow_chart_file(workflow_id: str) -> str:
     return g("audit_evidence", "workflows", safe_id(workflow_id), "flow.svg")
 
 
-def command_query_flow_file(behavior_ref: str) -> str:
-    return g("audit_evidence", command_or_query_collection(behavior_ref), safe_id(behavior_ref), "flow.svg")
+def command_flow_chart_file(command_ref: str) -> str:
+    return g("audit_evidence", "commands", safe_id(command_ref), "flow.svg")
+
+
+def query_flow_chart_file(query_ref: str) -> str:
+    return g("audit_evidence", "queries", safe_id(query_ref), "flow.svg")
+
+
+def behavior_flow_chart_file(behavior_ref: str) -> str:
+    if command_or_query_resource_kind(behavior_ref) == "command":
+        return command_flow_chart_file(behavior_ref)
+    return query_flow_chart_file(behavior_ref)
 
 
 def audit_coverage_file() -> str:
@@ -370,18 +379,18 @@ def _audit_projection_surfaces(contract: dict[str, Any], projection: dict[str, A
 def _audit_visual_expected_files(contract: dict[str, Any]) -> set[str]:
     files: set[str] = set()
     for state_machine_id in contract.get("state_machines", {}):
-        files.add(state_machine_graph_file(state_machine_id))
+        files.add(state_machine_chart_file(state_machine_id))
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
         for state_name, state in state_machine.get("states", {}).items():
             if state.get("child_state_machines"):
-                files.add(composition_file(state_machine_id, state_name))
+                files.add(state_composition_chart_file(state_machine_id, state_name))
     for external_interface_id, external_interface in contract.get("external_interfaces", {}).items():
         adapter_kind, _ = external_interface_adapter_pair(external_interface)
-        files.add(external_interface_flow_file(external_interface_id, adapter_kind))
+        files.add(external_interface_flow_chart_file(external_interface_id, adapter_kind))
     for workflow_id in contract.get("workflows", {}):
-        files.add(workflow_flow_file(workflow_id))
+        files.add(workflow_flow_chart_file(workflow_id))
     for behavior_ref in _command_query_map(contract):
-        files.add(command_query_flow_file(behavior_ref))
+        files.add(behavior_flow_chart_file(behavior_ref))
 
     projection = state_machines_projection(contract)
     for state_machine in _audit_projection_surfaces(contract, projection):
@@ -423,18 +432,18 @@ def audit_expected_files(contract: dict[str, Any]) -> set[str]:
 def _audit_visual_evidence_files(contract: dict[str, Any]) -> set[str]:
     files: set[str] = set()
     for state_machine_id in contract.get("state_machines", {}):
-        files.add(state_machine_graph_file(state_machine_id))
+        files.add(state_machine_chart_file(state_machine_id))
     for state_machine_id, state_machine in contract.get("state_machines", {}).items():
         for state_name, state in state_machine.get("states", {}).items():
             if state.get("child_state_machines"):
-                files.add(composition_file(state_machine_id, state_name))
+                files.add(state_composition_chart_file(state_machine_id, state_name))
     for external_interface_id, external_interface in contract.get("external_interfaces", {}).items():
         adapter_kind, _ = external_interface_adapter_pair(external_interface)
-        files.add(external_interface_flow_file(external_interface_id, adapter_kind))
+        files.add(external_interface_flow_chart_file(external_interface_id, adapter_kind))
     for workflow_id in contract.get("workflows", {}):
-        files.add(workflow_flow_file(workflow_id))
+        files.add(workflow_flow_chart_file(workflow_id))
     for behavior_ref in _command_query_map(contract):
-        files.add(command_query_flow_file(behavior_ref))
+        files.add(behavior_flow_chart_file(behavior_ref))
 
     projection = state_machines_projection(contract)
     for surface in _audit_projection_surfaces(contract, projection):
@@ -570,7 +579,7 @@ def _visual_pointer_obligation(contract: dict[str, Any], pointer: str) -> dict[s
     if parts and parts[0] in {"media_assets", "assertions", "content_examples", "preconditions", "fixtures", "behavior_scenarios", "text_resources", "viewport_profiles"}:
         return {"level": "optional", "reason": _optional_visual_pointer_reason(parts[0])}
     _ = contract
-    return {"level": "required", "reason": "required compiled JSON Pointer has no diagram or render-capture evidence"}
+    return {"level": "required", "reason": "required compiled JSON Pointer has no chart or render-capture evidence"}
 
 
 def _optional_visual_pointer_reason(collection: str) -> str:
@@ -580,7 +589,7 @@ def _optional_visual_pointer_reason(collection: str) -> str:
         "content_examples": "content examples are visual only when their referenced resource is rendered",
         "preconditions": "preconditions may support behavior setup without dedicated visual evidence",
         "fixtures": "fixtures may support behavior or content tests without appearing in render examples",
-        "behavior_scenarios": "behavior scenarios may be represented by diagrams or renders, but are not required visual evidence",
+        "behavior_scenarios": "behavior scenarios may be represented by charts or renders, but are not required visual evidence",
         "text_resources": "text resources may be adapter or branch-specific and need not appear in rendered states",
         "viewport_profiles": "viewport profiles are covered through render captures when renderable states exist",
     }[collection]
@@ -1017,25 +1026,25 @@ def _external_interface_evidence_files(contract: dict[str, Any], external_interf
     if not external_interface:
         return []
     adapter_kind, _ = external_interface_adapter_pair(external_interface)
-    return [external_interface_flow_file(external_interface_id, adapter_kind)]
+    return [external_interface_flow_chart_file(external_interface_id, adapter_kind)]
 
 
 def _workflow_evidence_files(contract: dict[str, Any], workflow_id: str) -> list[str]:
     if workflow_id not in contract.get("workflows", {}):
         return []
-    return [workflow_flow_file(workflow_id)]
+    return [workflow_flow_chart_file(workflow_id)]
 
 
 def _state_machine_evidence_files(contract: dict[str, Any], state_machine_id: str, state_name: str | None = None) -> list[str]:
     state_machine = contract.get("state_machines", {}).get(state_machine_id)
     if not state_machine:
         return []
-    files = [state_machine_graph_file(state_machine_id)]
+    files = [state_machine_chart_file(state_machine_id)]
     states = {state_name: state_machine["states"][state_name]} if state_name else state_machine.get("states", {})
     projection = state_machines_projection(contract)
     for current_state_name, state in states.items():
         if state.get("child_state_machines"):
-            files.append(composition_file(state_machine_id, current_state_name))
+            files.append(state_composition_chart_file(state_machine_id, current_state_name))
         files.extend(_state_render_evidence_files(contract, state_machine_id, current_state_name))
         for surface in _audit_projection_surfaces(contract, projection):
             if surface["owner"] == state_machine_id and surface["state"] == current_state_name:
@@ -1046,7 +1055,7 @@ def _state_machine_evidence_files(contract: dict[str, Any], state_machine_id: st
 def _command_query_evidence_files(contract: dict[str, Any], behavior_ref: str) -> list[str]:
     if behavior_ref not in _command_query_map(contract):
         return []
-    files: list[str] = [command_query_flow_file(behavior_ref)]
+    files: list[str] = [behavior_flow_chart_file(behavior_ref)]
     for external_interface_id, external_interface in sorted(contract.get("external_interfaces", {}).items()):
         target_kind, target_value = external_interface_invoked_ref_pair(external_interface)
         if target_kind in {"command", "query"} and target_value == behavior_ref:
@@ -1349,28 +1358,28 @@ def _render_visual_audit(
 ) -> None:
     projection = projection or state_machines_projection(contract)
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
-        path = root / state_machine_graph_file(state_machine_id)
-        _write_graphviz_svg(path, state_machine_dot(state_machine_id, state_machine, contract), _previous_audit_path(root, previous_audit_root, path))
+        path = root / state_machine_chart_file(state_machine_id)
+        _write_graphviz_svg(path, state_machine_chart_dot_source(state_machine_id, state_machine, contract), _previous_audit_path(root, previous_audit_root, path))
     for state_machine_id, state_machine in sorted(contract.get("state_machines", {}).items()):
         for state_name, state in sorted(state_machine.get("states", {}).items()):
             if not state.get("child_state_machines"):
                 continue
-            path = root / composition_file(state_machine_id, state_name)
+            path = root / state_composition_chart_file(state_machine_id, state_name)
             _write_graphviz_svg(
                 path,
-                composition_dot(f"{state_machine_id}.{state_name}", {"context_schema": state_machine.get("context_schema", {}), **state}, contract),
+                state_composition_chart_dot_source(f"{state_machine_id}.{state_name}", {"context_schema": state_machine.get("context_schema", {}), **state}, contract),
                 _previous_audit_path(root, previous_audit_root, path),
             )
     for external_interface_id, external_interface in sorted(contract.get("external_interfaces", {}).items()):
         adapter_kind, _ = external_interface_adapter_pair(external_interface)
-        path = root / external_interface_flow_file(external_interface_id, adapter_kind)
-        _write_graphviz_svg(path, external_interface_flow_dot(external_interface_id, external_interface, contract), _previous_audit_path(root, previous_audit_root, path))
+        path = root / external_interface_flow_chart_file(external_interface_id, adapter_kind)
+        _write_graphviz_svg(path, external_interface_flow_chart_dot_source(external_interface_id, external_interface, contract), _previous_audit_path(root, previous_audit_root, path))
     for workflow_id, workflow in sorted(contract.get("workflows", {}).items()):
-        path = root / workflow_flow_file(workflow_id)
-        _write_graphviz_svg(path, workflow_flow_dot(workflow_id, workflow, contract), _previous_audit_path(root, previous_audit_root, path))
+        path = root / workflow_flow_chart_file(workflow_id)
+        _write_graphviz_svg(path, workflow_flow_chart_dot_source(workflow_id, workflow, contract), _previous_audit_path(root, previous_audit_root, path))
     for behavior_ref, behavior in sorted(_command_query_map(contract).items()):
-        path = root / command_query_flow_file(behavior_ref)
-        _write_graphviz_svg(path, command_query_flow_dot(behavior_ref, behavior, contract), _previous_audit_path(root, previous_audit_root, path))
+        path = root / behavior_flow_chart_file(behavior_ref)
+        _write_graphviz_svg(path, behavior_flow_chart_dot_source(behavior_ref, behavior, contract), _previous_audit_path(root, previous_audit_root, path))
 
     has_html_audit = bool(_profile_viewports(contract, "html")) and (
         any("html" in _projection_render_surfaces(state_machine) for state_machine in _audit_projection_surfaces(contract, projection))
@@ -1741,19 +1750,19 @@ async def _render_textual_svg(
     path.write_text(_svg_with_input_hash(svg, input_hash, _TEXTUAL_INPUT_HASH_PREFIX), encoding="utf-8")
 
 
-def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
-    lines = _dot_graph_preamble("state_machine_" + safe_id(state_machine_id))
+def state_machine_chart_dot_source(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
+    lines = _chart_dot_source_preamble("state_machine_chart_" + safe_id(state_machine_id))
     for state_name in sorted(state_machine["states"]):
         state = state_machine["states"][state_name]
         sections = _state_machine_state_sections(state_machine, state_name, state, contract)
         lines.append(
             _dot_html_node(
                 _dot_node_id("state", state_name),
-                _dot_card(
+                _chart_card(
                     state_name,
                     "initial state" if state_name == state_machine["initial_state"] else "state",
                     sections,
-                    style=_DOT_STYLE_INITIAL_STATE if state_name == state_machine["initial_state"] else _DOT_STYLE_NEUTRAL,
+                    style=_CHART_TONE_STATE_ENTRY if state_name == state_machine["initial_state"] else _CHART_TONE_NEUTRAL_STRUCTURE,
                 ),
             )
         )
@@ -1761,26 +1770,26 @@ def state_machine_dot(state_machine_id: str, state_machine: dict[str, Any], cont
         source = _dot_node_id("state", transition["from"])
         target = _dot_node_id("state", transition["to"])
         transition_label = _signal_label(transition["trigger"])
-        transition_id = _dot_node_id("transition", f"{index}_{transition['from']}_{transition['to']}_{transition_label}")
+        transition_id = _dot_node_id("state_machine_trigger", f"{index}_{transition['from']}_{transition['to']}_{transition_label}")
         lines.append(
             _dot_html_node(
                 transition_id,
-                _dot_card(
+                _chart_card(
                     transition_label,
-                    "transition signal",
+                    "state-machine trigger",
                     _format_transition_sections(state_machine, transition, contract),
                     rationale=transition.get("rationale", ""),
-                    style=_DOT_STYLE_PRODUCT_BEHAVIOR,
+                    style=_CHART_TONE_BEHAVIOR_CARD,
                 ),
             )
         )
-        lines.append(_dot_edge(source, transition_id))
-        lines.append(_dot_edge(transition_id, target))
+        lines.append(_chart_edge(source, transition_id))
+        lines.append(_chart_edge(transition_id, target))
     lines.append("}")
     return "\n".join(lines) + "\n"
 
 
-def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
+def state_composition_chart_dot_source(state_machine_id: str, state_machine: dict[str, Any], contract: dict[str, Any]) -> str:
     sync_state_machine_order: list[str] = []
     for rule in state_machine.get("local_signal_sync_rules", []):
         sync_state_machine_order.append(rule["trigger"]["instance"])
@@ -1794,92 +1803,104 @@ def composition_dot(state_machine_id: str, state_machine: dict[str, Any], contra
     mount_node_by_id = {mount["id"]: _dot_node_id("child_state_machine", mount["id"]) for mount in mounts}
     mount_node_ids = [mount_node_by_id[mount["id"]] for mount in mounts]
     has_sync = bool(state_machine.get("local_signal_sync_rules"))
-    lines = _dot_graph_preamble("composition_" + safe_id(state_machine_id))
+    lines = _chart_dot_source_preamble("state_composition_chart_" + safe_id(state_machine_id))
     for mount in mounts:
-        lines.append(_dot_html_node(mount_node_by_id[mount["id"]], _dot_mount_card(mount)))
+        lines.append(_dot_html_node(mount_node_by_id[mount["id"]], _child_machine_mount_card(mount)))
     if mount_node_ids and not has_sync:
-        lines.extend(_dot_invisible_order(mount_node_ids, indent="  "))
+        lines.extend(_chart_layout_edges(mount_node_ids, indent="  "))
     if not has_sync:
-        lines.append(_dot_html_node("local_signal_sync_none", _dot_card("No local signal sync", "local signal sync", [], style=_DOT_STYLE_NEUTRAL)))
+        lines.append(_dot_html_node("local_signal_sync_none", _chart_card("No local signal sync", "local signal sync rule", [], style=_CHART_TONE_NEUTRAL_STRUCTURE)))
     for rule in state_machine.get("local_signal_sync_rules", []):
         signal_id = rule["trigger"]["local_signal"]
-        emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['trigger']['instance']}_{signal_id}")
-        sync_id = _dot_node_id("local_signal_sync", rule["id"])
-        send_local_effects = [(index, effect) for index, effect in enumerate(rule.get("local_effects", [])) if "send" in effect]
-        effect_ids = [_dot_node_id("local_signal_effect", f"{rule['id']}_{index}") for index, _ in send_local_effects]
+        emit_id = _dot_node_id("local_signal_emission", f"{rule['id']}_{rule['trigger']['instance']}_{signal_id}")
+        sync_id = _dot_node_id("local_signal_sync_rule", rule["id"])
+        local_effects = [
+            (index, effect)
+            for index, effect in enumerate(rule.get("local_effects", []))
+            if "send" in effect or "set" in effect
+        ]
+        effect_ids = [
+            _dot_node_id("local_signal_send_effect" if "send" in effect else "state_context_update", f"{rule['id']}_{index}")
+            for index, effect in local_effects
+        ]
         lines.append(
             _dot_html_node(
                 emit_id,
-                _dot_card(
+                _chart_card(
                     _local_signal_label(signal_id),
-                    "emitted local signal",
+                    "local signal emission",
                     [
                         ("source", _emitting_transition_refs(rule["trigger"]["instance"], signal_id, mount_by_id, contract)),
                         ("payload", _emitted_local_signal_data_lines(rule["trigger"]["instance"], signal_id, mount_by_id, contract)),
                     ],
-                    style=_DOT_STYLE_DOMAIN_EVENT,
+                    style=_CHART_TONE_LOCAL_SIGNAL_CARD,
                 ),
             )
         )
         lines.append(
             _dot_html_node(
                 sync_id,
-                _dot_card(
+                _chart_card(
                     rule["id"],
-                    "local signal sync",
-                    [("set", _sync_set_lines(rule, state_machine))],
-                    style=_DOT_STYLE_WORKFLOW,
+                    "local signal sync rule",
+                    [],
+                    style=_CHART_TONE_LOCAL_SIGNAL_SYNC,
                 ),
             )
         )
-        for index, effect in send_local_effects:
-            effect_id = _dot_node_id("local_signal_effect", f"{rule['id']}_{index}")
-            lines.append(_dot_html_node(effect_id, _dot_sync_effect_card(effect, mount_by_id, contract)))
+        for index, effect in local_effects:
+            effect_id = _dot_node_id("local_signal_send_effect" if "send" in effect else "state_context_update", f"{rule['id']}_{index}")
+            lines.append(_dot_html_node(effect_id, _state_composition_effect_card(effect, mount_by_id, contract, state_machine.get("context_schema", {}))))
         if effect_ids:
             lines.append("  { rank=same; " + " ".join(_dot_quote(effect_id) for effect_id in effect_ids) + " }")
-            lines.extend(_dot_invisible_order(effect_ids, indent="  "))
+            lines.extend(_chart_layout_edges(effect_ids, indent="  "))
     for rule in state_machine.get("local_signal_sync_rules", []):
-        emit_id = _dot_node_id("local_signal_emit", f"{rule['id']}_{rule['trigger']['instance']}_{rule['trigger']['local_signal']}")
-        sync_id = _dot_node_id("local_signal_sync", rule["id"])
+        emit_id = _dot_node_id("local_signal_emission", f"{rule['id']}_{rule['trigger']['instance']}_{rule['trigger']['local_signal']}")
+        sync_id = _dot_node_id("local_signal_sync_rule", rule["id"])
         source = mount_node_by_id.get(rule["trigger"]["instance"])
         if source:
-            lines.append(_dot_edge(source, emit_id, {"color": _DOT_COLOR_DOMAIN_EVENT_BORDER, "penwidth": "1.4"}))
-        lines.append(_dot_edge(emit_id, sync_id, {"color": _DOT_COLOR_DOMAIN_EVENT_BORDER, "penwidth": "1.2"}))
+            lines.append(_chart_edge(source, emit_id))
+        lines.append(_chart_edge(emit_id, sync_id))
         for index, effect in enumerate(rule.get("local_effects", [])):
             if "send" not in effect:
                 continue
-            effect_id = _dot_node_id("local_signal_effect", f"{rule['id']}_{index}")
-            lines.append(_dot_edge(sync_id, effect_id, {"color": _DOT_COLOR_MESSAGE_BORDER, "penwidth": "1.3"}))
+            effect_id = _dot_node_id("local_signal_send_effect", f"{rule['id']}_{index}")
+            lines.append(_chart_edge(sync_id, effect_id))
             target = mount_node_by_id.get(effect["send"]["instance"])
             if not target:
                 continue
-            lines.append(_dot_edge(effect_id, target, {"color": _DOT_COLOR_MESSAGE_BORDER, "penwidth": "1.4"}))
+            lines.append(_chart_edge(effect_id, target))
+        for index, effect in enumerate(rule.get("local_effects", [])):
+            if "set" not in effect:
+                continue
+            effect_id = _dot_node_id("state_context_update", f"{rule['id']}_{index}")
+            lines.append(_chart_edge(sync_id, effect_id))
     lines.append("}")
     return "\n".join(lines) + "\n"
 
 
-def external_interface_flow_dot(external_interface_id: str, external_interface: dict[str, Any], contract: dict[str, Any]) -> str:
+def external_interface_flow_chart_dot_source(external_interface_id: str, external_interface: dict[str, Any], contract: dict[str, Any]) -> str:
     adapter_kind, _ = external_interface_adapter_pair(external_interface)
     target_kind, target_value = external_interface_invoked_ref_pair(external_interface)
     target_renderer = external_interface_state_machine_renderer(external_interface) if target_kind == "state_machine" else None
-    external_interface_node = _dot_node_id("external_interface", external_interface_id)
-    target_node = _dot_node_id("external_interface_invocation", target_value)
-    response_nodes = _external_interface_response_nodes(external_interface_id, external_interface, contract)
+    external_interface_node = _dot_node_id("adapter_boundary", external_interface_id)
+    target_node = _dot_node_id("invocation_target", target_value)
+    response_nodes = _adapter_response_card_nodes(external_interface_id, external_interface, contract)
     target_tail = [] if target_kind == "state_machine" else _external_interface_target_tail_nodes(target_kind, target_value, contract)
     external_interface_sections = _external_interface_binding_sections(external_interface, contract)
     external_interface_sections.extend(_external_interface_input_sections(external_interface, contract))
     _, output_title = _external_interface_io_card_titles(adapter_kind)
-    lines = _dot_graph_preamble("external_interface_" + safe_id(external_interface_id))
+    lines = _chart_dot_source_preamble("external_interface_flow_chart_" + safe_id(external_interface_id))
     lines.extend(
         [
             _dot_html_node(
                 external_interface_node,
-                _dot_card(
+                _chart_card(
                     _external_interface_surface_title(external_interface),
-                    f"{adapter_kind} external interface",
+                    f"{adapter_kind} adapter boundary",
                     external_interface_sections,
                     rationale=external_interface.get("rationale", ""),
-                    style=_DOT_STYLE_EXTERNAL_INTERFACE,
+                    style=_CHART_TONE_ADAPTER_BOUNDARY,
                 ),
             ),
         ]
@@ -1889,23 +1910,23 @@ def external_interface_flow_dot(external_interface_id: str, external_interface: 
         lines.extend(
             _dot_html_node(
                 node_id,
-                _dot_card(outcome_id if subtitle else output_title, subtitle or outcome_id, sections, style=_exit_card_style(outcome_kind)),
+                _chart_card(outcome_id if subtitle else output_title, subtitle or outcome_id, sections, style=_exit_card_style(outcome_kind)),
             )
             for node_id, outcome_id, subtitle, outcome_kind, sections in response_nodes
         )
     lines.extend(_dot_html_node(node_id, label) for node_id, label in target_tail)
-    lines.append(_dot_edge(external_interface_node, target_node))
+    lines.append(_chart_edge(external_interface_node, target_node))
     for node_id, _ in target_tail:
-        lines.append(_dot_edge(target_node, node_id))
+        lines.append(_chart_edge(target_node, node_id))
     if response_nodes:
         for node_id, _, _, _, _ in response_nodes:
-            lines.append(_dot_edge(target_node, node_id))
+            lines.append(_chart_edge(target_node, node_id))
         if len(response_nodes) > 1:
             lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _, _, _ in response_nodes) + " }")
-            lines.extend(_dot_invisible_order([node_id for node_id, _, _, _, _ in response_nodes], indent="  "))
+            lines.extend(_chart_layout_edges([node_id for node_id, _, _, _, _ in response_nodes], indent="  "))
     if len(target_tail) > 1:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _ in target_tail) + " }")
-        lines.extend(_dot_invisible_order([node_id for node_id, _ in target_tail], indent="  "))
+        lines.extend(_chart_layout_edges([node_id for node_id, _ in target_tail], indent="  "))
     lines.append("}")
     return "\n".join(lines) + "\n"
 
@@ -1922,7 +1943,7 @@ def _external_interface_io_card_titles(adapter_kind: str) -> tuple[str, str]:
     return "input", "output"
 
 
-def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict[str, Any]) -> str:
+def workflow_flow_chart_dot_source(workflow_id: str, workflow: dict[str, Any], contract: dict[str, Any]) -> str:
     trigger_kind, trigger_value = _target_pair(workflow["inputs"])
     trigger_node = _dot_node_id("workflow_input", f"{trigger_kind}_{trigger_value}")
     workflow_node = _dot_node_id("workflow", workflow_id)
@@ -1941,23 +1962,23 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
     activity_node_by_id = {activity_id: node_id for node_id, activity_id, _ in activity_nodes}
     gateway_node_by_id = {gateway_id: node_id for node_id, gateway_id, _ in gateway_nodes}
     outcome_node_by_id = {outcome_id: node_id for node_id, outcome_id, _ in outcome_nodes}
-    lines = _dot_graph_preamble("workflow_" + safe_id(workflow_id))
+    lines = _chart_dot_source_preamble("workflow_flow_chart_" + safe_id(workflow_id))
     lines.extend(
         [
             _dot_html_node(trigger_node, _workflow_input_card(trigger_kind, trigger_value, contract)),
             _dot_html_node(
                 workflow_node,
-                _dot_card(
+                _chart_card(
                     workflow_id,
-                    "workflow",
+                    "workflow summary",
                     [
                         ("ref", [workflow.get("ref", "")]),
-                        ("activities", [f"{activity_id} {_DOT_ARROW_FORWARD} {activity['command']}" for activity_id, activity in workflow["activities"].items()]),
+                        ("activities", [f"{activity_id} {_CHART_SEQUENCE_GLYPH} {activity['command']}" for activity_id, activity in workflow["activities"].items()]),
                         ("gateways", sorted(workflow["gateways"]) or ["none"]),
-                        ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outputs"].items())]),
+                        ("outcomes", [_ChartSchemaFieldRow(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outputs"].items())]),
                     ],
                     rationale=workflow.get("rationale", ""),
-                    style=_DOT_STYLE_WORKFLOW,
+                    style=_CHART_TONE_WORKFLOW_CONTROL,
                 ),
             ),
         ]
@@ -1968,39 +1989,39 @@ def workflow_flow_dot(workflow_id: str, workflow: dict[str, Any], contract: dict
         lines.append(_dot_html_node(node_id, _workflow_gateway_card(gateway_id, gateway, workflow)))
     for node_id, outcome_id, outcome in outcome_nodes:
         lines.append(_dot_html_node(node_id, _workflow_outcome_card(outcome_id, outcome)))
-    lines.append(_dot_edge(trigger_node, workflow_node))
+    lines.append(_chart_edge(trigger_node, workflow_node))
     if activity_nodes:
-        lines.append(_dot_edge(workflow_node, activity_nodes[0][0]))
+        lines.append(_chart_edge(workflow_node, activity_nodes[0][0]))
     for sequence_flow_id, sequence_flow in sorted(workflow["sequence_flows"].items()):
         source_kind, source_id = _workflow_sequence_flow_source_ref(sequence_flow)
         node_id = activity_node_by_id[source_id] if source_kind == "activity" else gateway_node_by_id[source_id]
         attrs = {"label": sequence_flow.get("source_outcome") or sequence_flow.get("condition") or sequence_flow_id}
         target_kind, target_id = _workflow_sequence_flow_target_ref(sequence_flow)
         if target_kind == "activity":
-            lines.append(_dot_edge(node_id, activity_node_by_id[target_id], attrs))
+            lines.append(_chart_edge(node_id, activity_node_by_id[target_id], attrs))
         elif target_kind == "gateway":
-            lines.append(_dot_edge(node_id, gateway_node_by_id[target_id], attrs))
+            lines.append(_chart_edge(node_id, gateway_node_by_id[target_id], attrs))
         else:
-            lines.append(_dot_edge(node_id, outcome_node_by_id[target_id], attrs))
+            lines.append(_chart_edge(node_id, outcome_node_by_id[target_id], attrs))
     if outcome_nodes:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _ in outcome_nodes) + " }")
-        lines.extend(_dot_invisible_order([node_id for node_id, _, _ in outcome_nodes], indent="  "))
+        lines.extend(_chart_layout_edges([node_id for node_id, _, _ in outcome_nodes], indent="  "))
     lines.append("}")
     return "\n".join(lines) + "\n"
 
 
-def command_query_flow_dot(behavior_ref: str, behavior: dict[str, Any], contract: dict[str, Any]) -> str:
+def behavior_flow_chart_dot_source(behavior_ref: str, behavior: dict[str, Any], contract: dict[str, Any]) -> str:
     behavior = _command_query_map(contract).get(behavior_ref, behavior)
     behavior_kind = command_or_query_resource_kind(behavior_ref)
     input_node = _dot_node_id(f"{behavior_kind}_input", behavior_ref)
     authorization = behavior.get("authorization") or {}
     policy_id = authorization.get("policy")
-    policy_node = _dot_node_id("command_query_policy", policy_id) if policy_id else None
+    policy_node = _dot_node_id("authorization_check", policy_id) if policy_id else None
     authorization_failure_labels = {
         authorization.get("authentication_required_as"): "authentication_required_as",
         authorization.get("access_denied_as"): "access_denied_as",
     }
-    resource_nodes = _command_query_resource_nodes(behavior_ref, behavior, contract)
+    resource_nodes = _behavior_resource_nodes(behavior_ref, behavior, contract)
     outcome_nodes = [
         (_dot_node_id(f"{behavior_kind}_outcome", f"{behavior_ref}_{outcome_id}"), outcome_id, outcome)
         for outcome_id, outcome in sorted(behavior.get("outcomes", {}).items())
@@ -2012,24 +2033,25 @@ def command_query_flow_dot(behavior_ref: str, behavior: dict[str, Any], contract
         outcome_id = emit.get("outcome") if isinstance(emit, dict) else None
         if outcome_id:
             emits_by_outcome.setdefault(outcome_id, []).append(domain_event_id)
-        domain_event_nodes.setdefault(domain_event_id, _dot_node_id("command_domain_event", f"{behavior_ref}_{domain_event_id}"))
+        domain_event_nodes.setdefault(domain_event_id, _dot_node_id("domain_event_emission", f"{behavior_ref}_{domain_event_id}"))
 
-    lines = _dot_graph_preamble(f"{behavior_kind}_" + safe_id(behavior_ref))
+    lines = _chart_dot_source_preamble(f"{behavior_kind}_flow_chart_" + safe_id(behavior_ref))
     if behavior.get("input"):
-        lines.append(_dot_html_node(input_node, _dot_card("input", f"{behavior_kind} input", [("fields", _typed_fields(behavior["input"]))], style=_DOT_STYLE_EXTERNAL)))
+        lines.append(_dot_html_node(input_node, _chart_card("input", f"{behavior_kind} input", [("fields", _typed_fields(behavior["input"]))], style=_CHART_TONE_NEUTRAL_STRUCTURE)))
     if policy_id:
-        lines.append(_dot_html_node(policy_node or "", _policy_reference_card(policy_id, contract, subtitle="authorization gate", include_resources=False)))
+        lines.append(_dot_html_node(policy_node or "", _authorization_check_card(policy_id, contract, subtitle="authorization check", include_resources=False)))
     for node_id, _, target_id, target_kind, sections in resource_nodes:
-        style = _DOT_STYLE_ENTITY_TYPE if target_kind == "entity_type" else _DOT_STYLE_SCHEMA
-        lines.append(_dot_html_node(node_id, _dot_card(target_id, f"{target_kind} resource", sections, style=style)))
+        style = _CHART_TONE_ENTITY_RESOURCE if target_kind == "entity_type" else _CHART_TONE_SCHEMA_RESOURCE
+        role = "entity resource" if target_kind == "entity_type" else "schema resource"
+        lines.append(_dot_html_node(node_id, _chart_card(target_id, role, sections, style=style)))
     for node_id, outcome_id, outcome in outcome_nodes:
-        lines.append(_dot_html_node(node_id, _command_query_outcome_card(outcome_id, outcome)))
+        lines.append(_dot_html_node(node_id, _behavior_outcome_card(outcome_id, outcome)))
     for domain_event_id, node_id in domain_event_nodes.items():
-        lines.append(_dot_html_node(node_id, _domain_event_card(domain_event_id, contract, subtitle="emitted domain event", mode="emitted")))
+        lines.append(_dot_html_node(node_id, _durable_event_card(domain_event_id, contract, subtitle="domain event emission", mode="emitted")))
 
     external_interface_node = input_node if behavior.get("input") else None
     if external_interface_node and policy_node:
-        lines.append(_dot_edge(external_interface_node, policy_node, {"label": "authorize", "color": _DOT_COLOR_POLICY_BORDER, "penwidth": "1.2"}))
+        lines.append(_chart_edge(external_interface_node, policy_node, {"label": "authorize"}))
         external_interface_node = policy_node
     elif policy_node:
         external_interface_node = policy_node
@@ -2037,26 +2059,25 @@ def command_query_flow_dot(behavior_ref: str, behavior: dict[str, Any], contract
     flow_tail = external_interface_node
     for node_id, action, _, target_kind, _ in resource_nodes:
         if flow_tail:
-            resource_color = _DOT_COLOR_ENTITY_TYPE_BORDER if target_kind == "entity_type" else _DOT_COLOR_SCHEMA_BORDER
-            lines.append(_dot_edge(flow_tail, node_id, {"label": action, "color": resource_color}))
+            lines.append(_chart_edge(flow_tail, node_id, {"label": action}))
         flow_tail = node_id
 
     for node_id, outcome_id, outcome in outcome_nodes:
         authorization_failure_label = authorization_failure_labels.get(outcome_id)
         if authorization_failure_label and policy_node:
-            lines.append(_dot_edge(policy_node, node_id, {"label": authorization_failure_label, "color": _DOT_COLOR_POLICY_BORDER}))
+            lines.append(_chart_edge(policy_node, node_id, {"label": authorization_failure_label}))
         elif flow_tail:
-            lines.append(_dot_edge(flow_tail, node_id, {"label": outcome["kind"], "color": _outcome_edge_color(outcome["kind"])}))
+            lines.append(_chart_edge(flow_tail, node_id, {"label": outcome["kind"]}))
         for domain_event_id in emits_by_outcome.get(outcome_id, []):
-            lines.append(_dot_edge(node_id, domain_event_nodes[domain_event_id], {"label": "emit", "color": _DOT_COLOR_DOMAIN_EVENT_BORDER, "penwidth": "1.2"}))
+            lines.append(_chart_edge(node_id, domain_event_nodes[domain_event_id], {"label": "emit"}))
     if outcome_nodes:
         lines.append("  { rank=same; " + " ".join(_dot_quote(node_id) for node_id, _, _ in outcome_nodes) + " }")
-        lines.extend(_dot_invisible_order([node_id for node_id, _, _ in outcome_nodes], indent="  "))
+        lines.extend(_chart_layout_edges([node_id for node_id, _, _ in outcome_nodes], indent="  "))
     lines.append("}")
     return "\n".join(lines) + "\n"
 
 
-def _command_query_reference_sections(behavior_ref: str, behavior: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _behavior_reference_sections(behavior_ref: str, behavior: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     if behavior.get("behavior_kind"):
         sections.append(("kind", [behavior["behavior_kind"]]))
@@ -2073,7 +2094,7 @@ def _command_query_reference_sections(behavior_ref: str, behavior: dict[str, Any
     return sections
 
 
-def _command_query_resource_nodes(
+def _behavior_resource_nodes(
     behavior_ref: str,
     behavior: dict[str, Any],
     contract: dict[str, Any],
@@ -2090,7 +2111,7 @@ def _command_query_resource_nodes(
             resource = contract.get("entity_types", {}).get(target_id, contract.get("schemas", {}).get(target_id, {}))
             fields = schema_properties(resource.get("schema", {}))
             nodes.append((
-                _dot_node_id("command_query_resource", f"{behavior_ref}_{action}_{target_id}"),
+                _dot_node_id("behavior_resource", f"{behavior_ref}_{action}_{target_id}"),
                 action,
                 target_id,
                 target_kind,
@@ -2100,33 +2121,25 @@ def _command_query_resource_nodes(
         entity_lifecycle_transition = behavior["entity_lifecycle_transition"]
         field = schema_properties(contract["entity_types"][entity_lifecycle_transition["entity_type"]]["schema"])[entity_lifecycle_transition["field"]]
         nodes.append((
-            _dot_node_id("command_query_resource", f"{behavior_ref}_entity_lifecycle_transition_{entity_lifecycle_transition['entity_type']}_{entity_lifecycle_transition['field']}"),
+            _dot_node_id("behavior_resource", f"{behavior_ref}_entity_lifecycle_transition_{entity_lifecycle_transition['entity_type']}_{entity_lifecycle_transition['field']}"),
             "entity_lifecycle_transition",
             entity_lifecycle_transition["entity_type"],
             "entity_type",
-            [("change", [_DotTransitionField(f"{type_display({'$ref': entity_lifecycle_transition['entity_type']})}.{entity_lifecycle_transition['field']}", effective_property_schema(field), f"{entity_lifecycle_transition['from']} {_DOT_ARROW_FORWARD} {entity_lifecycle_transition['to']}")])],
+            [("change", [_ChartTransitionFieldRow(f"{type_display({'$ref': entity_lifecycle_transition['entity_type']})}.{entity_lifecycle_transition['field']}", effective_property_schema(field), f"{entity_lifecycle_transition['from']} {_CHART_SEQUENCE_GLYPH} {entity_lifecycle_transition['to']}")])],
         ))
     return nodes
 
 
-def _command_query_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:
-    sections: list[tuple[str, list[object]]] = [("result", [_DotTypedField("result", outcome["result"])])]
-    return _dot_card(outcome_id, f"{outcome['kind']} outcome", sections, style=_exit_card_style(outcome["kind"]))
+def _behavior_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:
+    sections: list[tuple[str, list[object]]] = [("result", [_ChartSchemaFieldRow("result", outcome["result"])])]
+    return _chart_card(outcome_id, f"{outcome['kind']} outcome", sections, style=_exit_card_style(outcome["kind"]))
 
 
-def _outcome_edge_color(kind: str) -> str:
-    if kind == "success":
-        return _DOT_COLOR_SUCCESS_BORDER
-    if kind == "failure":
-        return _DOT_COLOR_FAILURE_BORDER
-    return _DOT_COLOR_TARGET_BORDER
-
-
-def _policy_reference_card(
+def _authorization_check_card(
     policy_id: str,
     contract: dict[str, Any],
     *,
-    subtitle: str = "access policy",
+    subtitle: str = "authorization check",
     include_resources: bool = True,
 ) -> str:
     policy = contract.get("access_policies", {}).get(policy_id, {})
@@ -2141,11 +2154,11 @@ def _policy_reference_card(
         sections.append(("resource", _format_access_policy_resource(policy["resource"])))
     if policy.get("rules"):
         sections.append(("rules", _format_access_policy_rules(policy["rules"])))
-    return _dot_card(policy_id, subtitle, sections, rationale=policy.get("rationale", ""), style=_DOT_STYLE_POLICY)
+    return _chart_card(policy_id, subtitle, sections, rationale=policy.get("rationale", ""), style=_CHART_TONE_AUTHORIZATION_POLICY)
 
 
-def _schema_fields(fields: dict[str, Any]) -> list[_DotTypedField]:
-    return [_DotTypedField(name, effective_property_schema(field)) for name, field in sorted(schema_properties(fields).items())]
+def _schema_fields(fields: dict[str, Any]) -> list[_ChartSchemaFieldRow]:
+    return [_ChartSchemaFieldRow(name, effective_property_schema(field)) for name, field in sorted(schema_properties(fields).items())]
 
 
 def _external_interface_surface_title(external_interface: dict[str, Any]) -> str:
@@ -2191,7 +2204,7 @@ def _external_interface_input_sections(external_interface: dict[str, Any], contr
     if external_interface_input.get("args"):
         sections.append(("args", _typed_fields(external_interface_input["args"])))
     if external_interface_input.get("payload"):
-        sections.append(("payload", [_DotTypedField("payload", external_interface_input["payload"])]))
+        sections.append(("payload", [_ChartSchemaFieldRow("payload", external_interface_input["payload"])]))
     invocation_kind, _ = external_interface_invoked_ref_pair(external_interface)
     if invocation_kind == "external_interface":
         for section_name, bindings in sorted((external_interface_input.get("delegated_input") or {}).items()):
@@ -2201,26 +2214,26 @@ def _external_interface_input_sections(external_interface: dict[str, Any], contr
     return sections
 
 
-def _external_interface_response_nodes(external_interface_id: str, external_interface: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, str | None, list[tuple[str, list[object]]]]]:
+def _adapter_response_card_nodes(external_interface_id: str, external_interface: dict[str, Any], contract: dict[str, Any]) -> list[tuple[str, str, str | None, str | None, list[tuple[str, list[object]]]]]:
     responses = external_interface_output_responses(external_interface)
     handlers = external_interface_output_response_handlers(external_interface)
     if not responses and not handlers:
         return []
     target_kind, target_value = external_interface_invoked_ref_pair(external_interface)
-    outcomes = _external_interface_response_outcomes(contract, target_kind, target_value)
+    outcomes = _invoked_target_outcomes(contract, target_kind, target_value)
     nodes = []
     for outcome_id, response in sorted(responses.items()):
         outcome = outcomes.get(outcome_id)
-        outcome_kind = outcome["kind"] if outcome else _external_interface_response_style_kind(response)
-        subtitle = f"{outcome['kind']} response" if outcome else _external_interface_disposition_subtitle(response, outcome_kind)
-        node_id = _dot_node_id("external_interface_response", f"{external_interface_id}_{outcome_id}")
-        nodes.append((node_id, outcome_id, subtitle, outcome_kind, _external_interface_response_sections(response)))
+        outcome_kind = outcome["kind"] if outcome else _adapter_response_style_kind(response)
+        subtitle = f"{outcome['kind']} invoked outcome response" if outcome else _external_interface_disposition_subtitle(response, outcome_kind)
+        node_id = _dot_node_id("invoked_outcome_response" if outcome else "adapter_ingress_response", f"{external_interface_id}_{outcome_id}")
+        nodes.append((node_id, outcome_id, subtitle, outcome_kind, _adapter_response_card_sections(response)))
     for outcome_id, handler in sorted(handlers.items()):
         outcome = outcomes.get(outcome_id)
-        outcome_kind = outcome["kind"] if outcome else _external_interface_response_style_kind(handler)
-        subtitle = f"{outcome['kind']} response handler" if outcome else _external_interface_disposition_subtitle(handler, outcome_kind) or "response handler"
-        node_id = _dot_node_id("external_interface_response", f"{external_interface_id}_{outcome_id}")
-        nodes.append((node_id, outcome_id, subtitle, outcome_kind, _external_interface_response_sections(handler)))
+        outcome_kind = outcome["kind"] if outcome else _adapter_response_style_kind(handler)
+        subtitle = f"{outcome['kind']} cli response handler" if outcome else _external_interface_disposition_subtitle(handler, outcome_kind) or "cli response handler"
+        node_id = _dot_node_id("cli_response_handler", f"{external_interface_id}_{outcome_id}")
+        nodes.append((node_id, outcome_id, subtitle, outcome_kind, _adapter_response_card_sections(handler)))
     return nodes
 
 
@@ -2228,11 +2241,11 @@ def _external_interface_disposition_subtitle(response: dict[str, Any], outcome_k
     if "disposition" not in response:
         return None
     if outcome_kind in {"success", "failure"}:
-        return f"{outcome_kind} disposition"
-    return "disposition"
+        return f"{outcome_kind} adapter ingress response"
+    return "adapter ingress response"
 
 
-def _external_interface_response_style_kind(response: dict[str, Any]) -> str | None:
+def _adapter_response_style_kind(response: dict[str, Any]) -> str | None:
     disposition = response.get("disposition")
     if disposition == "acknowledge":
         return "success"
@@ -2241,34 +2254,34 @@ def _external_interface_response_style_kind(response: dict[str, Any]) -> str | N
     return None
 
 
-def _exit_card_style(outcome_kind: str | None) -> _DotCardStyle:
+def _exit_card_style(outcome_kind: str | None) -> _ChartCardTone:
     if outcome_kind == "success":
-        return _DOT_STYLE_SUCCESS_EXIT
+        return _CHART_TONE_SUCCESS_OUTCOME
     if outcome_kind == "failure":
-        return _DOT_STYLE_FAILURE_EXIT
-    return _DOT_STYLE_TARGET
+        return _CHART_TONE_FAILURE_OUTCOME
+    return _CHART_TONE_INVOCATION_TARGET
 
 
-def _external_interface_response_outcomes(contract: dict[str, Any], target_kind: str, target_value: str) -> dict[str, Any]:
+def _invoked_target_outcomes(contract: dict[str, Any], target_kind: str, target_value: str) -> dict[str, Any]:
     if target_kind in {"command", "query"}:
         return _command_query_map(contract)[target_value]["outcomes"]
     if target_kind == "external_interface":
         delegated_kind, delegated_value = external_interface_invoked_ref_pair(contract["external_interfaces"][target_value])
-        return _external_interface_response_outcomes(contract, delegated_kind, delegated_value)
+        return _invoked_target_outcomes(contract, delegated_kind, delegated_value)
     return {}
 
 
-def _external_interface_response_sections(response: dict[str, Any]) -> list[tuple[str, list[object]]]:
+def _adapter_response_card_sections(response: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     if "status" in response:
         sections.append(("status", [str(response["status"])]))
     if "body" in response:
         body = response["body"]
-        sections.append(("body schema", [_DotTypedField("body", body["schema"], body.get("from"))]))
+        sections.append(("body schema", [_ChartSchemaFieldRow("body", body["schema"], body.get("from"))]))
     if "stdout" in response:
         stdout = response["stdout"]
         if "schema" in stdout:
-            sections.append(("stdout schema", [_DotTypedField("stdout", stdout["schema"], stdout.get("from"))]))
+            sections.append(("stdout schema", [_ChartSchemaFieldRow("stdout", stdout["schema"], stdout.get("from"))]))
         else:
             sections.append(("stdout", [stdout["text"]]))
             if stdout.get("bindings"):
@@ -2276,7 +2289,7 @@ def _external_interface_response_sections(response: dict[str, Any]) -> list[tupl
     if "stderr" in response:
         stderr = response["stderr"]
         if "schema" in stderr:
-            sections.append(("stderr schema", [_DotTypedField("stderr", stderr["schema"], stderr.get("from"))]))
+            sections.append(("stderr schema", [_ChartSchemaFieldRow("stderr", stderr["schema"], stderr.get("from"))]))
         else:
             sections.append(("stderr", [stderr["text"]]))
             if stderr.get("bindings"):
@@ -2286,7 +2299,7 @@ def _external_interface_response_sections(response: dict[str, Any]) -> list[tupl
     if "disposition" in response:
         sections.append(("disposition", [response["disposition"]]))
     if "problem" in response:
-        sections.append(("problem", [_DotTypedField("problem", response["problem"])]))
+        sections.append(("problem", [_ChartSchemaFieldRow("problem", response["problem"])]))
     if "retry_policy" in response:
         retry = response["retry_policy"]
         sections.append(("retry", [f"{retry['attempts']} {retry['backoff']}"]))
@@ -2297,7 +2310,7 @@ def _format_binding_lines(bindings: dict[str, Any]) -> list[str]:
     lines = []
     for name, binding in sorted(bindings.items()):
         if isinstance(binding, dict) and "from" in binding:
-            lines.append(f"{name} {_DOT_ARROW_ASSIGN} {_format_flow_source(binding)}")
+            lines.append(f"{name} {_CHART_BINDING_SOURCE_GLYPH} {_format_flow_source(binding)}")
         elif isinstance(binding, dict) and "value" in binding:
             lines.append(f"{name} = {_format_flow_source(binding)}")
         else:
@@ -2314,35 +2327,35 @@ def _external_interface_target_card(
 ) -> str:
     if target_kind == "state_machine":
         state_machine = contract["state_machines"][target_value]
-        return _dot_card(
+        return _chart_card(
             target_value,
-            f"invoked state machine ({renderer})" if renderer else "invoked state machine",
+            f"state machine invocation target ({renderer})" if renderer else "state machine invocation target",
             _state_machine_summary_sections(state_machine, contract),
             rationale=state_machine.get("rationale", ""),
-            style=_DOT_STYLE_TARGET,
+            style=_CHART_TONE_INVOCATION_TARGET,
         )
     if target_kind in {"command", "query"}:
         behavior = _command_query_map(contract)[target_value]
-        return _dot_card(
+        return _chart_card(
             target_value,
-            f"invoked {target_kind}",
-            _command_query_reference_sections(target_value, behavior),
+            f"{target_kind} invocation target",
+            _behavior_reference_sections(target_value, behavior),
             rationale=behavior.get("rationale", ""),
-            style=_DOT_STYLE_PRODUCT_BEHAVIOR,
+            style=_CHART_TONE_BEHAVIOR_CARD,
         )
     if target_kind == "workflow":
         workflow = contract["workflows"][target_value]
-        return _dot_card(
+        return _chart_card(
             target_value,
-            "invoked workflow",
+            "workflow invocation target",
             [
                 ("trigger", [_target_label(*_target_pair(workflow["inputs"]))]),
-                ("activities", [f"{activity_id} {_DOT_ARROW_FORWARD} {activity['command']}" for activity_id, activity in workflow["activities"].items()]),
+                ("activities", [f"{activity_id} {_CHART_SEQUENCE_GLYPH} {activity['command']}" for activity_id, activity in workflow["activities"].items()]),
                 ("gateways", sorted(workflow["gateways"]) or ["none"]),
-                ("outcomes", [_DotTypedField(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outputs"].items())]),
+                ("outcomes", [_ChartSchemaFieldRow(outcome_id, outcome["result"], outcome["kind"]) for outcome_id, outcome in sorted(workflow["outputs"].items())]),
             ],
             rationale=workflow.get("rationale", ""),
-            style=_DOT_STYLE_WORKFLOW,
+            style=_CHART_TONE_WORKFLOW_CONTROL,
         )
     if target_kind == "external_interface":
         delegated = contract["external_interfaces"][target_value]
@@ -2353,19 +2366,19 @@ def _external_interface_target_card(
             ("invokes", [_target_label(delegated_target_kind, delegated_target_value)]),
         ]
         if delegated_target_kind in {"command", "query"}:
-            sections.extend(_command_query_reference_sections(delegated_target_value, _command_query_map(contract)[delegated_target_value]))
+            sections.extend(_behavior_reference_sections(delegated_target_value, _command_query_map(contract)[delegated_target_value]))
         else:
             sections.extend(_access_policy_sections(delegated.get("access_policy"), contract, include_details=False))
-        return _dot_card(
+        return _chart_card(
             target_value,
-            "delegated external interface",
+            "delegated invocation target",
             sections,
             rationale=delegated.get("rationale", ""),
-            style=_DOT_STYLE_EXTERNAL_INTERFACE,
+            style=_CHART_TONE_INVOCATION_TARGET,
         )
     if target_kind == "domain_event":
-        return _domain_event_card(target_value, contract)
-    return _dot_card(target_value, f"invoked {target_kind}", [], style=_DOT_STYLE_NEUTRAL)
+        return _durable_event_card(target_value, contract)
+    return _chart_card(target_value, f"{target_kind} invocation target", [], style=_CHART_TONE_NEUTRAL_STRUCTURE)
 
 
 def _external_interface_target_tail_nodes(target_kind: str, target_value: str, contract: dict[str, Any]) -> list[tuple[str, str]]:
@@ -2376,11 +2389,11 @@ def _external_interface_target_tail_nodes(target_kind: str, target_value: str, c
     for state_name, state in sorted(state_machine.get("states", {}).items()):
         if state.get("child_state_machines"):
             nodes.extend(
-                (_dot_node_id("external_interface_mount", f"{target_value}_{state_name}_{mount['id']}"), _dot_mount_card(mount))
+                (_dot_node_id("invocation_target_preview_mount", f"{target_value}_{state_name}_{mount['id']}"), _child_machine_mount_card(mount))
                 for mount in state["child_state_machines"]
             )
         else:
-            nodes.append((_dot_node_id("external_interface_state_machine_state", f"{target_value}_{state_name}"), _state_machine_state_card(state_machine, state_name, state, contract)))
+            nodes.append((_dot_node_id("invocation_target_preview_state", f"{target_value}_{state_name}"), _state_machine_state_card(state_machine, state_name, state, contract)))
     return nodes
 
 
@@ -2390,7 +2403,7 @@ def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dic
     behavior_refs = [binding["behavior"] for binding in bindings]
     inputs = _format_data_inputs(state_machine, bindings, contract)
     queries = [binding["query_binding"] for binding in bindings]
-    loads = _format_command_query_outputs(behavior_refs, contract)
+    loads = _format_behavior_outputs(behavior_refs, contract)
     guards = _format_action_access_policies(behavior_refs, contract)
     if inputs:
         sections.append(("input", inputs))
@@ -2408,11 +2421,11 @@ def _state_machine_summary_sections(state_machine: dict[str, Any], contract: dic
 
 
 def _state_machine_state_card(state_machine: dict[str, Any], state_name: str, state: dict[str, Any], contract: dict[str, Any]) -> str:
-    return _dot_card(
+    return _chart_card(
         state_name,
         "state",
         _state_machine_state_sections(state_machine, state_name, state, contract),
-        style=_DOT_STYLE_NEUTRAL,
+        style=_CHART_TONE_NEUTRAL_STRUCTURE,
     )
 
 
@@ -2424,7 +2437,7 @@ def _state_machine_state_sections(
 ) -> list[tuple[str, Iterable[object]]]:
     query_bindings = state.get("query_bindings", {})
     command_bindings = state.get("command_bindings", {})
-    query_command_query_refs = [_invocation_command_or_query_ref(invocation) for invocation in query_bindings.values()]
+    query_behavior_refs = [_invocation_command_or_query_ref(invocation) for invocation in query_bindings.values()]
     command_refs = [_invocation_command_or_query_ref(invocation) for invocation in command_bindings.values()]
     return [
         ("text_resources", state.get("text_resources", [])),
@@ -2432,7 +2445,7 @@ def _state_machine_state_sections(
         (_state_field_section_title(state_machine, state_name, state), _format_state_fields(state_machine, state, contract)),
         ("query_bindings", _format_command_binding_outputs(query_bindings, contract)),
         ("command_bindings", _format_command_binding_outputs(command_bindings, contract)),
-        ("access_policies", _format_action_access_policies([*query_command_query_refs, *command_refs], contract)),
+        ("access_policies", _format_action_access_policies([*query_behavior_refs, *command_refs], contract)),
         ("child_state_machines", _format_mounts(state.get("child_state_machines", []))),
         ("local_signal_sync_rules", [rule["id"] for rule in state.get("local_signal_sync_rules", [])]),
     ]
@@ -2440,17 +2453,27 @@ def _state_machine_state_sections(
 
 def _workflow_input_card(trigger_kind: str, trigger_value: str, contract: dict[str, Any]) -> str:
     if trigger_kind == "domain_event":
-        return _domain_event_card(trigger_value, contract, subtitle="domain event input")
+        domain_event = contract.get("domain_events", {}).get(trigger_value, {})
+        sections: list[tuple[str, list[object]]] = []
+        if domain_event.get("payload_schema"):
+            sections.append(("payload", [_ChartSchemaFieldRow("payload", domain_event["payload_schema"])]))
+        return _chart_card(
+            trigger_value,
+            "workflow input",
+            sections,
+            rationale=domain_event.get("rationale", ""),
+            style=_CHART_TONE_DURABLE_EVENT,
+        )
     if trigger_kind in {"command", "query"}:
         behavior = _command_query_map(contract)[trigger_value]
-        return _dot_card(
+        return _chart_card(
             trigger_value,
-            f"{trigger_kind} input",
-            _command_query_reference_sections(trigger_value, behavior),
+            "workflow input",
+            _behavior_reference_sections(trigger_value, behavior),
             rationale=behavior.get("rationale", ""),
-            style=_DOT_STYLE_DOMAIN_EVENT,
+            style=_CHART_TONE_BEHAVIOR_CARD,
         )
-    return _dot_card(trigger_value, f"{trigger_kind} input", [], style=_DOT_STYLE_DOMAIN_EVENT)
+    return _chart_card(trigger_value, "workflow input", [], style=_CHART_TONE_NEUTRAL_STRUCTURE)
 
 
 def _workflow_activity_card(activity_id: str, activity: dict[str, Any], workflow: dict[str, Any], contract: dict[str, Any]) -> str:
@@ -2460,18 +2483,18 @@ def _workflow_activity_card(activity_id: str, activity: dict[str, Any], workflow
         ("input mapping", _format_binding_lines(activity["input_mapping"])),
         ("sequence flows", _workflow_sequence_flow_lines(activity_id, workflow)),
     ]
-    sections.extend(_command_query_reference_sections(activity["command"], behavior))
-    return _dot_card(
+    sections.extend(_behavior_reference_sections(activity["command"], behavior))
+    return _chart_card(
         activity_id,
         "workflow activity",
         sections,
         rationale=behavior.get("rationale", ""),
-        style=_DOT_STYLE_NEUTRAL,
+        style=_CHART_TONE_NEUTRAL_STRUCTURE,
     )
 
 
 def _workflow_gateway_card(gateway_id: str, gateway: dict[str, Any], workflow: dict[str, Any]) -> str:
-    return _dot_card(
+    return _chart_card(
         gateway_id,
         "workflow gateway",
         [
@@ -2479,7 +2502,7 @@ def _workflow_gateway_card(gateway_id: str, gateway: dict[str, Any], workflow: d
             ("sequence flows", _workflow_gateway_sequence_flow_lines(gateway_id, workflow)),
         ],
         rationale=gateway.get("rationale", ""),
-        style=_DOT_STYLE_WORKFLOW,
+        style=_CHART_TONE_WORKFLOW_CONTROL,
     )
 
 
@@ -2518,42 +2541,42 @@ def _workflow_sequence_flow_target_ref(sequence_flow: dict[str, Any]) -> tuple[s
 
 def _workflow_sequence_flow_destination(sequence_flow: dict[str, Any]) -> str:
     target_kind, target_id = _workflow_sequence_flow_target_ref(sequence_flow)
-    destination = f"{target_kind} {_DOT_ARROW_FORWARD} {target_id}"
+    destination = f"{target_kind} {_CHART_SEQUENCE_GLYPH} {target_id}"
     if "retry_policy" not in sequence_flow:
         return destination
     retry = sequence_flow["retry_policy"]
-    return f"retry_policy {_DOT_ARROW_FORWARD} {destination} ({retry['attempts']} {retry['backoff']})"
+    return f"retry_policy {_CHART_SEQUENCE_GLYPH} {destination} ({retry['attempts']} {retry['backoff']})"
 
 
 def _workflow_outcome_card(outcome_id: str, outcome: dict[str, Any]) -> str:
-    return _dot_card(
+    return _chart_card(
         outcome_id,
         f"{outcome['kind']} workflow outcome",
-        [("result", [_DotTypedField("result", outcome["result"])])],
+        [("result", [_ChartSchemaFieldRow("result", outcome["result"])])],
         style=_exit_card_style(outcome["kind"]),
     )
 
 
-def _domain_event_card(
+def _durable_event_card(
     domain_event_id: str,
     contract: dict[str, Any],
     *,
-    subtitle: str = "referenced domain event",
+    subtitle: str = "durable event reference",
     mode: _DomainEventCardMode = "reference",
 ) -> str:
     domain_event = contract.get("domain_events", {}).get(domain_event_id, {})
     sections: list[tuple[str, list[object]]] = []
     if domain_event.get("payload_schema"):
-        payload_field = _DotExpandedTypedField("payload", domain_event["payload_schema"]) if mode == "emitted" else _DotTypedField("payload", domain_event["payload_schema"])
+        payload_field = _ChartExpandedSchemaFieldRow("payload", domain_event["payload_schema"]) if mode == "emitted" else _ChartSchemaFieldRow("payload", domain_event["payload_schema"])
         sections.append(("payload", [payload_field]))
     if mode == "reference" and domain_event.get("emitted_by"):
         sections.append(("emitted by", domain_event["emitted_by"]))
-    return _dot_card(
+    return _chart_card(
         domain_event_id,
         subtitle,
         sections,
         rationale=domain_event.get("rationale", ""),
-        style=_DOT_STYLE_DOMAIN_EVENT,
+        style=_CHART_TONE_DURABLE_EVENT,
     )
 
 
@@ -2584,7 +2607,7 @@ def _format_access_policy_subject(subject: Iterable[dict[str, Any]]) -> list[str
     for subject_item in subject:
         line = subject_item["kind"]
         if subject_item.get("source"):
-            line = f"{line} {_DOT_ARROW_ASSIGN} {_format_flow_source(subject_item['source'])}"
+            line = f"{line} {_CHART_BINDING_SOURCE_GLYPH} {_format_flow_source(subject_item['source'])}"
         lines.append(line)
     return lines
 
@@ -2615,8 +2638,8 @@ def _format_access_policy_rules(rules: Iterable[dict[str, Any]]) -> list[str]:
     return lines
 
 
-def _typed_fields(fields: dict[str, Any]) -> list[_DotTypedField]:
-    return [_DotTypedField(name, type_name) for name, type_name in sorted(schema_properties(fields).items())]
+def _typed_fields(fields: dict[str, Any]) -> list[_ChartSchemaFieldRow]:
+    return [_ChartSchemaFieldRow(name, type_name) for name, type_name in sorted(schema_properties(fields).items())]
 
 
 def _target_pair(target: dict[str, str]) -> tuple[str, str]:
@@ -2627,51 +2650,56 @@ def _target_label(kind: str, value: str) -> str:
     return f"{kind} {value}"
 
 
-def _format_mounts(mounts: Iterable[dict[str, Any]]) -> list[_DotTypedField]:
-    lines: list[_DotTypedField] = []
+def _format_mounts(mounts: Iterable[dict[str, Any]]) -> list[_ChartSchemaFieldRow]:
+    lines: list[_ChartSchemaFieldRow] = []
     for mount in sorted(mounts, key=lambda item: (item.get("html_region") or item.get("textual_container") or "", item["id"])):
         placement = mount.get("html_region") or mount.get("textual_container")
-        lines.append(_DotReferenceField(placement or "", mount["state_machine"]))
+        lines.append(_ChartReferenceFieldRow(placement or "", mount["state_machine"]))
     return lines
 
 
-def _dot_mount_card(mount: dict[str, Any]) -> str:
+def _child_machine_mount_card(mount: dict[str, Any]) -> str:
     placement = mount.get("html_region") or mount.get("textual_container")
-    return _dot_card(
+    return _chart_card(
         mount["id"],
         f"{placement} mount",
         [
             ("state_machine", [mount["state_machine"]]),
             ("initial_state", [mount["initial_state"]]),
         ],
-        style=_DOT_STYLE_STATE_MACHINE,
+        style=_CHART_TONE_CHILD_MACHINE,
     )
 
 
-def _dot_sync_effect_card(
+def _state_composition_effect_card(
     effect: dict[str, Any],
     mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
+    context_schema: dict[str, Any] | None = None,
 ) -> str:
     if "send" in effect:
         send = effect["send"]
-        return _dot_card(
+        return _chart_card(
             _local_signal_label(send["local_signal"]),
-            "sent local signal",
+            "local signal send effect",
             [
                 ("causes", _receiving_transition_refs(send["instance"], send["local_signal"], mount_by_id, contract)),
                 ("payload", _sent_local_signal_data_lines(send, mount_by_id, contract)),
             ],
-            style=_DOT_STYLE_MESSAGE,
+            style=_CHART_TONE_LOCAL_SIGNAL_CARD,
         )
     assignment = effect["set"]
-    return _dot_card(
-        f"set {assignment['context']}",
-        "state machine context update",
+    context = schema_properties(context_schema or {})
+    set_rows: list[object] = [_format_flow_assignment(assignment["context"], _assignment_value(assignment), identity_scope=None)]
+    if assignment["context"] in context:
+        set_rows = [_format_typed_flow_assignment(assignment["context"], context[assignment["context"]], _assignment_value(assignment), identity_scope=None)]
+    return _chart_card(
+        assignment["context"],
+        "state context update",
         [
-            ("set", [_format_flow_assignment(assignment["context"], _assignment_value(assignment), identity_scope=None)]),
+            ("set", set_rows),
         ],
-        style=_DOT_STYLE_CONTEXT,
+        style=_CHART_TONE_STATE_CONTEXT_EFFECT,
     )
 
 
@@ -2680,9 +2708,9 @@ def _emitted_local_signal_data_lines(
     emitted: str,
     mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
-) -> list[_DotTypedField]:
+) -> list[_ChartSchemaFieldRow]:
     payload = _local_signal_payload_for_instance(instance_id, "emits", emitted, mount_by_id, contract)
-    lines: list[_DotTypedField] = []
+    lines: list[_ChartSchemaFieldRow] = []
     seen: set[str] = set()
     for signal_raise in _emitting_transition_raises(instance_id, emitted, mount_by_id, contract):
         for line in _format_typed_data_flow(signal_raise.get("payload_bindings", {}), payload):
@@ -2693,7 +2721,7 @@ def _emitted_local_signal_data_lines(
     return lines
 
 
-def _sync_set_lines(rule: dict[str, Any], state_machine: dict[str, Any]) -> list[_DotTypedField]:
+def _sync_set_lines(rule: dict[str, Any], state_machine: dict[str, Any]) -> list[_ChartSchemaFieldRow]:
     lines = []
     context = schema_properties(state_machine["context_schema"])
     for effect in rule.get("local_effects", []):
@@ -2709,7 +2737,7 @@ def _sent_local_signal_data_lines(
     send: dict[str, Any],
     mount_by_id: dict[str, dict[str, Any]],
     contract: dict[str, Any],
-) -> list[_DotTypedField]:
+) -> list[_ChartSchemaFieldRow]:
     payload = _local_signal_payload_for_instance(send["instance"], "accepts", send["local_signal"], mount_by_id, contract)
     return _format_typed_data_flow(send.get("payload_bindings", {}), payload)
 
@@ -2796,12 +2824,12 @@ def _dot_node_id(prefix: str, value: str) -> str:
     return f"{prefix}_{safe_id(value)}"
 
 
-def _dot_graph_preamble(graph_id: str) -> list[str]:
+def _chart_dot_source_preamble(graph_id: str) -> list[str]:
     return [
         f"digraph {_dot_quote(graph_id)} {{",
         '  graph [rankdir="LR", bgcolor="transparent", pad="0.25", nodesep="0.38", ranksep="0.85", splines="spline"];',
         f'  node [fontname="{_DOT_FONT}", fontsize="{_DOT_SIZE_DEFAULT_NODE}"];',
-        f'  edge [color="{_DOT_COLOR_EDGE}", fontname="{_DOT_FONT}", fontsize="{_DOT_SIZE_BODY}", arrowsize="0.8"];',
+        f'  edge [color="{_CHART_COLOR_EDGE_TONE}", fontname="{_DOT_FONT}", fontsize="{_DOT_SIZE_BODY}", arrowsize="0.8"];',
     ]
 
 
@@ -2832,45 +2860,45 @@ def _dot_plain_node(node_id: str, attrs: dict[str, object], indent: str = "  ") 
     return f"{indent}{_dot_quote(node_id)}{_dot_attrs(attrs)};"
 
 
-def _dot_edge(source: str, target: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:
-    edge_attrs = {name: value for name, value in (attrs or {}).items() if name != "color"}
+def _chart_edge(source: str, target: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:
+    edge_attrs = {name: value for name, value in (attrs or {}).items() if name not in {"color", "penwidth"}}
     return f"{indent}{_dot_quote(source)} -> {_dot_quote(target)}{_dot_attrs(edge_attrs)};"
 
 
-def _dot_invisible_order(node_ids: list[str], indent: str) -> list[str]:
+def _chart_layout_edges(node_ids: list[str], indent: str) -> list[str]:
     return [
-        _dot_edge(source, target, {"style": "invis", "weight": "100"}, indent=indent)
+        _chart_edge(source, target, {"style": "invis", "weight": "100"}, indent=indent)
         for source, target in zip(node_ids, node_ids[1:])
     ]
 
 
-class _DotHtml(str):
+class _ChartHtml(str):
     pass
 
 
-class _DotTypedField:
+class _ChartSchemaFieldRow:
     def __init__(self, field: str, type_name: Any, source: str | None = None) -> None:
         self.field = field
         self.type_name = type_display(_display_type(type_name))
         self.source = source
 
     def __str__(self) -> str:
-        suffix = f" {_DOT_ARROW_ASSIGN} {self.source}" if self.source is not None else ""
+        suffix = f" {_CHART_BINDING_SOURCE_GLYPH} {self.source}" if self.source is not None else ""
         return f"{self.field} {self.type_name}{suffix}"
 
 
-class _DotExpandedTypedField(_DotTypedField):
+class _ChartExpandedSchemaFieldRow(_ChartSchemaFieldRow):
     pass
 
 
-class _DotReferenceField(_DotTypedField):
+class _ChartReferenceFieldRow(_ChartSchemaFieldRow):
     def __init__(self, field: str, ref: str, source: str | None = None) -> None:
         self.field = field
         self.type_name = ref
         self.source = source
 
 
-class _DotTransitionField:
+class _ChartTransitionFieldRow:
     def __init__(self, field: str, type_name: Any, change: str) -> None:
         self.field = field
         self.type_name = type_display(_display_type(type_name))
@@ -2885,18 +2913,18 @@ def _display_type(type_name: Any) -> Any:
 
 
 def _dot_html_node(node_id: str, label: str, attrs: dict[str, object] | None = None, indent: str = "  ") -> str:
-    node_attrs: dict[str, object] = {"shape": "plain", "label": _DotHtml(label)}
+    node_attrs: dict[str, object] = {"shape": "plain", "label": _ChartHtml(label)}
     node_attrs.update(attrs or {})
     return _dot_plain_node(node_id, node_attrs, indent=indent)
 
 
-def _dot_card(
+def _chart_card(
     title: str,
     subtitle: str | None,
     sections: Iterable[tuple[str, Iterable[object]]],
     *,
     rationale: str | None = None,
-    style: _DotCardStyle = _DOT_STYLE_NEUTRAL,
+    style: _ChartCardTone = _CHART_TONE_NEUTRAL_STRUCTURE,
 ) -> str:
     header_bg = style.header_bg
     border = style.border
@@ -2905,7 +2933,7 @@ def _dot_card(
         _dot_header_row(title, subtitle, header_bg=header_bg),
     ]
     if rationale:
-        rows.extend(_dot_text_rows(_wrap_dot_text(rationale, width=50), point_size=_DOT_SIZE_BODY, italic=True, color=_DOT_COLOR_AUDIT_TEXT))
+        rows.extend(_dot_text_rows(_wrap_dot_text(rationale, width=50), point_size=_DOT_SIZE_BODY, italic=True, color=_CHART_COLOR_RATIONALE_TEXT_TONE))
     rows.extend(_dot_section_rows(sections))
     return (
         f'<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" COLOR="{border}" BGCOLOR="#ffffff">'
@@ -2920,7 +2948,7 @@ def _dot_header_row(title: str, subtitle: str | None, *, header_bg: str) -> str:
     ]
     if subtitle:
         header_rows.extend(
-            f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_DOT_COLOR_MUTED}">{_dot_html_text(line)}</FONT></TD></TR>'
+            f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_CHART_COLOR_MUTED_TEXT_TONE}">{_dot_html_text(line)}</FONT></TD></TR>'
             for line in _wrap_dot_text(subtitle)
         )
     header = (
@@ -2972,10 +3000,10 @@ def _dot_section_rows(sections: Iterable[tuple[str, Iterable[object]]]) -> list[
 
 def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool, list[str]] | None:
     values = list(values)
-    if values and all(isinstance(value, _DotTransitionField) for value in values):
-        return _dot_transition_field_section_inner_rows(title, values)
-    if values and all(isinstance(value, _DotTypedField) for value in values):
-        return _dot_typed_field_section_inner_rows(title, values)
+    if values and all(isinstance(value, _ChartTransitionFieldRow) for value in values):
+        return _chart_transition_field_section_inner_rows(title, values)
+    if values and all(isinstance(value, _ChartSchemaFieldRow) for value in values):
+        return _chart_schema_field_section_inner_rows(title, values)
     wrapped_values = [wrapped for value in values if (wrapped := _wrap_dot_text(value))]
     if not wrapped_values:
         return None
@@ -2996,62 +3024,62 @@ def _dot_section_inner_rows(title: str, values: Iterable[object]) -> tuple[bool,
     return False, inner_rows
 
 
-def _dot_typed_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
-    compactable = all(not isinstance(value, _DotExpandedTypedField) for value in values)
+def _chart_schema_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
+    compactable = all(not isinstance(value, _ChartExpandedSchemaFieldRow) for value in values)
     if compactable and (title in {"input", "output", "payload", "payload_schema", "query_bindings", "set", "load", "command_bindings"}) and len(values) == 1:
         rows = []
         for index, value in enumerate(values):
-            if isinstance(value, _DotTypedField):
-                rows.append(_dot_typed_field_key_value_row(title if index == 0 else "", value))
+            if isinstance(value, _ChartSchemaFieldRow):
+                rows.append(_chart_schema_field_key_value_row(title if index == 0 else "", value))
         return True, rows
     inner_rows = [f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_BODY}"><B>{_dot_html_text(title)}</B></FONT></TD></TR>']
-    inner_rows.extend(_dot_typed_field_row(value) for value in values if isinstance(value, _DotTypedField))
+    inner_rows.extend(_chart_schema_field_row(value) for value in values if isinstance(value, _ChartSchemaFieldRow))
     return False, inner_rows
 
 
-def _dot_transition_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
+def _chart_transition_field_section_inner_rows(title: str, values: list[object]) -> tuple[bool, list[str]]:
     inner_rows = [f'<TR><TD ALIGN="LEFT"><FONT POINT-SIZE="{_DOT_SIZE_BODY}"><B>{_dot_html_text(title)}</B></FONT></TD></TR>']
-    inner_rows.extend(_dot_transition_field_row(value) for value in values if isinstance(value, _DotTransitionField))
+    inner_rows.extend(_chart_transition_field_row(value) for value in values if isinstance(value, _ChartTransitionFieldRow))
     return False, inner_rows
 
 
-def _dot_transition_field_row(value: _DotTransitionField) -> str:
+def _chart_transition_field_row(value: _ChartTransitionFieldRow) -> str:
     return (
         '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
         f'<FONT POINT-SIZE="{_DOT_SIZE_BODY}">{_dot_html_text(value.field)}</FONT>'
-        f'<FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_DOT_COLOR_TYPE}">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        f'<FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_CHART_COLOR_TYPE_TEXT_TONE}">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
         f'<FONT POINT-SIZE="{_DOT_SIZE_META}">&#160;&#160;{_dot_html_text(value.change)}</FONT>'
         "</TD></TR>"
     )
 
 
-def _dot_typed_field_row(value: _DotTypedField) -> str:
-    source = _dot_typed_field_source(value)
+def _chart_schema_field_row(value: _ChartSchemaFieldRow) -> str:
+    source = _chart_schema_field_source(value)
     return (
         '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
         f'<FONT POINT-SIZE="{_DOT_SIZE_BODY}">{_dot_html_text(value.field)}</FONT>'
-        f'<FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_DOT_COLOR_TYPE}">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        f'<FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_CHART_COLOR_TYPE_TEXT_TONE}">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
         f"{source}"
         "</TD></TR>"
     )
 
 
-def _dot_typed_field_key_value_row(title: str, value: _DotTypedField) -> str:
+def _chart_schema_field_key_value_row(title: str, value: _ChartSchemaFieldRow) -> str:
     key = f"<B>{_dot_html_text(title)}:</B>&#160;&#160;" if title else "&#160;&#160;"
-    source = _dot_typed_field_source(value)
+    source = _chart_schema_field_source(value)
     return (
         '<TR><TD ALIGN="LEFT" VALIGN="MIDDLE" HEIGHT="11">'
         f'<FONT POINT-SIZE="{_DOT_SIZE_BODY}">{key}{_dot_html_text(value.field)}</FONT>'
-        f'<FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_DOT_COLOR_TYPE}">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
+        f'<FONT POINT-SIZE="{_DOT_SIZE_META}" COLOR="{_CHART_COLOR_TYPE_TEXT_TONE}">&#160;&#160;{_dot_html_text(value.type_name)}</FONT>'
         f"{source}"
         "</TD></TR>"
     )
 
 
-def _dot_typed_field_source(value: _DotTypedField) -> str:
+def _chart_schema_field_source(value: _ChartSchemaFieldRow) -> str:
     if value.source is None:
         return ""
-    return f'<FONT POINT-SIZE="{_DOT_SIZE_META}">&#160;{_DOT_ARROW_ASSIGN}&#160;{_dot_html_text(value.source)}</FONT>'
+    return f'<FONT POINT-SIZE="{_DOT_SIZE_META}">&#160;{_CHART_BINDING_SOURCE_GLYPH}&#160;{_dot_html_text(value.source)}</FONT>'
 
 
 def _dot_key_value_text(title: str, value: str) -> str:
@@ -3118,7 +3146,7 @@ def _format_typed_data_flow(
     field_types: dict[str, str],
     *,
     identity_scope: str | None = "trigger.payload",
-) -> list[_DotTypedField]:
+) -> list[_ChartSchemaFieldRow]:
     return [
         _format_typed_flow_assignment(key, field_types[key], value, identity_scope=identity_scope)
         for key, value in sorted(mapping.items())
@@ -3131,13 +3159,13 @@ def _format_typed_flow_assignment(
     value: Any,
     *,
     identity_scope: str | None = "trigger.payload",
-) -> _DotTypedField:
+) -> _ChartSchemaFieldRow:
     source = _format_flow_source(value)
     if identity_scope and source == f"{identity_scope}.{target}":
-        return _DotTypedField(target, type_name)
+        return _ChartSchemaFieldRow(target, type_name)
     if source.startswith("trigger.payload."):
         source = source[len("trigger.payload.") :]
-    return _DotTypedField(target, type_name, source)
+    return _ChartSchemaFieldRow(target, type_name, source)
 
 
 def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | None = "trigger.payload") -> str:
@@ -3146,7 +3174,7 @@ def _format_flow_assignment(target: str, value: Any, *, identity_scope: str | No
         return target
     if source.startswith("trigger.payload."):
         source = source[len("trigger.payload.") :]
-    return f"{target} {_DOT_ARROW_ASSIGN} {source}"
+    return f"{target} {_CHART_BINDING_SOURCE_GLYPH} {source}"
 
 
 def _format_flow_source(value: Any) -> str:
@@ -3166,7 +3194,7 @@ def _format_transition_sections(
     if _is_data_refresh_signal(transition["trigger"]):
         bindings = _transition_data_bindings(state_machine, transition)
         behavior_refs = [binding["behavior"] for binding in bindings]
-        data_sources = _format_command_query_outputs(behavior_refs, contract)
+        data_sources = _format_behavior_outputs(behavior_refs, contract)
         guards = _format_action_access_policies(behavior_refs, contract)
         queries = [binding["query_binding"] for binding in bindings]
         inputs = _format_data_inputs(state_machine, bindings, contract)
@@ -3181,7 +3209,7 @@ def _format_transition_sections(
     else:
         target_bindings = _transition_target_data_bindings(state_machine, transition)
         behavior_refs = [binding["behavior"] for binding in target_bindings]
-        data_sources = _format_command_query_outputs(behavior_refs, contract)
+        data_sources = _format_behavior_outputs(behavior_refs, contract)
         guards = _format_action_access_policies(behavior_refs, contract)
         queries = [binding["query_binding"] for binding in target_bindings]
         required_context = _format_data_inputs(state_machine, target_bindings, contract)
@@ -3227,36 +3255,36 @@ def _state_field_data_bindings(state_machine: dict[str, Any], state_name: str, s
     return _query_binding_bindings(state_machine.get("query_bindings", {}))
 
 
-def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
+def _format_state_fields(state_machine: dict[str, Any], state: dict[str, Any], contract: dict[str, Any]) -> list[_ChartSchemaFieldRow]:
     entity_type_fields = schema_properties(contract["entity_types"][state_machine["entity_type"]]["schema"]) if state_machine.get("entity_type") else {}
     context_fields = schema_properties(state_machine.get("context_schema", {}))
-    fields: list[_DotTypedField] = []
+    fields: list[_ChartSchemaFieldRow] = []
     for field in state["fields"]:
         if field in entity_type_fields:
-            fields.append(_DotTypedField(field, effective_property_schema(entity_type_fields[field])))
+            fields.append(_ChartSchemaFieldRow(field, effective_property_schema(entity_type_fields[field])))
         elif field in context_fields:
-            fields.append(_DotTypedField(field, context_fields[field]))
+            fields.append(_ChartSchemaFieldRow(field, context_fields[field]))
     return fields
 
 
-def _format_command_query_outputs(behavior_refs: Iterable[str], contract: dict[str, Any]) -> list[_DotTypedField]:
+def _format_behavior_outputs(behavior_refs: Iterable[str], contract: dict[str, Any]) -> list[_ChartSchemaFieldRow]:
     behavior_map = _command_query_map(contract)
-    fields: list[_DotTypedField] = []
+    fields: list[_ChartSchemaFieldRow] = []
     for behavior_ref in behavior_refs:
         for _, outcome in sorted(behavior_map[behavior_ref]["outcomes"].items()):
             if outcome["kind"] == "success":
-                fields.append(_DotTypedField(behavior_ref, outcome["result"]))
+                fields.append(_ChartSchemaFieldRow(behavior_ref, outcome["result"]))
     return fields
 
 
-def _format_command_binding_outputs(invocations: dict[str, Any], contract: dict[str, Any]) -> list[_DotTypedField]:
+def _format_command_binding_outputs(invocations: dict[str, Any], contract: dict[str, Any]) -> list[_ChartSchemaFieldRow]:
     behavior_map = _command_query_map(contract)
-    fields: list[_DotTypedField] = []
+    fields: list[_ChartSchemaFieldRow] = []
     for invocation_id, invocation in sorted(invocations.items()):
         behavior_ref = _invocation_command_or_query_ref(invocation)
         for _, outcome in sorted(behavior_map[behavior_ref]["outcomes"].items()):
             if outcome["kind"] == "success":
-                fields.append(_DotTypedField(f"{invocation_id}: {behavior_ref}", outcome["result"]))
+                fields.append(_ChartSchemaFieldRow(f"{invocation_id}: {behavior_ref}", outcome["result"]))
     return fields
 
 
@@ -3276,9 +3304,9 @@ def _format_action_access_policies(behavior_refs: Iterable[str], contract: dict[
 
 def _format_data_inputs(
     state_machine: dict[str, Any], bindings: Iterable[dict[str, Any]], contract: dict[str, Any]
-) -> list[_DotTypedField]:
+) -> list[_ChartSchemaFieldRow]:
     behavior_map = _command_query_map(contract)
-    inputs: list[_DotTypedField] = []
+    inputs: list[_ChartSchemaFieldRow] = []
     seen: set[str] = set()
     for binding in bindings:
         behavior = behavior_map[binding["behavior"]]
@@ -3286,7 +3314,7 @@ def _format_data_inputs(
             input_label = f"{binding.get('query_binding', binding['behavior'])}.{key}"
             signature = f"{input_label} {input_type}"
             if signature not in seen:
-                inputs.append(_DotTypedField(input_label, input_type))
+                inputs.append(_ChartSchemaFieldRow(input_label, input_type))
                 seen.add(signature)
     return inputs
 
@@ -3381,7 +3409,7 @@ def _dot_attrs(attrs: dict[str, object]) -> str:
 
 
 def _dot_attr_value(value: object) -> str:
-    if isinstance(value, _DotHtml):
+    if isinstance(value, _ChartHtml):
         return f"<{value}>"
     return _dot_quote(value)
 

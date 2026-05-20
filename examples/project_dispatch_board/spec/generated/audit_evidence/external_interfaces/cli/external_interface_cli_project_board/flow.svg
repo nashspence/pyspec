@@ -1,16 +1,16 @@
 <svg width="981pt" height="187pt"
  viewBox="0.00 0.00 981.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 18f99f1f5f1dd90f7d89a18ba7f34ddcfc31d1dba6129919e5ac6b91a1ada0b0 -->
+<!-- pyspec-contract-input-sha256: fea91ff1e65acf33ec9245b22018ef2c97dcb219a8b173a915731ca147957939 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
-<title>external_interface_external_interface_cli_project_board</title>
-<!-- external_interface_external_interface_cli_project_board -->
+<title>external_interface_flow_chart_external_interface_cli_project_board</title>
+<!-- adapter_boundary_external_interface_cli_project_board -->
 <g id="node1" class="node">
-<title>external_interface_external_interface_cli_project_board</title>
+<title>adapter_boundary_external_interface_cli_project_board</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,-9.5 0,-141.5 310,-141.5 310,-9.5 0,-9.5"/>
 <polygon fill="#0891b2" stroke="transparent" points="1,-132.5 1,-140.5 309,-140.5 309,-132.5 1,-132.5"/>
 <polygon fill="#ecfeff" stroke="transparent" points="1,-101.5 1,-132.5 309,-132.5 309,-101.5 1,-101.5"/>
 <text text-anchor="start" x="5" y="-119.1" font-family="Arial" font-weight="bold" font-size="13.00">project board</text>
-<text text-anchor="start" x="5" y="-108.1" font-family="Arial" font-size="8.00" fill="#64748b">cli external interface</text>
+<text text-anchor="start" x="5" y="-108.1" font-family="Arial" font-size="8.00" fill="#64748b">cli adapter boundary</text>
 <text text-anchor="start" x="5" y="-90.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">CLI launcher for the Textual dispatch board.</text>
 <text text-anchor="start" x="6" y="-70.5" font-family="Arial" font-weight="bold" font-size="10.00">cli command:</text>
 <text text-anchor="start" x="70" y="-70.5" font-family="Arial" font-size="10.00">  cli_command.project.board</text>
@@ -21,14 +21,14 @@
 <text text-anchor="start" x="78" y="-19.5" font-family="Arial" font-size="10.00">  workspace_id ← adapter_input.args.workspace_id</text>
 <polygon fill="none" stroke="#0891b2" points="0,-9.5 0,-141.5 310,-141.5 310,-9.5 0,-9.5"/>
 </g>
-<!-- external_interface_invocation_state_machine_project_board -->
+<!-- invocation_target_state_machine_project_board -->
 <g id="node2" class="node">
-<title>external_interface_invocation_state_machine_project_board</title>
+<title>invocation_target_state_machine_project_board</title>
 <polygon fill="#ffffff" stroke="transparent" points="371,0 371,-151 679,-151 679,0 371,0"/>
 <polygon fill="#9333ea" stroke="transparent" points="372,-141.5 372,-149.5 678,-149.5 678,-141.5 372,-141.5"/>
 <polygon fill="#faf5ff" stroke="transparent" points="372,-110.5 372,-141.5 678,-141.5 678,-110.5 372,-110.5"/>
 <text text-anchor="start" x="376" y="-128.1" font-family="Arial" font-weight="bold" font-size="13.00">state_machine.project.board</text>
-<text text-anchor="start" x="376" y="-117.1" font-family="Arial" font-size="8.00" fill="#64748b">invoked state machine (textual)</text>
+<text text-anchor="start" x="376" y="-117.1" font-family="Arial" font-size="8.00" fill="#64748b">state machine invocation target (textual)</text>
 <text text-anchor="start" x="376" y="-99.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
 <text text-anchor="start" x="376" y="-88.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity state machines through shared</text>
 <text text-anchor="start" x="376" y="-77.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">selected&#45;project context_resource.</text>
@@ -46,29 +46,29 @@
 <text text-anchor="start" x="492" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_state_machines</text>
 <polygon fill="none" stroke="#9333ea" points="371,0 371,-151 679,-151 679,0 371,0"/>
 </g>
-<!-- external_interface_external_interface_cli_project_board&#45;&gt;external_interface_invocation_state_machine_project_board -->
+<!-- adapter_boundary_external_interface_cli_project_board&#45;&gt;invocation_target_state_machine_project_board -->
 <g id="edge1" class="edge">
-<title>external_interface_external_interface_cli_project_board&#45;&gt;external_interface_invocation_state_machine_project_board</title>
+<title>adapter_boundary_external_interface_cli_project_board&#45;&gt;invocation_target_state_machine_project_board</title>
 <path fill="none" stroke="#3f3f46" d="M310.2,-75.5C327.61,-75.5 345.38,-75.5 362.88,-75.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="362.9,-78.3 370.9,-75.5 362.9,-72.7 362.9,-78.3"/>
 </g>
-<!-- external_interface_response_external_interface_cli_project_board_opened -->
+<!-- cli_response_handler_external_interface_cli_project_board_opened -->
 <g id="node3" class="node">
-<title>external_interface_response_external_interface_cli_project_board_opened</title>
+<title>cli_response_handler_external_interface_cli_project_board_opened</title>
 <polygon fill="#ffffff" stroke="transparent" points="740,-38.5 740,-112.5 945,-112.5 945,-38.5 740,-38.5"/>
 <polygon fill="#9333ea" stroke="transparent" points="741.5,-103.5 741.5,-111.5 944.5,-111.5 944.5,-103.5 741.5,-103.5"/>
 <polygon fill="#faf5ff" stroke="transparent" points="741.5,-72.5 741.5,-103.5 944.5,-103.5 944.5,-72.5 741.5,-72.5"/>
 <text text-anchor="start" x="745.5" y="-90.1" font-family="Arial" font-weight="bold" font-size="13.00">opened</text>
-<text text-anchor="start" x="745.5" y="-79.1" font-family="Arial" font-size="8.00" fill="#64748b">response handler</text>
+<text text-anchor="start" x="745.5" y="-79.1" font-family="Arial" font-size="8.00" fill="#64748b">cli response handler</text>
 <text text-anchor="start" x="746.5" y="-60.5" font-family="Arial" font-weight="bold" font-size="10.00">stdout:</text>
 <text text-anchor="start" x="779.5" y="-60.5" font-family="Arial" font-size="10.00">  text_resource.project.board.opened</text>
 <text text-anchor="start" x="746.5" y="-48.5" font-family="Arial" font-weight="bold" font-size="10.00">exit_code:</text>
 <text text-anchor="start" x="794.5" y="-48.5" font-family="Arial" font-size="10.00">  0</text>
 <polygon fill="none" stroke="#9333ea" points="740,-38.5 740,-112.5 945,-112.5 945,-38.5 740,-38.5"/>
 </g>
-<!-- external_interface_invocation_state_machine_project_board&#45;&gt;external_interface_response_external_interface_cli_project_board_opened -->
+<!-- invocation_target_state_machine_project_board&#45;&gt;cli_response_handler_external_interface_cli_project_board_opened -->
 <g id="edge2" class="edge">
-<title>external_interface_invocation_state_machine_project_board&#45;&gt;external_interface_response_external_interface_cli_project_board_opened</title>
+<title>invocation_target_state_machine_project_board&#45;&gt;cli_response_handler_external_interface_cli_project_board_opened</title>
 <path fill="none" stroke="#3f3f46" d="M679.13,-75.5C696.8,-75.5 714.56,-75.5 731.5,-75.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="731.75,-78.3 739.75,-75.5 731.75,-72.7 731.75,-78.3"/>
 </g>

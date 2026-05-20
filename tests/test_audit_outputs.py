@@ -9,19 +9,20 @@ from pyspec_contract.audit import (
     audit_coverage_file,
     audit_coverage_index,
     audit_expected_files,
-    composition_dot,
-    composition_file,
-    external_interface_flow_dot,
-    external_interface_flow_file,
-    command_query_flow_dot,
-    command_query_flow_file,
-    state_machine_dot,
-    state_machine_graph_file,
+    state_composition_chart_dot_source,
+    state_composition_chart_file,
+    external_interface_flow_chart_dot_source,
+    external_interface_flow_chart_file,
+    behavior_flow_chart_dot_source,
+    behavior_flow_chart_file,
+    command_flow_chart_file,
+    state_machine_chart_dot_source,
+    state_machine_chart_file,
     state_root,
     generate_audit,
     render_example_render_file,
-    workflow_flow_dot,
-    workflow_flow_file,
+    workflow_flow_chart_dot_source,
+    workflow_flow_chart_file,
 )
 from pyspec_contract.compile import ContractError, compile_source, write_compiled
 from pyspec_contract.io import read_yaml, write_yaml
@@ -72,7 +73,7 @@ def test_audit_outputs_cover_full_contract() -> None:
     assert "spec/generated/audit_evidence/external_interfaces/html_route/external_interface_html_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/external_interfaces/cli/external_interface_cli_project_board/flow.svg" in expected
     assert "spec/generated/audit_evidence/workflows/workflow_project_approval_notice/flow.svg" in expected
-    assert command_query_flow_file("command.project.approve") in expected
+    assert command_flow_chart_file("command.project.approve") in expected
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/states/" in path and path.endswith("/text_resources.yaml") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/states/" in path and "/renders/" in path and path.endswith(".png") for path in expected)
     assert any(path.startswith("spec/generated/audit_evidence/state_machines/") and "/render_examples/" in path and "/renders/" in path and path.endswith(".html") for path in expected)
@@ -145,7 +146,7 @@ def test_audit_coverage_index_rejects_missing_required_visual_pointers(tmp_path:
 def test_audit_coverage_index_rejects_missing_required_visual_text_witness(tmp_path: Path) -> None:
     project = tmp_path / "project"
     copy_project_tree(ROOT, project)
-    flow_path = project / external_interface_flow_file("external_interface.cli.project.approve", "cli")
+    flow_path = project / external_interface_flow_chart_file("external_interface.cli.project.approve", "cli")
     flow_path.write_text(
         flow_path.read_text(encoding="utf-8").replace("external_interface.api.project.approve", "external_interface.api.project.REMOVED"),
         encoding="utf-8",
@@ -154,20 +155,20 @@ def test_audit_coverage_index_rejects_missing_required_visual_text_witness(tmp_p
         validate_audit_outputs(project, _contract(project))
 
 
-def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
+def test_audit_charts_use_graphviz_dot_sources() -> None:
     contract = _contract()
-    state_machine = state_machine_dot("state_machine.project.list", contract["state_machines"]["state_machine.project.list"], contract)
+    state_machine = state_machine_chart_dot_source("state_machine.project.list", contract["state_machines"]["state_machine.project.list"], contract)
     board = contract["state_machines"]["state_machine.project.board"]
-    composition = composition_dot("state_machine.project.board.ready", {"context_schema": board["context_schema"], **board["states"]["ready"]}, contract)
-    external_interface = external_interface_flow_dot("external_interface.html.project.board", contract["external_interfaces"]["external_interface.html.project.board"], contract)
-    api_external_interface = external_interface_flow_dot("external_interface.api.project.create", contract["external_interfaces"]["external_interface.api.project.create"], contract)
-    cli_external_interface = external_interface_flow_dot("external_interface.cli.project.board", contract["external_interfaces"]["external_interface.cli.project.board"], contract)
-    cli_approve_external_interface = external_interface_flow_dot("external_interface.cli.project.approve", contract["external_interfaces"]["external_interface.cli.project.approve"], contract)
-    worker_external_interface = external_interface_flow_dot("external_interface.worker.project.approval_notice", contract["external_interfaces"]["external_interface.worker.project.approval_notice"], contract)
-    workflow = workflow_flow_dot("workflow.project.approval_notice", contract["workflows"]["workflow.project.approval_notice"], contract)
-    behavior = command_query_flow_dot("command.project.approve", contract["commands"]["command.project.approve"], contract)
-    create_behavior = command_query_flow_dot("command.project.create", contract["commands"]["command.project.create"], contract)
-    diagram_sources = (
+    composition = state_composition_chart_dot_source("state_machine.project.board.ready", {"context_schema": board["context_schema"], **board["states"]["ready"]}, contract)
+    external_interface = external_interface_flow_chart_dot_source("external_interface.html.project.board", contract["external_interfaces"]["external_interface.html.project.board"], contract)
+    api_external_interface = external_interface_flow_chart_dot_source("external_interface.api.project.create", contract["external_interfaces"]["external_interface.api.project.create"], contract)
+    cli_external_interface = external_interface_flow_chart_dot_source("external_interface.cli.project.board", contract["external_interfaces"]["external_interface.cli.project.board"], contract)
+    cli_approve_external_interface = external_interface_flow_chart_dot_source("external_interface.cli.project.approve", contract["external_interfaces"]["external_interface.cli.project.approve"], contract)
+    worker_external_interface = external_interface_flow_chart_dot_source("external_interface.worker.project.approval_notice", contract["external_interfaces"]["external_interface.worker.project.approval_notice"], contract)
+    workflow = workflow_flow_chart_dot_source("workflow.project.approval_notice", contract["workflows"]["workflow.project.approval_notice"], contract)
+    behavior = behavior_flow_chart_dot_source("command.project.approve", contract["commands"]["command.project.approve"], contract)
+    create_behavior = behavior_flow_chart_dot_source("command.project.create", contract["commands"]["command.project.create"], contract)
+    chart_dot_sources = (
         state_machine,
         composition,
         external_interface,
@@ -179,7 +180,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
         behavior,
         create_behavior,
     )
-    for dot_source in diagram_sources:
+    for dot_source in chart_dot_sources:
         edge_lines = [line for line in dot_source.splitlines() if " -> " in line]
         assert edge_lines
         assert all("color=" not in line for line in edge_lines)
@@ -189,13 +190,13 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert workflow.startswith("digraph ")
     assert behavior.startswith("digraph ")
     assert "stateDiagram" not in state_machine
-    assert "flowchart" not in composition
+    assert "flowchart TD" not in composition
     assert "data_refresh_signal.projects_loaded" in state_machine
     assert "on data_refresh_signal.projects_loaded" not in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">initial state</FONT>' in state_machine
     assert "initial_state" not in state_machine
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">state</FONT>' in state_machine
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">transition signal</FONT>' in state_machine
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">state-machine trigger</FONT>' in state_machine
     assert "text_resource.project.list.ready.heading" in state_machine
     assert "media_asset.project.list.empty.illustration" in state_machine
     assert state_machine.index("<B>text_resources</B>") < state_machine.index("<B>media_assets:</B>")
@@ -214,7 +215,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert input_workspace in state_machine
     assert state_machine.index(input_workspace) < state_machine.index("<B>query_bindings:</B>&#160;&#160;list_projects")
     assert state_machine.index("<B>query_bindings:</B>&#160;&#160;list_projects") < state_machine.index("<B>load:</B>&#160;&#160;query.project.list")
-    detail_transition = state_machine_dot("state_machine.project.detail", contract["state_machines"]["state_machine.project.detail"], contract)
+    detail_transition = state_machine_chart_dot_source("state_machine.project.detail", contract["state_machines"]["state_machine.project.detail"], contract)
     selection_card = detail_transition[detail_transition.index("local_signal.selection_changed") :]
     input_project = '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;read_project.project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'
     assert selection_card.index(input_project) < selection_card.index("<B>query_bindings:</B>&#160;&#160;read_project")
@@ -236,15 +237,15 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>context:</B>" not in state_machine
     assert "$trigger.payload." not in state_machine
     assert "$domain_event." not in state_machine
-    assert "emitted local signal" in composition
-    assert "sent local signal" in composition
-    assert "local signal sync" in composition
+    assert "local signal emission" in composition
+    assert "local signal send effect" in composition
+    assert "local signal sync rule" in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">nav mount</FONT>' in composition
-    board_state_machine = state_machine_dot("state_machine.project.board", contract["state_machines"]["state_machine.project.board"], contract)
+    board_state_machine = state_machine_chart_dot_source("state_machine.project.board", contract["state_machines"]["state_machine.project.board"], contract)
     assert "<B>child_state_machines</B>" in board_state_machine
     assert '<FONT POINT-SIZE="10">nav</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;state_machine.project.list</FONT>' in board_state_machine
     assert "nav: state_machine.project.list" not in board_state_machine
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">emitted local signal</FONT>' in composition
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">local signal emission</FONT>' in composition
     assert "access_policy.project.reviewer" in behavior
     assert 'graph [label="command.project.approve"' not in behavior
     assert "Project.status" in behavior
@@ -258,21 +259,21 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>rules:</B>&#160;&#160;permit: subject_has_role member" in create_behavior
     assert ('"application_' + "act" + 'ion_application_' + "act" + 'ion_project_approve" [shape=') not in behavior
     assert "transition command" not in behavior
-    assert behavior.index('"command_input_command_project_approve"') < behavior.index('"command_query_policy_access_policy_project_reviewer"')
-    assert behavior.index('"command_query_policy_access_policy_project_reviewer"') < behavior.index('"command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status"')
-    assert behavior.index('"command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status"') < behavior.index('"command_outcome_command_project_approve_approved"')
-    assert behavior.index('"command_outcome_command_project_approve_approved"') < behavior.index('"command_domain_event_command_project_approve_domain_event_project_approved"')
-    assert '"command_input_command_project_approve" -> "command_query_policy_access_policy_project_reviewer" [label="authorize"' in behavior
-    assert '"command_query_policy_access_policy_project_reviewer" -> "command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status" [label="entity_lifecycle_transition"' in behavior
-    assert '"command_query_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status" -> "command_outcome_command_project_approve_approved" [label="success"' in behavior
-    assert '"command_outcome_command_project_approve_approved" -> "command_domain_event_command_project_approve_domain_event_project_approved" [label="emit"' in behavior
+    assert behavior.index('"command_input_command_project_approve"') < behavior.index('"authorization_check_access_policy_project_reviewer"')
+    assert behavior.index('"authorization_check_access_policy_project_reviewer"') < behavior.index('"behavior_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status"')
+    assert behavior.index('"behavior_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status"') < behavior.index('"command_outcome_command_project_approve_approved"')
+    assert behavior.index('"command_outcome_command_project_approve_approved"') < behavior.index('"domain_event_emission_command_project_approve_domain_event_project_approved"')
+    assert '"command_input_command_project_approve" -> "authorization_check_access_policy_project_reviewer" [label="authorize"' in behavior
+    assert '"authorization_check_access_policy_project_reviewer" -> "behavior_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status" [label="entity_lifecycle_transition"' in behavior
+    assert '"behavior_resource_command_project_approve_entity_lifecycle_transition_entity_type_project_status" -> "command_outcome_command_project_approve_approved" [label="success"' in behavior
+    assert '"command_outcome_command_project_approve_approved" -> "domain_event_emission_command_project_approve_domain_event_project_approved" [label="emit"' in behavior
     assert "<B>access_policy:</B>" not in behavior
     assert "<B>creates:</B>" not in create_behavior
     assert "<B>kind:</B>" not in behavior
     assert "<B>resource</B>" not in create_behavior
     assert "<FONT POINT-SIZE=\"10\">command: command.project.create</FONT>" not in create_behavior
     assert "<B>emits</B>" not in behavior
-    assert "delegated external interface" in cli_approve_external_interface
+    assert "delegated invocation target" in cli_approve_external_interface
     assert "command.project.approve behavior map" not in cli_approve_external_interface
     assert "Project.status" not in cli_approve_external_interface
     assert "access_policy.project.reviewer" in cli_approve_external_interface
@@ -318,27 +319,27 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "required:" not in composition
     assert "html_layout_region_nav" not in composition
     assert "fontcolor" not in composition
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">html_route external interface</FONT>' in external_interface
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">html_route adapter boundary</FONT>' in external_interface
     assert "<B>html_route:</B>&#160;&#160;html_route.project.board" in external_interface
     assert "<B>path params</B>" in external_interface
     assert '<FONT POINT-SIZE="10">workspace_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>' in external_interface
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">invoked state machine (html)</FONT>' in external_interface
-    state_machine_invocation_card = external_interface[external_interface.index('"external_interface_invocation_state_machine_project_board"') :]
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">state machine invocation target (html)</FONT>' in external_interface
+    state_machine_invocation_card = external_interface[external_interface.index('"invocation_target_state_machine_project_board"') :]
     assert 'COLOR="#9333ea" BGCOLOR="#ffffff"' in state_machine_invocation_card
     assert 'BGCOLOR="#faf5ff"' in state_machine_invocation_card
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">invoked state machine (textual)</FONT>' in cli_external_interface
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">invoked workflow</FONT>' in worker_external_interface
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">state machine invocation target (textual)</FONT>' in cli_external_interface
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow invocation target</FONT>' in worker_external_interface
     assert "<B>integration message disposition</B>" not in worker_external_interface
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in worker_external_interface
-    worker_external_interface_card = worker_external_interface[worker_external_interface.index('"external_interface_external_interface_worker_project_approval_notice"') : worker_external_interface.index('"external_interface_invocation_workflow_project_approval_notice"')]
+    worker_external_interface_card = worker_external_interface[worker_external_interface.index('"adapter_boundary_external_interface_worker_project_approval_notice"') : worker_external_interface.index('"invocation_target_workflow_project_approval_notice"')]
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in worker_external_interface_card
-    worker_accepted_card = worker_external_interface[worker_external_interface.index('"external_interface_response_external_interface_worker_project_approval_notice_accepted"') : worker_external_interface.index('"external_interface_response_external_interface_worker_project_approval_notice_malformed"')]
-    worker_malformed_card = worker_external_interface[worker_external_interface.index('"external_interface_response_external_interface_worker_project_approval_notice_malformed"') :]
+    worker_accepted_card = worker_external_interface[worker_external_interface.index('"adapter_ingress_response_external_interface_worker_project_approval_notice_accepted"') : worker_external_interface.index('"adapter_ingress_response_external_interface_worker_project_approval_notice_malformed"')]
+    worker_malformed_card = worker_external_interface[worker_external_interface.index('"adapter_ingress_response_external_interface_worker_project_approval_notice_malformed"') :]
     assert "<B>accepted</B>" in worker_accepted_card
-    assert "success disposition" in worker_accepted_card
+    assert "success adapter ingress response" in worker_accepted_card
     assert 'COLOR="#16a34a" BGCOLOR="#ffffff"' in worker_accepted_card
     assert "<B>malformed</B>" in worker_malformed_card
-    assert "failure disposition" in worker_malformed_card
+    assert "failure adapter ingress response" in worker_malformed_card
     assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in worker_malformed_card
     for external_interface_flow in (external_interface, cli_external_interface, cli_approve_external_interface, api_external_interface, worker_external_interface):
         assert ('label="' + "external_interface" + '"') not in external_interface_flow
@@ -351,13 +352,13 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert 'label="ui loop"' not in external_interface
     assert "<B>external interface input</B>" not in external_interface
     assert "<B>external interface output</B>" not in external_interface
-    assert "external_interface_mount" not in external_interface
+    assert "invocation_target_preview_mount" not in external_interface
     assert "nav mount" not in external_interface
     assert "<B>html renderer handoff</B>" not in cli_external_interface
     assert "<B>args</B>" in cli_external_interface
     assert 'label="tui loop"' not in cli_external_interface
     assert "<B>external interface input</B>" not in cli_external_interface
-    assert "external_interface_mount" not in cli_external_interface
+    assert "invocation_target_preview_mount" not in cli_external_interface
     assert "<B>transitions</B>" not in cli_approve_external_interface
     assert '<FONT POINT-SIZE="10">Project.status</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;enum&lt;draft|submitted|approved|archived&gt;</FONT><FONT POINT-SIZE="8">&#160;&#160;submitted → approved</FONT>' not in cli_approve_external_interface
     assert "command.project.approve behavior map" not in cli_approve_external_interface
@@ -365,15 +366,15 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>change:</B>" not in cli_approve_external_interface
     assert "<B>transition:</B>" not in cli_approve_external_interface
     assert "<B>args</B>" in cli_approve_external_interface
-    assert "success response" in cli_approve_external_interface
-    assert "failure response" in cli_approve_external_interface
+    assert "success cli response handler" in cli_approve_external_interface
+    assert "failure cli response handler" in cli_approve_external_interface
     assert "<B>external interface input</B>" not in cli_approve_external_interface
     assert "<B>external interface output</B>" not in cli_approve_external_interface
-    assert "success response" in api_external_interface
-    assert "failure response" in api_external_interface
-    api_external_interface_card = api_external_interface[api_external_interface.index('"external_interface_external_interface_api_project_create"') : api_external_interface.index('"external_interface_invocation_command_project_create"')]
-    success_response_card = api_external_interface[api_external_interface.index('"external_interface_response_external_interface_api_project_create_created"') : api_external_interface.index('"external_interface_response_external_interface_api_project_create_validation_failed"')]
-    failure_response_card = api_external_interface[api_external_interface.index('"external_interface_response_external_interface_api_project_create_validation_failed"') :]
+    assert "success invoked outcome response" in api_external_interface
+    assert "failure invoked outcome response" in api_external_interface
+    api_external_interface_card = api_external_interface[api_external_interface.index('"adapter_boundary_external_interface_api_project_create"') : api_external_interface.index('"invocation_target_command_project_create"')]
+    success_response_card = api_external_interface[api_external_interface.index('"invoked_outcome_response_external_interface_api_project_create_created"') : api_external_interface.index('"invoked_outcome_response_external_interface_api_project_create_validation_failed"')]
+    failure_response_card = api_external_interface[api_external_interface.index('"invoked_outcome_response_external_interface_api_project_create_validation_failed"') :]
     assert 'COLOR="#0891b2" BGCOLOR="#ffffff"' in api_external_interface_card
     assert "<B>path params</B>" in api_external_interface_card
     assert "<B>body</B>" in api_external_interface_card
@@ -389,7 +390,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>body schema</B>" in api_external_interface
     assert '<FONT POINT-SIZE="10">body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;$invocation_outcome.result</FONT>' in api_external_interface
     assert "validation_failed" in api_external_interface
-    invocation_card = api_external_interface[api_external_interface.index('"external_interface_invocation_command_project_create"') : api_external_interface.index('"external_interface_response_external_interface_api_project_create_created"')]
+    invocation_card = api_external_interface[api_external_interface.index('"invocation_target_command_project_create"') : api_external_interface.index('"invoked_outcome_response_external_interface_api_project_create_created"')]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' not in invocation_card
     assert '<FONT POINT-SIZE="10"><B>input:</B>&#160;&#160;customer</FONT>' not in invocation_card
     assert '<FONT POINT-SIZE="10">customer</FONT>' not in invocation_card
@@ -408,9 +409,9 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<FONT POINT-SIZE=\"10\">command: command.project.create</FONT>" not in invocation_card
     assert "<FONT POINT-SIZE=\"10\">entity_type: Project</FONT>" not in invocation_card
     assert "<B>rules:</B>&#160;&#160;unconditional true" not in invocation_card
-    cli_approve_invocation_card = cli_approve_external_interface[cli_approve_external_interface.index('"external_interface_invocation_external_interface_api_project_approve"') : cli_approve_external_interface.index('"external_interface_response_external_interface_cli_project_approve_approved"')]
+    cli_approve_invocation_card = cli_approve_external_interface[cli_approve_external_interface.index('"invocation_target_external_interface_api_project_approve"') : cli_approve_external_interface.index('"cli_response_handler_external_interface_cli_project_approve_approved"')]
     assert "<B>external_interface.api.project.approve</B>" in cli_approve_external_interface
-    assert "delegated external interface" in cli_approve_external_interface
+    assert "delegated invocation target" in cli_approve_external_interface
     assert "<B>emit:</B>&#160;&#160;approved → domain_event.project.approved" not in cli_approve_invocation_card
     assert '<FONT POINT-SIZE="10"><B>payload_schema:</B>&#160;&#160;payload_schema</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' not in cli_approve_invocation_card
     assert "<B>emits:</B>&#160;&#160;domain_event.project.approved" not in cli_approve_invocation_card
@@ -432,7 +433,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     workflow_failed_card = workflow[workflow.index('"workflow_outcome_workflow_project_approval_notice_delivery_failed"') :]
     assert 'COLOR="#16a34a" BGCOLOR="#ffffff"' in workflow_completed_card
     assert 'COLOR="#dc2626" BGCOLOR="#ffffff"' in workflow_failed_card
-    assert '<FONT POINT-SIZE="8" COLOR="#64748b">domain event input</FONT>' in workflow
+    assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow input</FONT>' in workflow
     assert '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;payload</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;schema.project.approved</FONT>' in workflow
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">workflow activity</FONT>' in workflow
     assert "<B>command:</B>&#160;&#160;command.project.send_approval_notice" in workflow
@@ -454,7 +455,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
         assert "</svg>" in svg
 
 
-def test_composition_dot_syncs_local_signals_generically() -> None:
+def test_state_composition_chart_dot_source_syncs_local_signals_generically() -> None:
     state_machine = {
         "archetype": "workspace",
         "entity_type": "generic.entity_type",
@@ -526,11 +527,11 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
         }
     }
 
-    composition = composition_dot("generic.state_machine", state_machine, contract)
+    composition = state_composition_chart_dot_source("generic.state_machine", state_machine, contract)
 
-    assert "emitted local signal" in composition
-    assert "sent local signal" in composition
-    assert "local signal sync" in composition
+    assert "local signal emission" in composition
+    assert "local signal send effect" in composition
+    assert "local signal sync rule" in composition
     assert '<FONT POINT-SIZE="8" COLOR="#64748b">source mount</FONT>' in composition
     assert "<B>source:</B>&#160;&#160;local_signal.submit" in composition
     assert "idle to ready" not in composition
@@ -548,8 +549,9 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
     assert "<B>target:</B>" not in composition
     assert "<B>from:</B>" not in composition
     assert "<B>local_effects:</B>" not in composition
-    assert '"local_signal_effect_sync_alpha_beta_0" -> "child_state_machine_receiver"' in composition
-    assert "local_signal_effect_sync_alpha_beta_1" not in composition
+    assert '"local_signal_send_effect_sync_alpha_beta_0" -> "child_state_machine_receiver"' in composition
+    assert "local_signal_send_effect_sync_alpha_beta_1" not in composition
+    assert "state_context_update_sync_alpha_beta_1" in composition
     assert '#ecfdf5' in composition
     assert '#047857' in composition
     assert '#fdf2f8' in composition
@@ -580,21 +582,21 @@ def test_audit_transition_rationale_renders_for_otherwise_sparse_card() -> None:
     cleared["rationale"] = "Clearing the selection returns the activity state to its empty state."
     contract = compile_source(author)
 
-    state_machine = state_machine_dot("state_machine.project.activity", contract["state_machines"]["state_machine.project.activity"], contract)
+    state_machine = state_machine_chart_dot_source("state_machine.project.activity", contract["state_machines"]["state_machine.project.activity"], contract)
 
     assert "Clearing the selection returns the activity state" in state_machine
     assert "its empty state." in state_machine
 
 
-def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
-    list_state_machine = (ROOT / state_machine_graph_file("state_machine.project.list")).read_text(encoding="utf-8")
-    detail_state_machine = (ROOT / state_machine_graph_file("state_machine.project.detail")).read_text(encoding="utf-8")
-    activity_state_machine = (ROOT / state_machine_graph_file("state_machine.project.activity")).read_text(encoding="utf-8")
-    composition = (ROOT / composition_file("state_machine.project.board")).read_text(encoding="utf-8")
-    api_external_interface = (ROOT / external_interface_flow_file("external_interface.api.project.create", "http_api")).read_text(encoding="utf-8")
-    cli_approve_external_interface = (ROOT / external_interface_flow_file("external_interface.cli.project.approve", "cli")).read_text(encoding="utf-8")
-    workflow = (ROOT / workflow_flow_file("workflow.project.approval_notice")).read_text(encoding="utf-8")
-    approve_behavior = (ROOT / command_query_flow_file("command.project.approve")).read_text(encoding="utf-8")
+def test_generated_chart_svgs_include_contract_audit_details() -> None:
+    list_state_machine = (ROOT / state_machine_chart_file("state_machine.project.list")).read_text(encoding="utf-8")
+    detail_state_machine = (ROOT / state_machine_chart_file("state_machine.project.detail")).read_text(encoding="utf-8")
+    activity_state_machine = (ROOT / state_machine_chart_file("state_machine.project.activity")).read_text(encoding="utf-8")
+    composition = (ROOT / state_composition_chart_file("state_machine.project.board")).read_text(encoding="utf-8")
+    api_external_interface = (ROOT / external_interface_flow_chart_file("external_interface.api.project.create", "http_api")).read_text(encoding="utf-8")
+    cli_approve_external_interface = (ROOT / external_interface_flow_chart_file("external_interface.cli.project.approve", "cli")).read_text(encoding="utf-8")
+    workflow = (ROOT / workflow_flow_chart_file("workflow.project.approval_notice")).read_text(encoding="utf-8")
+    approve_behavior = (ROOT / behavior_flow_chart_file("command.project.approve")).read_text(encoding="utf-8")
     assert "data_refresh_signal.projects_loaded" in list_state_machine
     assert "on data_refresh_signal.projects_loaded" not in list_state_machine
     assert "text_resource.project.list.ready.heading" in list_state_machine
@@ -669,8 +671,8 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "set:" in activity_state_machine
     assert "project_id &lt;&#45; null" not in activity_state_machine
     assert '\xa0←\xa0null</text>' in activity_state_machine
-    assert "emitted local signal" in composition
-    assert "sent local signal" in composition
+    assert "local signal emission" in composition
+    assert "local signal send effect" in composition
     assert "local_signal.project_select" in composition
     assert "selection_changed" in composition
     assert "to loading" in composition

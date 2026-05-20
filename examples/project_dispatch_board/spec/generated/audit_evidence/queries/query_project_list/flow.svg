@@ -1,20 +1,20 @@
 <svg width="395pt" height="482pt"
  viewBox="0.00 0.00 395.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 6e051291d7e3dacb8e9d9d20f9f6d425cb57dec5a1455f4474e59a90b5d98d42 -->
+<!-- pyspec-contract-input-sha256: fcb86003392d3db364de3526fa1547c8e1665b1efbb97666c6307b933a1e443b -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
-<title>query_query_project_list</title>
+<title>query_flow_chart_query_project_list</title>
 <!-- query_input_query_project_list -->
 <g id="node1" class="node">
 <title>query_input_query_project_list</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,-166 0,-237 96,-237 96,-166 0,-166"/>
-<polygon fill="#64748b" stroke="transparent" points="1,-227.5 1,-235.5 95,-235.5 95,-227.5 1,-227.5"/>
+<polygon fill="#71717a" stroke="transparent" points="1,-227.5 1,-235.5 95,-235.5 95,-227.5 1,-227.5"/>
 <polygon fill="#f8fafc" stroke="transparent" points="1,-196.5 1,-227.5 95,-227.5 95,-196.5 1,-196.5"/>
 <text text-anchor="start" x="5" y="-214.1" font-family="Arial" font-weight="bold" font-size="13.00">input</text>
 <text text-anchor="start" x="5" y="-203.1" font-family="Arial" font-size="8.00" fill="#64748b">query input</text>
 <text text-anchor="start" x="5" y="-185.5" font-family="Arial" font-weight="bold" font-size="10.00">fields</text>
 <text text-anchor="start" x="5" y="-174.5" font-family="Arial" font-size="10.00">workspace_id</text>
 <text text-anchor="start" x="66" y="-174.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<polygon fill="none" stroke="#64748b" points="0,-166 0,-237 96,-237 96,-166 0,-166"/>
+<polygon fill="none" stroke="#71717a" points="0,-166 0,-237 96,-237 96,-166 0,-166"/>
 </g>
 <!-- query_outcome_query_project_list_access_denied -->
 <g id="node2" class="node">

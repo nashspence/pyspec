@@ -1,16 +1,16 @@
 <svg width="884pt" height="187pt"
  viewBox="0.00 0.00 884.00 187.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 5f27a7dd6f8d0e331de84fd34e27ae043419d8b62ef27d90df0e56fb156cff54 -->
+<!-- pyspec-contract-input-sha256: 6146d251cc14e6cd4600b66c71abf67889ffdfd23a9ef91b59dc2486f9192679 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 169)">
-<title>external_interface_external_interface_html_project_board</title>
-<!-- external_interface_external_interface_html_project_board -->
+<title>external_interface_flow_chart_external_interface_html_project_board</title>
+<!-- adapter_boundary_external_interface_html_project_board -->
 <g id="node1" class="node">
-<title>external_interface_external_interface_html_project_board</title>
+<title>adapter_boundary_external_interface_html_project_board</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,-9.5 0,-141.5 347,-141.5 347,-9.5 0,-9.5"/>
 <polygon fill="#0891b2" stroke="transparent" points="1.5,-132.5 1.5,-140.5 346.5,-140.5 346.5,-132.5 1.5,-132.5"/>
 <polygon fill="#ecfeff" stroke="transparent" points="1.5,-101.5 1.5,-132.5 346.5,-132.5 346.5,-101.5 1.5,-101.5"/>
 <text text-anchor="start" x="5.5" y="-119.1" font-family="Arial" font-weight="bold" font-size="13.00">/workspaces/{workspace_id}/dispatch</text>
-<text text-anchor="start" x="5.5" y="-108.1" font-family="Arial" font-size="8.00" fill="#64748b">html_route external interface</text>
+<text text-anchor="start" x="5.5" y="-108.1" font-family="Arial" font-size="8.00" fill="#64748b">html_route adapter boundary</text>
 <text text-anchor="start" x="5.5" y="-90.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">HTML external_interface for the dispatch board.</text>
 <text text-anchor="start" x="6.5" y="-70.5" font-family="Arial" font-weight="bold" font-size="10.00">html_route:</text>
 <text text-anchor="start" x="60.5" y="-70.5" font-family="Arial" font-size="10.00">  html_route.project.board</text>
@@ -21,14 +21,14 @@
 <text text-anchor="start" x="78.5" y="-19.5" font-family="Arial" font-size="10.00">  workspace_id ← adapter_input.path_params.workspace_id</text>
 <polygon fill="none" stroke="#0891b2" points="0,-9.5 0,-141.5 347,-141.5 347,-9.5 0,-9.5"/>
 </g>
-<!-- external_interface_invocation_state_machine_project_board -->
+<!-- invocation_target_state_machine_project_board -->
 <g id="node2" class="node">
-<title>external_interface_invocation_state_machine_project_board</title>
+<title>invocation_target_state_machine_project_board</title>
 <polygon fill="#ffffff" stroke="transparent" points="408,0 408,-151 716,-151 716,0 408,0"/>
 <polygon fill="#9333ea" stroke="transparent" points="409,-141.5 409,-149.5 715,-149.5 715,-141.5 409,-141.5"/>
 <polygon fill="#faf5ff" stroke="transparent" points="409,-110.5 409,-141.5 715,-141.5 715,-110.5 409,-110.5"/>
 <text text-anchor="start" x="413" y="-128.1" font-family="Arial" font-weight="bold" font-size="13.00">state_machine.project.board</text>
-<text text-anchor="start" x="413" y="-117.1" font-family="Arial" font-size="8.00" fill="#64748b">invoked state machine (html)</text>
+<text text-anchor="start" x="413" y="-117.1" font-family="Arial" font-size="8.00" fill="#64748b">state machine invocation target (html)</text>
 <text text-anchor="start" x="413" y="-99.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">The dispatch board composes list, detail, and</text>
 <text text-anchor="start" x="413" y="-88.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">activity state machines through shared</text>
 <text text-anchor="start" x="413" y="-77.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">selected&#45;project context_resource.</text>
@@ -46,15 +46,15 @@
 <text text-anchor="start" x="529" y="-9.5" font-family="Arial" font-size="10.00">  select_project_updates_state_machines</text>
 <polygon fill="none" stroke="#9333ea" points="408,0 408,-151 716,-151 716,0 408,0"/>
 </g>
-<!-- external_interface_external_interface_html_project_board&#45;&gt;external_interface_invocation_state_machine_project_board -->
+<!-- adapter_boundary_external_interface_html_project_board&#45;&gt;invocation_target_state_machine_project_board -->
 <g id="edge1" class="edge">
-<title>external_interface_external_interface_html_project_board&#45;&gt;external_interface_invocation_state_machine_project_board</title>
+<title>adapter_boundary_external_interface_html_project_board&#45;&gt;invocation_target_state_machine_project_board</title>
 <path fill="none" stroke="#3f3f46" d="M347.12,-75.5C364.49,-75.5 382.09,-75.5 399.34,-75.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="399.78,-78.3 407.78,-75.5 399.78,-72.7 399.78,-78.3"/>
 </g>
-<!-- external_interface_response_external_interface_html_project_board_opened -->
+<!-- adapter_ingress_response_external_interface_html_project_board_opened -->
 <g id="node3" class="node">
-<title>external_interface_response_external_interface_html_project_board_opened</title>
+<title>adapter_ingress_response_external_interface_html_project_board_opened</title>
 <polygon fill="#ffffff" stroke="transparent" points="777,-44.5 777,-106.5 848,-106.5 848,-44.5 777,-44.5"/>
 <polygon fill="#9333ea" stroke="transparent" points="778.5,-97.5 778.5,-105.5 847.5,-105.5 847.5,-97.5 778.5,-97.5"/>
 <polygon fill="#faf5ff" stroke="transparent" points="778.5,-66.5 778.5,-97.5 847.5,-97.5 847.5,-66.5 778.5,-66.5"/>
@@ -64,9 +64,9 @@
 <text text-anchor="start" x="814.5" y="-54.5" font-family="Arial" font-size="10.00">  200</text>
 <polygon fill="none" stroke="#9333ea" points="777,-44.5 777,-106.5 848,-106.5 848,-44.5 777,-44.5"/>
 </g>
-<!-- external_interface_invocation_state_machine_project_board&#45;&gt;external_interface_response_external_interface_html_project_board_opened -->
+<!-- invocation_target_state_machine_project_board&#45;&gt;adapter_ingress_response_external_interface_html_project_board_opened -->
 <g id="edge2" class="edge">
-<title>external_interface_invocation_state_machine_project_board&#45;&gt;external_interface_response_external_interface_html_project_board_opened</title>
+<title>invocation_target_state_machine_project_board&#45;&gt;adapter_ingress_response_external_interface_html_project_board_opened</title>
 <path fill="none" stroke="#3f3f46" d="M716.13,-75.5C735.18,-75.5 753.27,-75.5 768.47,-75.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="768.6,-78.3 776.6,-75.5 768.6,-72.7 768.6,-78.3"/>
 </g>

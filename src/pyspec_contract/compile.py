@@ -2211,7 +2211,7 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
             raise ContractError(
                 f"state machine {state_machine_id} transition uses data-refresh signal without state machine or source-state data: {_signal_label(transition['trigger'])}"
             )
-        local_signal_payload = _state_machine_signal_payload(state_machine, "accepts", transition["trigger"], f"state machine {state_machine_id} transition signal")
+        local_signal_payload = _state_machine_signal_payload(state_machine, "accepts", transition["trigger"], f"state machine {state_machine_id} state-machine trigger")
         for effect in transition.get("local_effects", []):
             kind, body = _one(effect, f"state machine {state_machine_id} transition local_effect")
             if kind == "set":

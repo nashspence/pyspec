@@ -1,16 +1,16 @@
 <svg width="830pt" height="218pt"
  viewBox="0.00 0.00 830.00 218.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: e7d78f64f22b8eb78b75b35cb04405a21c75b50d2031b364bba37419868090ff -->
+<!-- pyspec-contract-input-sha256: 75a957b9e8bd533dfb1573857d284902bc36f12df8c2b97f57e7baabc5c59cf0 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 200)">
-<title>external_interface_external_interface_worker_project_approval_notice</title>
-<!-- external_interface_external_interface_worker_project_approval_notice -->
+<title>external_interface_flow_chart_external_interface_worker_project_approval_notice</title>
+<!-- adapter_boundary_external_interface_worker_project_approval_notice -->
 <g id="node1" class="node">
-<title>external_interface_external_interface_worker_project_approval_notice</title>
+<title>adapter_boundary_external_interface_worker_project_approval_notice</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,-25.5 0,-170.5 236,-170.5 236,-25.5 0,-25.5"/>
 <polygon fill="#0891b2" stroke="transparent" points="1,-161 1,-169 235,-169 235,-161 1,-161"/>
 <polygon fill="#ecfeff" stroke="transparent" points="1,-130 1,-161 235,-161 235,-130 1,-130"/>
 <text text-anchor="start" x="5" y="-147.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
-<text text-anchor="start" x="5" y="-136.6" font-family="Arial" font-size="8.00" fill="#64748b">worker external interface</text>
+<text text-anchor="start" x="5" y="-136.6" font-family="Arial" font-size="8.00" fill="#64748b">worker adapter boundary</text>
 <text text-anchor="start" x="5" y="-119" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Worker external_interface exposing the approval</text>
 <text text-anchor="start" x="5" y="-108" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">notice workflow.</text>
 <text text-anchor="start" x="6" y="-88" font-family="Arial" font-weight="bold" font-size="10.00">workflow:</text>
@@ -23,14 +23,14 @@
 <text text-anchor="start" x="5" y="-33" font-family="Arial" font-size="10.00">project_id ← adapter_input.payload.project_id</text>
 <polygon fill="none" stroke="#0891b2" points="0,-25.5 0,-170.5 236,-170.5 236,-25.5 0,-25.5"/>
 </g>
-<!-- external_interface_invocation_workflow_project_approval_notice -->
+<!-- invocation_target_workflow_project_approval_notice -->
 <g id="node2" class="node">
-<title>external_interface_invocation_workflow_project_approval_notice</title>
+<title>invocation_target_workflow_project_approval_notice</title>
 <polygon fill="#ffffff" stroke="transparent" points="297,-14 297,-182 601,-182 601,-14 297,-14"/>
 <polygon fill="#a16207" stroke="transparent" points="298,-173 298,-181 600,-181 600,-173 298,-173"/>
 <polygon fill="#fefce8" stroke="transparent" points="298,-142 298,-173 600,-173 600,-142 298,-142"/>
 <text text-anchor="start" x="302" y="-159.6" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
-<text text-anchor="start" x="302" y="-148.6" font-family="Arial" font-size="8.00" fill="#64748b">invoked workflow</text>
+<text text-anchor="start" x="302" y="-148.6" font-family="Arial" font-size="8.00" fill="#64748b">workflow invocation target</text>
 <text text-anchor="start" x="302" y="-131" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain event sends a downstream notice.</text>
 <text text-anchor="start" x="303" y="-111" font-family="Arial" font-weight="bold" font-size="10.00">trigger:</text>
 <text text-anchor="start" x="337" y="-111" font-family="Arial" font-size="10.00">  domain_event domain_event.project.approved</text>
@@ -53,51 +53,51 @@
 <text text-anchor="start" x="470" y="-23" font-family="Arial" font-size="8.00"> ← failure</text>
 <polygon fill="none" stroke="#a16207" points="297,-14 297,-182 601,-182 601,-14 297,-14"/>
 </g>
-<!-- external_interface_external_interface_worker_project_approval_notice&#45;&gt;external_interface_invocation_workflow_project_approval_notice -->
+<!-- adapter_boundary_external_interface_worker_project_approval_notice&#45;&gt;invocation_target_workflow_project_approval_notice -->
 <g id="edge1" class="edge">
-<title>external_interface_external_interface_worker_project_approval_notice&#45;&gt;external_interface_invocation_workflow_project_approval_notice</title>
+<title>adapter_boundary_external_interface_worker_project_approval_notice&#45;&gt;invocation_target_workflow_project_approval_notice</title>
 <path fill="none" stroke="#3f3f46" d="M236.38,-98C253.35,-98 271.04,-98 288.65,-98"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="288.74,-100.8 296.74,-98 288.74,-95.2 288.74,-100.8"/>
 </g>
-<!-- external_interface_response_external_interface_worker_project_approval_notice_accepted -->
+<!-- adapter_ingress_response_external_interface_worker_project_approval_notice_accepted -->
 <g id="node3" class="node">
-<title>external_interface_response_external_interface_worker_project_approval_notice_accepted</title>
+<title>adapter_ingress_response_external_interface_worker_project_approval_notice_accepted</title>
 <polygon fill="#ffffff" stroke="transparent" points="662,-119 662,-181 794,-181 794,-119 662,-119"/>
 <polygon fill="#16a34a" stroke="transparent" points="663,-172 663,-180 793,-180 793,-172 663,-172"/>
 <polygon fill="#f0fdf4" stroke="transparent" points="663,-141 663,-172 793,-172 793,-141 663,-141"/>
 <text text-anchor="start" x="667" y="-158.6" font-family="Arial" font-weight="bold" font-size="13.00">accepted</text>
-<text text-anchor="start" x="667" y="-147.6" font-family="Arial" font-size="8.00" fill="#64748b">success disposition</text>
+<text text-anchor="start" x="667" y="-147.6" font-family="Arial" font-size="8.00" fill="#64748b">success adapter ingress response</text>
 <text text-anchor="start" x="668" y="-129" font-family="Arial" font-weight="bold" font-size="10.00">disposition:</text>
 <text text-anchor="start" x="724" y="-129" font-family="Arial" font-size="10.00">  acknowledge</text>
 <polygon fill="none" stroke="#16a34a" points="662,-119 662,-181 794,-181 794,-119 662,-119"/>
 </g>
-<!-- external_interface_invocation_workflow_project_approval_notice&#45;&gt;external_interface_response_external_interface_worker_project_approval_notice_accepted -->
+<!-- invocation_target_workflow_project_approval_notice&#45;&gt;adapter_ingress_response_external_interface_worker_project_approval_notice_accepted -->
 <g id="edge2" class="edge">
-<title>external_interface_invocation_workflow_project_approval_notice&#45;&gt;external_interface_response_external_interface_worker_project_approval_notice_accepted</title>
+<title>invocation_target_workflow_project_approval_notice&#45;&gt;adapter_ingress_response_external_interface_worker_project_approval_notice_accepted</title>
 <path fill="none" stroke="#3f3f46" d="M601.06,-126.36C619.45,-129.81 637.54,-133.21 654.02,-136.3"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="653.6,-139.07 661.97,-137.79 654.63,-133.57 653.6,-139.07"/>
 </g>
-<!-- external_interface_response_external_interface_worker_project_approval_notice_malformed -->
+<!-- adapter_ingress_response_external_interface_worker_project_approval_notice_malformed -->
 <g id="node4" class="node">
-<title>external_interface_response_external_interface_worker_project_approval_notice_malformed</title>
-<polygon fill="#ffffff" stroke="transparent" points="666.5,0 666.5,-92 789.5,-92 789.5,0 666.5,0"/>
-<polygon fill="#dc2626" stroke="transparent" points="668,-83 668,-91 789,-91 789,-83 668,-83"/>
-<polygon fill="#fef2f2" stroke="transparent" points="668,-52 668,-83 789,-83 789,-52 668,-52"/>
-<text text-anchor="start" x="672" y="-69.6" font-family="Arial" font-weight="bold" font-size="13.00">malformed</text>
-<text text-anchor="start" x="672" y="-58.6" font-family="Arial" font-size="8.00" fill="#64748b">failure disposition</text>
-<text text-anchor="start" x="673" y="-40" font-family="Arial" font-weight="bold" font-size="10.00">disposition:</text>
-<text text-anchor="start" x="729" y="-40" font-family="Arial" font-size="10.00">  dead_letter</text>
-<text text-anchor="start" x="672" y="-20" font-family="Arial" font-weight="bold" font-size="10.00">problem</text>
-<text text-anchor="start" x="672" y="-9" font-family="Arial" font-size="10.00">problem</text>
-<text text-anchor="start" x="707" y="-9" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
-<polygon fill="none" stroke="#dc2626" points="666.5,0 666.5,-92 789.5,-92 789.5,0 666.5,0"/>
+<title>adapter_ingress_response_external_interface_worker_project_approval_notice_malformed</title>
+<polygon fill="#ffffff" stroke="transparent" points="665.5,0 665.5,-92 790.5,-92 790.5,0 665.5,0"/>
+<polygon fill="#dc2626" stroke="transparent" points="667,-83 667,-91 790,-91 790,-83 667,-83"/>
+<polygon fill="#fef2f2" stroke="transparent" points="667,-52 667,-83 790,-83 790,-52 667,-52"/>
+<text text-anchor="start" x="671" y="-69.6" font-family="Arial" font-weight="bold" font-size="13.00">malformed</text>
+<text text-anchor="start" x="671" y="-58.6" font-family="Arial" font-size="8.00" fill="#64748b">failure adapter ingress response</text>
+<text text-anchor="start" x="672" y="-40" font-family="Arial" font-weight="bold" font-size="10.00">disposition:</text>
+<text text-anchor="start" x="728" y="-40" font-family="Arial" font-size="10.00">  dead_letter</text>
+<text text-anchor="start" x="671" y="-20" font-family="Arial" font-weight="bold" font-size="10.00">problem</text>
+<text text-anchor="start" x="671" y="-9" font-family="Arial" font-size="10.00">problem</text>
+<text text-anchor="start" x="706" y="-9" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
+<polygon fill="none" stroke="#dc2626" points="665.5,0 665.5,-92 790.5,-92 790.5,0 665.5,0"/>
 </g>
-<!-- external_interface_invocation_workflow_project_approval_notice&#45;&gt;external_interface_response_external_interface_worker_project_approval_notice_malformed -->
+<!-- invocation_target_workflow_project_approval_notice&#45;&gt;adapter_ingress_response_external_interface_worker_project_approval_notice_malformed -->
 <g id="edge3" class="edge">
-<title>external_interface_invocation_workflow_project_approval_notice&#45;&gt;external_interface_response_external_interface_worker_project_approval_notice_malformed</title>
-<path fill="none" stroke="#3f3f46" d="M601.06,-69.64C621.04,-65.89 640.67,-62.21 658.27,-58.9"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" points="658.86,-61.64 666.2,-57.41 657.83,-56.14 658.86,-61.64"/>
+<title>invocation_target_workflow_project_approval_notice&#45;&gt;adapter_ingress_response_external_interface_worker_project_approval_notice_malformed</title>
+<path fill="none" stroke="#3f3f46" d="M601.06,-69.64C620.54,-65.99 639.68,-62.39 656.93,-59.15"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="657.89,-61.82 665.24,-57.59 656.86,-56.32 657.89,-61.82"/>
 </g>
-<!-- external_interface_response_external_interface_worker_project_approval_notice_accepted&#45;&gt;external_interface_response_external_interface_worker_project_approval_notice_malformed -->
+<!-- adapter_ingress_response_external_interface_worker_project_approval_notice_accepted&#45;&gt;adapter_ingress_response_external_interface_worker_project_approval_notice_malformed -->
 </g>
 </svg>

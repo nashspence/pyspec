@@ -1,24 +1,22 @@
 <svg width="1734pt" height="482pt"
  viewBox="0.00 0.00 1734.00 482.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: b183dac863bf13299c7e15bb40e859ad4d58741d4380ec671ba2ae80fc41db64 -->
+<!-- pyspec-contract-input-sha256: 87f47f047186e479ed60841667e50e457bbfdf1c590829111179d4a7876a36df -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 464)">
-<title>workflow_workflow_project_approval_notice</title>
+<title>workflow_flow_chart_workflow_project_approval_notice</title>
 <!-- workflow_input_domain_event_domain_event_project_approved -->
 <g id="node1" class="node">
 <title>workflow_input_domain_event_domain_event_project_approved</title>
-<polygon fill="#ffffff" stroke="transparent" points="0,-148.5 0,-252.5 223,-252.5 223,-148.5 0,-148.5"/>
-<polygon fill="#4f46e5" stroke="transparent" points="1.5,-243.5 1.5,-251.5 222.5,-251.5 222.5,-243.5 1.5,-243.5"/>
-<polygon fill="#eef2ff" stroke="transparent" points="1.5,-212.5 1.5,-243.5 222.5,-243.5 222.5,-212.5 1.5,-212.5"/>
-<text text-anchor="start" x="5.5" y="-230.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.approved</text>
-<text text-anchor="start" x="5.5" y="-219.1" font-family="Arial" font-size="8.00" fill="#64748b">domain event input</text>
-<text text-anchor="start" x="5.5" y="-201.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain events carry the reviewer and</text>
-<text text-anchor="start" x="5.5" y="-190.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">project identity needed by notification workflows.</text>
-<text text-anchor="start" x="6.5" y="-170.5" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
-<text text-anchor="start" x="46.5" y="-170.5" font-family="Arial" font-size="10.00">  payload</text>
-<text text-anchor="start" x="86.5" y="-170.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.approved</text>
-<text text-anchor="start" x="6.5" y="-158.5" font-family="Arial" font-weight="bold" font-size="10.00">emitted by:</text>
-<text text-anchor="start" x="58.5" y="-158.5" font-family="Arial" font-size="10.00">  command.project.approve</text>
-<polygon fill="none" stroke="#4f46e5" points="0,-148.5 0,-252.5 223,-252.5 223,-148.5 0,-148.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="0,-154.5 0,-246.5 223,-246.5 223,-154.5 0,-154.5"/>
+<polygon fill="#4f46e5" stroke="transparent" points="1.5,-237.5 1.5,-245.5 222.5,-245.5 222.5,-237.5 1.5,-237.5"/>
+<polygon fill="#eef2ff" stroke="transparent" points="1.5,-206.5 1.5,-237.5 222.5,-237.5 222.5,-206.5 1.5,-206.5"/>
+<text text-anchor="start" x="5.5" y="-224.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.approved</text>
+<text text-anchor="start" x="5.5" y="-213.1" font-family="Arial" font-size="8.00" fill="#64748b">workflow input</text>
+<text text-anchor="start" x="5.5" y="-195.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain events carry the reviewer and</text>
+<text text-anchor="start" x="5.5" y="-184.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">project identity needed by notification workflows.</text>
+<text text-anchor="start" x="6.5" y="-164.5" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
+<text text-anchor="start" x="46.5" y="-164.5" font-family="Arial" font-size="10.00">  payload</text>
+<text text-anchor="start" x="86.5" y="-164.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  schema.project.approved</text>
+<polygon fill="none" stroke="#4f46e5" points="0,-154.5 0,-246.5 223,-246.5 223,-154.5 0,-154.5"/>
 </g>
 <!-- workflow_workflow_project_approval_notice -->
 <g id="node2" class="node">
@@ -27,7 +25,7 @@
 <polygon fill="#a16207" stroke="transparent" points="287,-275.5 287,-283.5 589,-283.5 589,-275.5 287,-275.5"/>
 <polygon fill="#fefce8" stroke="transparent" points="287,-244.5 287,-275.5 589,-275.5 589,-244.5 287,-244.5"/>
 <text text-anchor="start" x="291" y="-262.1" font-family="Arial" font-weight="bold" font-size="13.00">workflow.project.approval_notice</text>
-<text text-anchor="start" x="291" y="-251.1" font-family="Arial" font-size="8.00" fill="#64748b">workflow</text>
+<text text-anchor="start" x="291" y="-251.1" font-family="Arial" font-size="8.00" fill="#64748b">workflow summary</text>
 <text text-anchor="start" x="291" y="-233.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Approval domain event sends a downstream notice.</text>
 <text text-anchor="start" x="292" y="-213.5" font-family="Arial" font-weight="bold" font-size="10.00">ref:</text>
 <text text-anchor="start" x="308" y="-213.5" font-family="Arial" font-size="10.00">  workflow.project.approval_notice</text>

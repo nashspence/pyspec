@@ -1,29 +1,29 @@
 <svg width="1550pt" height="622pt"
  viewBox="0.00 0.00 1550.00 622.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 0bebda2db75295229ce0fccccaafceec2293a7d11125093eace5654001eacfb7 -->
+<!-- pyspec-contract-input-sha256: b3b81a5da0b794fd1784f6eec96fa1daae93aa08956a8202bb3ad6e999641574 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 604)">
-<title>command_command_project_submit</title>
+<title>command_flow_chart_command_project_submit</title>
 <!-- command_input_command_project_submit -->
 <g id="node1" class="node">
 <title>command_input_command_project_submit</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,-390 0,-461 78,-461 78,-390 0,-390"/>
-<polygon fill="#64748b" stroke="transparent" points="1,-451.5 1,-459.5 77,-459.5 77,-451.5 1,-451.5"/>
+<polygon fill="#71717a" stroke="transparent" points="1,-451.5 1,-459.5 77,-459.5 77,-451.5 1,-451.5"/>
 <polygon fill="#f8fafc" stroke="transparent" points="1,-420.5 1,-451.5 77,-451.5 77,-420.5 1,-420.5"/>
 <text text-anchor="start" x="5" y="-438.1" font-family="Arial" font-weight="bold" font-size="13.00">input</text>
 <text text-anchor="start" x="5" y="-427.1" font-family="Arial" font-size="8.00" fill="#64748b">command input</text>
 <text text-anchor="start" x="5" y="-409.5" font-family="Arial" font-weight="bold" font-size="10.00">fields</text>
 <text text-anchor="start" x="5" y="-398.5" font-family="Arial" font-size="10.00">project_id</text>
 <text text-anchor="start" x="48" y="-398.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
-<polygon fill="none" stroke="#64748b" points="0,-390 0,-461 78,-461 78,-390 0,-390"/>
+<polygon fill="none" stroke="#71717a" points="0,-390 0,-461 78,-461 78,-390 0,-390"/>
 </g>
-<!-- command_query_policy_access_policy_project_member -->
+<!-- authorization_check_access_policy_project_member -->
 <g id="node2" class="node">
-<title>command_query_policy_access_policy_project_member</title>
+<title>authorization_check_access_policy_project_member</title>
 <polygon fill="#ffffff" stroke="transparent" points="180,-331.5 180,-519.5 430,-519.5 430,-331.5 180,-331.5"/>
 <polygon fill="#c2410c" stroke="transparent" points="181,-510.5 181,-518.5 429,-518.5 429,-510.5 181,-510.5"/>
 <polygon fill="#fff7ed" stroke="transparent" points="181,-479.5 181,-510.5 429,-510.5 429,-479.5 181,-479.5"/>
 <text text-anchor="start" x="185" y="-497.1" font-family="Arial" font-weight="bold" font-size="13.00">access_policy.project.member</text>
-<text text-anchor="start" x="185" y="-486.1" font-family="Arial" font-size="8.00" fill="#64748b">authorization gate</text>
+<text text-anchor="start" x="185" y="-486.1" font-family="Arial" font-size="8.00" fill="#64748b">authorization check</text>
 <text text-anchor="start" x="185" y="-468.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Workspace members may create, read, list, and</text>
 <text text-anchor="start" x="185" y="-457.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">submit dispatch projects.</text>
 <text text-anchor="start" x="186" y="-437.5" font-family="Arial" font-weight="bold" font-size="10.00">combining_algorithm:</text>
@@ -39,30 +39,30 @@
 <text text-anchor="start" x="213" y="-341.5" font-family="Arial" font-size="10.00">  permit: subject_has_role member</text>
 <polygon fill="none" stroke="#c2410c" points="180,-331.5 180,-519.5 430,-519.5 430,-331.5 180,-331.5"/>
 </g>
-<!-- command_input_command_project_submit&#45;&gt;command_query_policy_access_policy_project_member -->
+<!-- command_input_command_project_submit&#45;&gt;authorization_check_access_policy_project_member -->
 <g id="edge1" class="edge">
-<title>command_input_command_project_submit&#45;&gt;command_query_policy_access_policy_project_member</title>
-<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M78.11,-425.5C103.09,-425.5 137.38,-425.5 171.7,-425.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="171.95,-428.3 179.95,-425.5 171.95,-422.7 171.95,-428.3"/>
+<title>command_input_command_project_submit&#45;&gt;authorization_check_access_policy_project_member</title>
+<path fill="none" stroke="#3f3f46" d="M78.11,-425.5C103.09,-425.5 137.38,-425.5 171.7,-425.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="171.95,-428.3 179.95,-425.5 171.95,-422.7 171.95,-428.3"/>
 <text text-anchor="middle" x="129" y="-428.5" font-family="Arial" font-size="10.00">authorize</text>
 </g>
-<!-- command_query_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status -->
+<!-- behavior_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status -->
 <g id="node3" class="node">
-<title>command_query_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status</title>
+<title>behavior_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status</title>
 <polygon fill="#ffffff" stroke="transparent" points="603,-182 603,-253 899,-253 899,-182 603,-182"/>
 <polygon fill="#15803d" stroke="transparent" points="604,-243.5 604,-251.5 898,-251.5 898,-243.5 604,-243.5"/>
 <polygon fill="#f0fdfa" stroke="transparent" points="604,-212.5 604,-243.5 898,-243.5 898,-212.5 604,-212.5"/>
 <text text-anchor="start" x="608" y="-230.1" font-family="Arial" font-weight="bold" font-size="13.00">entity_type.project</text>
-<text text-anchor="start" x="608" y="-219.1" font-family="Arial" font-size="8.00" fill="#64748b">entity_type resource</text>
+<text text-anchor="start" x="608" y="-219.1" font-family="Arial" font-size="8.00" fill="#64748b">entity resource</text>
 <text text-anchor="start" x="608" y="-201.5" font-family="Arial" font-weight="bold" font-size="10.00">change</text>
 <text text-anchor="start" x="608" y="-190.5" font-family="Arial" font-size="10.00">Project.status</text>
 <text text-anchor="start" x="669" y="-190.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  enum&lt;draft|submitted|approved|archived&gt;</text>
 <text text-anchor="start" x="825" y="-190.5" font-family="Arial" font-size="8.00">  draft → submitted</text>
 <polygon fill="none" stroke="#15803d" points="603,-182 603,-253 899,-253 899,-182 603,-182"/>
 </g>
-<!-- command_query_policy_access_policy_project_member&#45;&gt;command_query_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status -->
+<!-- authorization_check_access_policy_project_member&#45;&gt;behavior_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status -->
 <g id="edge2" class="edge">
-<title>command_query_policy_access_policy_project_member&#45;&gt;command_query_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status</title>
+<title>authorization_check_access_policy_project_member&#45;&gt;behavior_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status</title>
 <path fill="none" stroke="#3f3f46" d="M430.27,-367.28C505.74,-331.93 600.03,-287.76 666.6,-256.57"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="668.11,-258.95 674.17,-253.02 665.74,-253.88 668.11,-258.95"/>
 <text text-anchor="middle" x="516.5" y="-355.5" font-family="Arial" font-size="10.00">entity_lifecycle_transition</text>
@@ -80,9 +80,9 @@
 <text text-anchor="start" x="1084" y="-523.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="1053.5,-515 1053.5,-586 1160.5,-586 1160.5,-515 1053.5,-515"/>
 </g>
-<!-- command_query_policy_access_policy_project_member&#45;&gt;command_outcome_command_project_submit_access_denied -->
+<!-- authorization_check_access_policy_project_member&#45;&gt;command_outcome_command_project_submit_access_denied -->
 <g id="edge3" class="edge">
-<title>command_query_policy_access_policy_project_member&#45;&gt;command_outcome_command_project_submit_access_denied</title>
+<title>authorization_check_access_policy_project_member&#45;&gt;command_outcome_command_project_submit_access_denied</title>
 <path fill="none" stroke="#3f3f46" d="M430.12,-444.89C604.22,-472.1 914.27,-520.54 1045.09,-540.98"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1044.73,-543.76 1053.07,-542.23 1045.6,-538.23 1044.73,-543.76"/>
 <text text-anchor="middle" x="751" y="-521.5" font-family="Arial" font-size="10.00">access_denied_as</text>
@@ -100,9 +100,9 @@
 <text text-anchor="start" x="1055" y="-398.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="1025,-390 1025,-461 1189,-461 1189,-390 1025,-390"/>
 </g>
-<!-- command_query_policy_access_policy_project_member&#45;&gt;command_outcome_command_project_submit_authentication_required -->
+<!-- authorization_check_access_policy_project_member&#45;&gt;command_outcome_command_project_submit_authentication_required -->
 <g id="edge4" class="edge">
-<title>command_query_policy_access_policy_project_member&#45;&gt;command_outcome_command_project_submit_authentication_required</title>
+<title>authorization_check_access_policy_project_member&#45;&gt;command_outcome_command_project_submit_authentication_required</title>
 <path fill="none" stroke="#3f3f46" d="M430.12,-425.5C592.56,-425.5 873.35,-425.5 1016.49,-425.5"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1016.88,-428.3 1024.88,-425.5 1016.88,-422.7 1016.88,-428.3"/>
 <text text-anchor="middle" x="751" y="-428.5" font-family="Arial" font-size="10.00">authentication_required_as</text>
@@ -120,9 +120,9 @@
 <text text-anchor="start" x="1028" y="-273.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="998,-265 998,-336 1216,-336 1216,-265 998,-265"/>
 </g>
-<!-- command_query_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_lifecycle_transition_not_allowed -->
+<!-- behavior_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_lifecycle_transition_not_allowed -->
 <g id="edge5" class="edge">
-<title>command_query_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_lifecycle_transition_not_allowed</title>
+<title>behavior_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_lifecycle_transition_not_allowed</title>
 <path fill="none" stroke="#3f3f46" d="M899.05,-251.98C929.35,-259.08 960.86,-266.47 989.88,-273.27"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="989.57,-276.08 997.99,-275.18 990.84,-270.62 989.57,-276.08"/>
 <text text-anchor="middle" x="948.5" y="-269.5" font-family="Arial" font-size="10.00">failure</text>
@@ -140,9 +140,9 @@
 <text text-anchor="start" x="1099" y="-148.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <polygon fill="none" stroke="#dc2626" points="1068.5,-140 1068.5,-211 1145.5,-211 1145.5,-140 1068.5,-140"/>
 </g>
-<!-- command_query_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_not_found -->
+<!-- behavior_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_not_found -->
 <g id="edge6" class="edge">
-<title>command_query_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_not_found</title>
+<title>behavior_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_not_found</title>
 <path fill="none" stroke="#3f3f46" d="M899.05,-200.05C956.99,-193.18 1019.33,-185.78 1060.28,-180.92"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1060.81,-183.68 1068.43,-179.96 1060.15,-178.12 1060.81,-183.68"/>
 <text text-anchor="middle" x="948.5" y="-198.5" font-family="Arial" font-size="10.00">failure</text>
@@ -160,9 +160,9 @@
 <text text-anchor="start" x="1100" y="-23.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#16a34a" points="1070,-15 1070,-86 1144,-86 1144,-15 1070,-15"/>
 </g>
-<!-- command_query_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_submitted -->
+<!-- behavior_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_submitted -->
 <g id="edge7" class="edge">
-<title>command_query_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_submitted</title>
+<title>behavior_resource_command_project_submit_entity_lifecycle_transition_entity_type_project_status&#45;&gt;command_outcome_command_project_submit_submitted</title>
 <path fill="none" stroke="#3f3f46" d="M827.51,-181.88C898.97,-148.17 1003.78,-98.72 1062.32,-71.1"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1063.53,-73.63 1069.57,-67.68 1061.14,-68.57 1063.53,-73.63"/>
 <text text-anchor="middle" x="948.5" y="-132.5" font-family="Arial" font-size="10.00">success</text>
@@ -171,14 +171,14 @@
 <!-- command_outcome_command_project_submit_authentication_required&#45;&gt;command_outcome_command_project_submit_lifecycle_transition_not_allowed -->
 <!-- command_outcome_command_project_submit_lifecycle_transition_not_allowed&#45;&gt;command_outcome_command_project_submit_not_found -->
 <!-- command_outcome_command_project_submit_not_found&#45;&gt;command_outcome_command_project_submit_submitted -->
-<!-- command_domain_event_command_project_submit_domain_event_project_submitted -->
+<!-- domain_event_emission_command_project_submit_domain_event_project_submitted -->
 <g id="node9" class="node">
-<title>command_domain_event_command_project_submit_domain_event_project_submitted</title>
+<title>domain_event_emission_command_project_submit_domain_event_project_submitted</title>
 <polygon fill="#ffffff" stroke="transparent" points="1297,0 1297,-101 1514,-101 1514,0 1297,0"/>
 <polygon fill="#4f46e5" stroke="transparent" points="1298.5,-91.5 1298.5,-99.5 1513.5,-99.5 1513.5,-91.5 1298.5,-91.5"/>
 <polygon fill="#eef2ff" stroke="transparent" points="1298.5,-60.5 1298.5,-91.5 1513.5,-91.5 1513.5,-60.5 1298.5,-60.5"/>
 <text text-anchor="start" x="1302.5" y="-78.1" font-family="Arial" font-weight="bold" font-size="13.00">domain_event.project.submitted</text>
-<text text-anchor="start" x="1302.5" y="-67.1" font-family="Arial" font-size="8.00" fill="#64748b">emitted domain event</text>
+<text text-anchor="start" x="1302.5" y="-67.1" font-family="Arial" font-size="8.00" fill="#64748b">domain event emission</text>
 <text text-anchor="start" x="1302.5" y="-49.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Draft dispatch projects can be submitted for</text>
 <text text-anchor="start" x="1302.5" y="-38.5" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">review.</text>
 <text text-anchor="start" x="1302.5" y="-19.5" font-family="Arial" font-weight="bold" font-size="10.00">payload</text>
@@ -186,11 +186,11 @@
 <text text-anchor="start" x="1336.5" y="-8.5" font-family="Arial" font-size="8.00" fill="#94a3b8">  Project</text>
 <polygon fill="none" stroke="#4f46e5" points="1297,0 1297,-101 1514,-101 1514,0 1297,0"/>
 </g>
-<!-- command_outcome_command_project_submit_submitted&#45;&gt;command_domain_event_command_project_submit_domain_event_project_submitted -->
+<!-- command_outcome_command_project_submit_submitted&#45;&gt;domain_event_emission_command_project_submit_domain_event_project_submitted -->
 <g id="edge8" class="edge">
-<title>command_outcome_command_project_submit_submitted&#45;&gt;command_domain_event_command_project_submit_domain_event_project_submitted</title>
-<path fill="none" stroke="#3f3f46" stroke-width="1.2" d="M1144.06,-50.5C1179.95,-50.5 1236.97,-50.5 1288.52,-50.5"/>
-<polygon fill="#3f3f46" stroke="#3f3f46" stroke-width="1.2" points="1288.74,-53.3 1296.74,-50.5 1288.74,-47.7 1288.74,-53.3"/>
+<title>command_outcome_command_project_submit_submitted&#45;&gt;domain_event_emission_command_project_submit_domain_event_project_submitted</title>
+<path fill="none" stroke="#3f3f46" d="M1144.06,-50.5C1179.95,-50.5 1236.97,-50.5 1288.52,-50.5"/>
+<polygon fill="#3f3f46" stroke="#3f3f46" points="1288.74,-53.3 1296.74,-50.5 1288.74,-47.7 1288.74,-53.3"/>
 <text text-anchor="middle" x="1256.5" y="-53.5" font-family="Arial" font-size="10.00">emit</text>
 </g>
 </g>

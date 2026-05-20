@@ -1148,7 +1148,7 @@ def test_state_machine_transition_messages_must_be_declared_as_accepted() -> Non
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
     del activity["local_signals"]["accepts"]["local_signals"]["selection_cleared"]
-    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity transition signal references undeclared state-machine signal: local_signal\.selection_cleared"):
+    with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity state-machine trigger references undeclared state-machine signal: local_signal\.selection_cleared"):
         compile_source(author)
 
 

@@ -1,6 +1,6 @@
 # Chart Ontology
 
-This glossary defines the vocabulary for generated chart artifacts used as visual audit evidence. Chart terms name visual carriers, diagram families, rendered glyphs, edge conventions, and tone roles. They do not redefine the product-domain, projection, workflow, state-machine, behavior, access-control, or visual-audit coverage terms defined by `docs/spec-ontology.md`.
+This glossary defines the vocabulary for generated chart artifacts used as visual audit evidence. Chart terms name visual carriers, chart artifact families, rendered glyphs, edge conventions, and tone roles. They do not redefine the product-domain, projection, workflow, state-machine, behavior, access-control, or visual-audit coverage terms defined by `docs/spec-ontology.md`.
 
 ## Ontology Goal and Change Principles
 
@@ -9,7 +9,7 @@ The goal of the chart ontology is to make generated Graphviz charts reviewable a
 When modifying or extending the chart ontology:
 
 - Use chart-owned terms only for visual representation, chart artifact families, layout mechanics, visible text witnesses, edge conventions, glyphs, rows, sections, and tones.
-- Do not introduce a chart-owned term that exactly matches a canonical source-ontology term. If a chart displays a source term, qualify the chart carrier, for example `workflow_activity_card`, `access_policy_check_card`, or `domain_event_emission_card`.
+- Do not introduce a chart-owned term that exactly matches a canonical source-ontology term. If a chart displays a source term, qualify the chart carrier, for example `workflow_activity_card`, `authorization_check_card`, or `domain_event_emission_card`.
 - Do not introduce visual synonyms for product concepts. A chart may display a `command`, `query`, `domain_event`, `state_machine_state`, or `access_policy`, but the chart-owned vocabulary must describe the card, edge, row, label, or tone that carries that source concept.
 - Prefer stable visualization terms over generic drawing words. Use `chart_card`, `chart_edge`, `chart_card_role`, `chart_section_label`, `chart_tone_role`, or `chart_layout_edge` rather than `box`, `line`, `label`, `color`, or `icon`.
 - Treat edge labels, card titles, section labels, and reference prefixes as visible source witnesses. Their text may quote canonical source names or generated reference ids, but that text is not a new chart ontology term.
@@ -47,7 +47,7 @@ Artifact terms identify generated chart SVG files only. Sibling DOT files, rende
 
 - `chart_svg_artifact`: a generated SVG chart produced from Graphviz DOT source and used as visual contract evidence.
 - `state_machine_chart`: a chart at `spec/generated/audit_evidence/state_machines/{state_machine}/state_machine.svg` that shows local state cards and state-machine trigger cards.
-- `state_composition_chart`: a chart at `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/composition.svg` that shows mounted child state machines, emitted local signals, synchronization rules, send effects, and parent context updates for one composed state.
+- `state_composition_chart`: a chart at `spec/generated/audit_evidence/state_machines/{state_machine}/states/{state_machine_state}/composition.svg` that shows mounted child state machines, local signal emissions, synchronization rules, send effects, and parent context updates for one composed state.
 - `external_interface_flow_chart`: a chart at `spec/generated/audit_evidence/external_interfaces/{adapter}/{external_interface}/flow.svg` that shows an adapter-facing boundary, invoked target, optional target preview cards, and adapter response cards.
 - `workflow_flow_chart`: a chart at `spec/generated/audit_evidence/workflows/{workflow}/flow.svg` that shows workflow input, workflow summary, activities, gateways, sequence routing, and terminal workflow outcomes.
 - `command_flow_chart`: a chart at `spec/generated/audit_evidence/commands/{command}/flow.svg` that shows chronological state-changing product behavior, including input, optional authorization, touched resources, outcomes, and emitted durable events.
@@ -58,7 +58,7 @@ Artifact terms identify generated chart SVG files only. Sibling DOT files, rende
 - `chart_dot_source`: DOT source generated for a `chart_svg_artifact`. Current DOT source uses left-to-right rank direction, transparent background, spline edges, Arial fonts, and Graphviz HTML-like table nodes.
 - `chart_card`: the main visible node carrier. A chart card is currently rendered as a Graphviz HTML-like table with a white body, semantic border, narrow top bar, and tinted header.
 - `chart_card_title`: the primary visible identifier or surface title in a chart card. Examples include a local state id, resource reference, route path, CLI command surface, workflow id, signal display name, or outcome id.
-- `chart_card_role`: the secondary visible role line under a chart title. It may display text such as state, initial state, transition signal, workflow activity, authorization check, success outcome, or failure response handler. Role text is a visible label, not a source ontology term unless it quotes one.
+- `chart_card_role`: the secondary visible role line under a chart title. It may display text such as state, initial state, state-machine trigger, workflow activity, authorization check, success outcome, or failure response handler. Role text is a visible label, not a source ontology term unless it quotes one.
 - `chart_card_rationale`: optional italic body text copied from source rationale. It explains why the represented contract exists; it is not an independent chart node or source term.
 - `chart_card_section`: a grouped area of body rows inside a chart card.
 - `chart_section_label`: the visible heading for a `chart_card_section`. Section labels may quote source schema keys such as text resources, media assets, query bindings, command bindings, access policies, payload, fields, sequence flows, result, status, disposition, retry, stdout, stderr, or exit code. These labels are source witnesses, not chart-owned terms.
@@ -154,7 +154,7 @@ Graphviz card colors currently use paired tone roles: a saturated border/top-bar
 | `child_machine_tone` | `#047857` | `#ecfdf5` | Mounted child state-machine cards. |
 | `workflow_control_tone` | `#a16207` | `#fefce8` | Workflow summary and gateway cards. |
 | `local_signal_sync_tone` | `#a16207` | `#fefce8` | Local-signal synchronization rule cards. Current rendering may share the workflow-control palette, but the semantic role is distinct. |
-| `local_signal_card_tone` | `#be185d` | `#fdf2f8` | Emitted and sent local-signal cards in composition diagrams. |
+| `local_signal_card_tone` | `#be185d` | `#fdf2f8` | Emitted and sent local-signal cards in composition charts. |
 | `state_context_effect_tone` | `#0f766e` | `#ccfbf1` | State-machine context update cards. |
 | `entity_resource_tone` | `#15803d` | `#f0fdfa` | Entity-type resource cards. |
 | `schema_resource_tone` | `#7c3aed` | `#f5f3ff` | Reusable schema resource cards. |
@@ -184,7 +184,7 @@ The following names should be treated as migration aliases only. New code, docs,
 | `transition_signal_card` | `state_machine_trigger_card` | Aligns with the source trigger vocabulary and supports local/data-refresh triggers. |
 | `mount_card` | `child_machine_mount_card` | Qualifies mount by composed child state-machine usage. |
 | `emitted_local_signal_card` | `local_signal_emission_card` | Names the emission evidence carrier. |
-| `sent_local_signal_card` | `local_signal_send_effect_card` | Distinguishes sync send effects from emitted local signals. |
+| `sent_local_signal_card` | `local_signal_send_effect_card` | Distinguishes sync send effects from local signal emission cards. |
 | `context_update_card` | `state_context_update_card` | Qualifies context as state-machine context. |
 | `external_interface_card` | `adapter_boundary_card` | Names the visual boundary rather than the source resource. |
 | `target_tail_card` | `invocation_target_preview_card` | Clarifies that the card previews target details without expanding the full target chart. |
@@ -219,7 +219,7 @@ The following names should be treated as migration aliases only. New code, docs,
 
 Before adding a chart-owned term, verify that:
 
-1. The term names a visual carrier, visual role, diagram family, row, edge, glyph, visible witness, layout mechanic, or tone role.
+1. The term names a visual carrier, visual role, chart artifact family, row, edge, glyph, visible witness, layout mechanic, or tone role.
 2. The term does not exactly match a canonical source-ontology term.
 3. The term is qualified by visual role, source domain, or chart layer when it displays a source concept.
 4. The term is not a synonym for an existing chart-owned term.

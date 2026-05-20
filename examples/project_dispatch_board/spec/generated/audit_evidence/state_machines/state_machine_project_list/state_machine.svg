@@ -1,8 +1,8 @@
 <svg width="2432pt" height="597pt"
  viewBox="0.00 0.00 2432.00 596.90" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: e9e9a4ca433c596cf1e3d92b25dcbd0ebafab211ccb059fa43fe267325b0b19c -->
+<!-- pyspec-contract-input-sha256: 053daa82e38cb5d6a87f839183d6390245189888dd82b12fc3ecfbf46c86796c -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 578.9)">
-<title>state_machine_state_machine_project_list</title>
+<title>state_machine_chart_state_machine_project_list</title>
 <!-- state_empty -->
 <g id="node1" class="node">
 <title>state_empty</title>
@@ -23,14 +23,14 @@
 <text text-anchor="start" x="782.5" y="-349.9" font-family="Arial" font-size="10.00">  command.project.create: access_policy.project.member</text>
 <polygon fill="none" stroke="#71717a" points="699,-340.4 699,-467.4 1038,-467.4 1038,-340.4 699,-340.4"/>
 </g>
-<!-- transition_3_empty_ready_data_refresh_signal_projects_loaded -->
+<!-- state_machine_trigger_3_empty_ready_data_refresh_signal_projects_loaded -->
 <g id="node8" class="node">
-<title>transition_3_empty_ready_data_refresh_signal_projects_loaded</title>
+<title>state_machine_trigger_3_empty_ready_data_refresh_signal_projects_loaded</title>
 <polygon fill="#ffffff" stroke="transparent" points="1105,-276.9 1105,-362.9 1350,-362.9 1350,-276.9 1105,-276.9"/>
 <polygon fill="#2563eb" stroke="transparent" points="1106.5,-353.9 1106.5,-361.9 1349.5,-361.9 1349.5,-353.9 1106.5,-353.9"/>
 <polygon fill="#eff6ff" stroke="transparent" points="1106.5,-322.9 1106.5,-353.9 1349.5,-353.9 1349.5,-322.9 1106.5,-322.9"/>
 <text text-anchor="start" x="1110.5" y="-340.5" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_loaded</text>
-<text text-anchor="start" x="1110.5" y="-329.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1110.5" y="-329.5" font-family="Arial" font-size="8.00" fill="#64748b">state&#45;machine trigger</text>
 <text text-anchor="start" x="1111.5" y="-310.9" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="1139.5" y="-310.9" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
 <text text-anchor="start" x="1261.5" y="-310.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
@@ -41,20 +41,20 @@
 <text text-anchor="start" x="1213.5" y="-286.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <polygon fill="none" stroke="#2563eb" points="1105,-276.9 1105,-362.9 1350,-362.9 1350,-276.9 1105,-276.9"/>
 </g>
-<!-- state_empty&#45;&gt;transition_3_empty_ready_data_refresh_signal_projects_loaded -->
+<!-- state_empty&#45;&gt;state_machine_trigger_3_empty_ready_data_refresh_signal_projects_loaded -->
 <g id="edge7" class="edge">
-<title>state_empty&#45;&gt;transition_3_empty_ready_data_refresh_signal_projects_loaded</title>
+<title>state_empty&#45;&gt;state_machine_trigger_3_empty_ready_data_refresh_signal_projects_loaded</title>
 <path fill="none" stroke="#3f3f46" d="M1038.07,-364.24C1057.9,-359.57 1077.9,-354.86 1097.08,-350.35"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1097.81,-353.05 1104.96,-348.5 1096.53,-347.6 1097.81,-353.05"/>
 </g>
-<!-- transition_4_empty_empty_data_refresh_signal_projects_changed -->
+<!-- state_machine_trigger_4_empty_empty_data_refresh_signal_projects_changed -->
 <g id="node9" class="node">
-<title>transition_4_empty_empty_data_refresh_signal_projects_changed</title>
+<title>state_machine_trigger_4_empty_empty_data_refresh_signal_projects_changed</title>
 <polygon fill="#ffffff" stroke="transparent" points="1099,-444.9 1099,-560.9 1356,-560.9 1356,-444.9 1099,-444.9"/>
 <polygon fill="#2563eb" stroke="transparent" points="1100.5,-551.9 1100.5,-559.9 1355.5,-559.9 1355.5,-551.9 1100.5,-551.9"/>
 <polygon fill="#eff6ff" stroke="transparent" points="1100.5,-520.9 1100.5,-551.9 1355.5,-551.9 1355.5,-520.9 1100.5,-520.9"/>
 <text text-anchor="start" x="1104.5" y="-538.5" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_changed</text>
-<text text-anchor="start" x="1104.5" y="-527.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1104.5" y="-527.5" font-family="Arial" font-size="8.00" fill="#64748b">state&#45;machine trigger</text>
 <text text-anchor="start" x="1104.5" y="-509.9" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">List mutations invalidate the empty collection and</text>
 <text text-anchor="start" x="1104.5" y="-498.9" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">let the list query refresh it.</text>
 <text text-anchor="start" x="1105.5" y="-478.9" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
@@ -67,27 +67,27 @@
 <text text-anchor="start" x="1207.5" y="-454.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <polygon fill="none" stroke="#2563eb" points="1099,-444.9 1099,-560.9 1356,-560.9 1356,-444.9 1099,-444.9"/>
 </g>
-<!-- state_empty&#45;&gt;transition_4_empty_empty_data_refresh_signal_projects_changed -->
+<!-- state_empty&#45;&gt;state_machine_trigger_4_empty_empty_data_refresh_signal_projects_changed -->
 <g id="edge9" class="edge">
-<title>state_empty&#45;&gt;transition_4_empty_empty_data_refresh_signal_projects_changed</title>
+<title>state_empty&#45;&gt;state_machine_trigger_4_empty_empty_data_refresh_signal_projects_changed</title>
 <path fill="none" stroke="#3f3f46" d="M1038.07,-440.91C1055.84,-445.79 1073.74,-450.83 1091.06,-455.85"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1090.52,-458.6 1098.98,-458.15 1092.08,-453.23 1090.52,-458.6"/>
 </g>
-<!-- transition_5_empty_error_local_signal_show_lifecycle_transition_not_allowed -->
+<!-- state_machine_trigger_5_empty_error_local_signal_show_lifecycle_transition_not_allowed -->
 <g id="node10" class="node">
-<title>transition_5_empty_error_local_signal_show_lifecycle_transition_not_allowed</title>
+<title>state_machine_trigger_5_empty_error_local_signal_show_lifecycle_transition_not_allowed</title>
 <polygon fill="#ffffff" stroke="transparent" points="1417,-474.4 1417,-545.4 1757,-545.4 1757,-474.4 1417,-474.4"/>
 <polygon fill="#2563eb" stroke="transparent" points="1418,-535.9 1418,-543.9 1756,-543.9 1756,-535.9 1418,-535.9"/>
 <polygon fill="#eff6ff" stroke="transparent" points="1418,-504.9 1418,-535.9 1756,-535.9 1756,-504.9 1418,-504.9"/>
 <text text-anchor="start" x="1422" y="-522.5" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.show_lifecycle_transition_not_allowed</text>
-<text text-anchor="start" x="1422" y="-511.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1422" y="-511.5" font-family="Arial" font-size="8.00" fill="#64748b">state&#45;machine trigger</text>
 <text text-anchor="start" x="1422" y="-493.9" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Invalid create attempts move the list into its</text>
 <text text-anchor="start" x="1422" y="-482.9" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">displayable error state.</text>
 <polygon fill="none" stroke="#2563eb" points="1417,-474.4 1417,-545.4 1757,-545.4 1757,-474.4 1417,-474.4"/>
 </g>
-<!-- state_empty&#45;&gt;transition_5_empty_error_local_signal_show_lifecycle_transition_not_allowed -->
+<!-- state_empty&#45;&gt;state_machine_trigger_5_empty_error_local_signal_show_lifecycle_transition_not_allowed -->
 <g id="edge11" class="edge">
-<title>state_empty&#45;&gt;transition_5_empty_error_local_signal_show_lifecycle_transition_not_allowed</title>
+<title>state_empty&#45;&gt;state_machine_trigger_5_empty_error_local_signal_show_lifecycle_transition_not_allowed</title>
 <path fill="none" stroke="#3f3f46" d="M1038.07,-402.48C1132.35,-404.46 1251.57,-411.57 1356,-431.9 1401.68,-440.79 1450.73,-456.51 1491.75,-471.53"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1490.84,-474.18 1499.31,-474.32 1492.78,-468.92 1490.84,-474.18"/>
 </g>
@@ -108,22 +108,22 @@
 <g id="node3" class="node">
 <title>state_loading</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,-204.9 0,-266.9 273,-266.9 273,-204.9 0,-204.9"/>
-<polygon fill="#0891b2" stroke="transparent" points="1.5,-257.9 1.5,-265.9 272.5,-265.9 272.5,-257.9 1.5,-257.9"/>
-<polygon fill="#ecfeff" stroke="transparent" points="1.5,-226.9 1.5,-257.9 272.5,-257.9 272.5,-226.9 1.5,-226.9"/>
+<polygon fill="#0369a1" stroke="transparent" points="1.5,-257.9 1.5,-265.9 272.5,-265.9 272.5,-257.9 1.5,-257.9"/>
+<polygon fill="#e0f2fe" stroke="transparent" points="1.5,-226.9 1.5,-257.9 272.5,-257.9 272.5,-226.9 1.5,-226.9"/>
 <text text-anchor="start" x="5.5" y="-244.5" font-family="Arial" font-weight="bold" font-size="13.00">loading</text>
 <text text-anchor="start" x="5.5" y="-233.5" font-family="Arial" font-size="8.00" fill="#64748b">initial state</text>
 <text text-anchor="start" x="6.5" y="-214.9" font-family="Arial" font-weight="bold" font-size="10.00">text_resources:</text>
 <text text-anchor="start" x="77.5" y="-214.9" font-family="Arial" font-size="10.00">  text_resource.project.list.loading.message</text>
-<polygon fill="none" stroke="#0891b2" points="0,-204.9 0,-266.9 273,-266.9 273,-204.9 0,-204.9"/>
+<polygon fill="none" stroke="#0369a1" points="0,-204.9 0,-266.9 273,-266.9 273,-204.9 0,-204.9"/>
 </g>
-<!-- transition_0_loading_empty_data_refresh_signal_project_collection_empty -->
+<!-- state_machine_trigger_0_loading_empty_data_refresh_signal_project_collection_empty -->
 <g id="node5" class="node">
-<title>transition_0_loading_empty_data_refresh_signal_project_collection_empty</title>
+<title>state_machine_trigger_0_loading_empty_data_refresh_signal_project_collection_empty</title>
 <polygon fill="#ffffff" stroke="transparent" points="334,-333.9 334,-419.9 638,-419.9 638,-333.9 334,-333.9"/>
 <polygon fill="#2563eb" stroke="transparent" points="335,-410.9 335,-418.9 637,-418.9 637,-410.9 335,-410.9"/>
 <polygon fill="#eff6ff" stroke="transparent" points="335,-379.9 335,-410.9 637,-410.9 637,-379.9 335,-379.9"/>
 <text text-anchor="start" x="339" y="-397.5" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.project_collection_empty</text>
-<text text-anchor="start" x="339" y="-386.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="339" y="-386.5" font-family="Arial" font-size="8.00" fill="#64748b">state&#45;machine trigger</text>
 <text text-anchor="start" x="340" y="-367.9" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="368" y="-367.9" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
 <text text-anchor="start" x="490" y="-367.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
@@ -134,20 +134,20 @@
 <text text-anchor="start" x="442" y="-343.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <polygon fill="none" stroke="#2563eb" points="334,-333.9 334,-419.9 638,-419.9 638,-333.9 334,-333.9"/>
 </g>
-<!-- state_loading&#45;&gt;transition_0_loading_empty_data_refresh_signal_project_collection_empty -->
+<!-- state_loading&#45;&gt;state_machine_trigger_0_loading_empty_data_refresh_signal_project_collection_empty -->
 <g id="edge1" class="edge">
-<title>state_loading&#45;&gt;transition_0_loading_empty_data_refresh_signal_project_collection_empty</title>
+<title>state_loading&#45;&gt;state_machine_trigger_0_loading_empty_data_refresh_signal_project_collection_empty</title>
 <path fill="none" stroke="#3f3f46" d="M214.19,-267.02C260.29,-285.72 319.82,-309.88 371.32,-330.77"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="370.39,-333.42 378.85,-333.83 372.49,-328.23 370.39,-333.42"/>
 </g>
-<!-- transition_1_loading_ready_data_refresh_signal_projects_loaded -->
+<!-- state_machine_trigger_1_loading_ready_data_refresh_signal_projects_loaded -->
 <g id="node6" class="node">
-<title>transition_1_loading_ready_data_refresh_signal_projects_loaded</title>
+<title>state_machine_trigger_1_loading_ready_data_refresh_signal_projects_loaded</title>
 <polygon fill="#ffffff" stroke="transparent" points="363.5,-192.9 363.5,-278.9 608.5,-278.9 608.5,-192.9 363.5,-192.9"/>
 <polygon fill="#2563eb" stroke="transparent" points="365,-269.9 365,-277.9 608,-277.9 608,-269.9 365,-269.9"/>
 <polygon fill="#eff6ff" stroke="transparent" points="365,-238.9 365,-269.9 608,-269.9 608,-238.9 365,-238.9"/>
 <text text-anchor="start" x="369" y="-256.5" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_loaded</text>
-<text text-anchor="start" x="369" y="-245.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="369" y="-245.5" font-family="Arial" font-size="8.00" fill="#64748b">state&#45;machine trigger</text>
 <text text-anchor="start" x="370" y="-226.9" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="398" y="-226.9" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
 <text text-anchor="start" x="520" y="-226.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
@@ -158,20 +158,20 @@
 <text text-anchor="start" x="472" y="-202.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <polygon fill="none" stroke="#2563eb" points="363.5,-192.9 363.5,-278.9 608.5,-278.9 608.5,-192.9 363.5,-192.9"/>
 </g>
-<!-- state_loading&#45;&gt;transition_1_loading_ready_data_refresh_signal_projects_loaded -->
+<!-- state_loading&#45;&gt;state_machine_trigger_1_loading_ready_data_refresh_signal_projects_loaded -->
 <g id="edge3" class="edge">
-<title>state_loading&#45;&gt;transition_1_loading_ready_data_refresh_signal_projects_loaded</title>
+<title>state_loading&#45;&gt;state_machine_trigger_1_loading_ready_data_refresh_signal_projects_loaded</title>
 <path fill="none" stroke="#3f3f46" d="M273.35,-235.9C300.26,-235.9 328.44,-235.9 355.15,-235.9"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="355.39,-238.7 363.39,-235.9 355.39,-233.1 355.39,-238.7"/>
 </g>
-<!-- transition_2_loading_error_data_refresh_signal_project_list_failed -->
+<!-- state_machine_trigger_2_loading_error_data_refresh_signal_project_list_failed -->
 <g id="node7" class="node">
-<title>transition_2_loading_error_data_refresh_signal_project_list_failed</title>
+<title>state_machine_trigger_2_loading_error_data_refresh_signal_project_list_failed</title>
 <polygon fill="#ffffff" stroke="transparent" points="740,-71.9 740,-157.9 997,-157.9 997,-71.9 740,-71.9"/>
 <polygon fill="#2563eb" stroke="transparent" points="741.5,-148.9 741.5,-156.9 996.5,-156.9 996.5,-148.9 741.5,-148.9"/>
 <polygon fill="#eff6ff" stroke="transparent" points="741.5,-117.9 741.5,-148.9 996.5,-148.9 996.5,-117.9 741.5,-117.9"/>
 <text text-anchor="start" x="745.5" y="-135.5" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.project_list_failed</text>
-<text text-anchor="start" x="745.5" y="-124.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="745.5" y="-124.5" font-family="Arial" font-size="8.00" fill="#64748b">state&#45;machine trigger</text>
 <text text-anchor="start" x="746.5" y="-105.9" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
 <text text-anchor="start" x="774.5" y="-105.9" font-family="Arial" font-size="10.00">  list_projects.workspace_id</text>
 <text text-anchor="start" x="896.5" y="-105.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
@@ -182,9 +182,9 @@
 <text text-anchor="start" x="848.5" y="-81.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <polygon fill="none" stroke="#2563eb" points="740,-71.9 740,-157.9 997,-157.9 997,-71.9 740,-71.9"/>
 </g>
-<!-- state_loading&#45;&gt;transition_2_loading_error_data_refresh_signal_project_list_failed -->
+<!-- state_loading&#45;&gt;state_machine_trigger_2_loading_error_data_refresh_signal_project_list_failed -->
 <g id="edge5" class="edge">
-<title>state_loading&#45;&gt;transition_2_loading_error_data_refresh_signal_project_list_failed</title>
+<title>state_loading&#45;&gt;state_machine_trigger_2_loading_error_data_refresh_signal_project_list_failed</title>
 <path fill="none" stroke="#3f3f46" d="M233.17,-204.76C264.97,-195.32 300.76,-185.67 334,-178.9 467.99,-151.62 623.45,-134.6 731.86,-125.03"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="732.19,-127.81 739.91,-124.32 731.7,-122.23 732.19,-127.81"/>
 </g>
@@ -217,14 +217,14 @@
 <text text-anchor="start" x="1462" y="-181.9" font-family="Arial" font-size="10.00">command.project.submit: access_policy.project.member</text>
 <polygon fill="none" stroke="#71717a" points="1457,-174.4 1457,-381.4 1717,-381.4 1717,-174.4 1457,-174.4"/>
 </g>
-<!-- transition_6_ready_ready_local_signal_project_select -->
+<!-- state_machine_trigger_6_ready_ready_local_signal_project_select -->
 <g id="node11" class="node">
-<title>transition_6_ready_ready_local_signal_project_select</title>
+<title>state_machine_trigger_6_ready_ready_local_signal_project_select</title>
 <polygon fill="#ffffff" stroke="transparent" points="1897,-362.9 1897,-436.9 2079,-436.9 2079,-362.9 1897,-362.9"/>
 <polygon fill="#2563eb" stroke="transparent" points="1898,-427.9 1898,-435.9 2078,-435.9 2078,-427.9 1898,-427.9"/>
 <polygon fill="#eff6ff" stroke="transparent" points="1898,-396.9 1898,-427.9 2078,-427.9 2078,-396.9 1898,-396.9"/>
 <text text-anchor="start" x="1902" y="-414.5" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.project_select</text>
-<text text-anchor="start" x="1902" y="-403.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1902" y="-403.5" font-family="Arial" font-size="8.00" fill="#64748b">state&#45;machine trigger</text>
 <text text-anchor="start" x="1903" y="-384.9" font-family="Arial" font-weight="bold" font-size="10.00">raise:</text>
 <text text-anchor="start" x="1929" y="-384.9" font-family="Arial" font-size="10.00">  local_signal.project_selected</text>
 <text text-anchor="start" x="1903" y="-372.9" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
@@ -232,20 +232,20 @@
 <text text-anchor="start" x="1992" y="-372.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>
 <polygon fill="none" stroke="#2563eb" points="1897,-362.9 1897,-436.9 2079,-436.9 2079,-362.9 1897,-362.9"/>
 </g>
-<!-- state_ready&#45;&gt;transition_6_ready_ready_local_signal_project_select -->
+<!-- state_ready&#45;&gt;state_machine_trigger_6_ready_ready_local_signal_project_select -->
 <g id="edge13" class="edge">
-<title>state_ready&#45;&gt;transition_6_ready_ready_local_signal_project_select</title>
+<title>state_ready&#45;&gt;state_machine_trigger_6_ready_ready_local_signal_project_select</title>
 <path fill="none" stroke="#3f3f46" d="M1717.2,-305.36C1750.06,-315.08 1785.33,-325.93 1818,-335.9 1843.5,-343.68 1871.19,-352.07 1896.63,-360.25"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1895.98,-362.98 1904.45,-362.79 1897.7,-357.66 1895.98,-362.98"/>
 </g>
-<!-- transition_7_ready_ready_data_refresh_signal_projects_changed -->
+<!-- state_machine_trigger_7_ready_ready_data_refresh_signal_projects_changed -->
 <g id="node12" class="node">
-<title>transition_7_ready_ready_data_refresh_signal_projects_changed</title>
+<title>state_machine_trigger_7_ready_ready_data_refresh_signal_projects_changed</title>
 <polygon fill="#ffffff" stroke="transparent" points="1859.5,-219.9 1859.5,-335.9 2116.5,-335.9 2116.5,-219.9 1859.5,-219.9"/>
 <polygon fill="#2563eb" stroke="transparent" points="1861,-326.9 1861,-334.9 2116,-334.9 2116,-326.9 1861,-326.9"/>
 <polygon fill="#eff6ff" stroke="transparent" points="1861,-295.9 1861,-326.9 2116,-326.9 2116,-295.9 1861,-295.9"/>
 <text text-anchor="start" x="1865" y="-313.5" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_changed</text>
-<text text-anchor="start" x="1865" y="-302.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1865" y="-302.5" font-family="Arial" font-size="8.00" fill="#64748b">state&#45;machine trigger</text>
 <text text-anchor="start" x="1865" y="-284.9" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">List mutations mark ready&#45;state collection data</text>
 <text text-anchor="start" x="1865" y="-273.9" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">stale and trigger query refresh.</text>
 <text text-anchor="start" x="1866" y="-253.9" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
@@ -258,20 +258,20 @@
 <text text-anchor="start" x="1968" y="-229.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <polygon fill="none" stroke="#2563eb" points="1859.5,-219.9 1859.5,-335.9 2116.5,-335.9 2116.5,-219.9 1859.5,-219.9"/>
 </g>
-<!-- state_ready&#45;&gt;transition_7_ready_ready_data_refresh_signal_projects_changed -->
+<!-- state_ready&#45;&gt;state_machine_trigger_7_ready_ready_data_refresh_signal_projects_changed -->
 <g id="edge15" class="edge">
-<title>state_ready&#45;&gt;transition_7_ready_ready_data_refresh_signal_projects_changed</title>
+<title>state_ready&#45;&gt;state_machine_trigger_7_ready_ready_data_refresh_signal_projects_changed</title>
 <path fill="none" stroke="#3f3f46" d="M1717.27,-268.71C1760.12,-268 1807.94,-267.96 1851.26,-268.61"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1851.26,-271.41 1859.3,-268.73 1851.35,-265.81 1851.26,-271.41"/>
 </g>
-<!-- transition_8_ready_ready_data_refresh_signal_projects_loaded -->
+<!-- state_machine_trigger_8_ready_ready_data_refresh_signal_projects_loaded -->
 <g id="node13" class="node">
-<title>transition_8_ready_ready_data_refresh_signal_projects_loaded</title>
+<title>state_machine_trigger_8_ready_ready_data_refresh_signal_projects_loaded</title>
 <polygon fill="#ffffff" stroke="transparent" points="1865.5,-76.9 1865.5,-192.9 2110.5,-192.9 2110.5,-76.9 1865.5,-76.9"/>
 <polygon fill="#2563eb" stroke="transparent" points="1867,-183.9 1867,-191.9 2110,-191.9 2110,-183.9 1867,-183.9"/>
 <polygon fill="#eff6ff" stroke="transparent" points="1867,-152.9 1867,-183.9 2110,-183.9 2110,-152.9 1867,-152.9"/>
 <text text-anchor="start" x="1871" y="-170.5" font-family="Arial" font-weight="bold" font-size="13.00">data_refresh_signal.projects_loaded</text>
-<text text-anchor="start" x="1871" y="-159.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1871" y="-159.5" font-family="Arial" font-size="8.00" fill="#64748b">state&#45;machine trigger</text>
 <text text-anchor="start" x="1871" y="-141.9" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Successful list queries refresh ready&#45;state</text>
 <text text-anchor="start" x="1871" y="-130.9" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">collection data.</text>
 <text text-anchor="start" x="1872" y="-110.9" font-family="Arial" font-weight="bold" font-size="10.00">input:</text>
@@ -284,87 +284,87 @@
 <text text-anchor="start" x="1974" y="-86.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <polygon fill="none" stroke="#2563eb" points="1865.5,-76.9 1865.5,-192.9 2110.5,-192.9 2110.5,-76.9 1865.5,-76.9"/>
 </g>
-<!-- state_ready&#45;&gt;transition_8_ready_ready_data_refresh_signal_projects_loaded -->
+<!-- state_ready&#45;&gt;state_machine_trigger_8_ready_ready_data_refresh_signal_projects_loaded -->
 <g id="edge17" class="edge">
-<title>state_ready&#45;&gt;transition_8_ready_ready_data_refresh_signal_projects_loaded</title>
+<title>state_ready&#45;&gt;state_machine_trigger_8_ready_ready_data_refresh_signal_projects_loaded</title>
 <path fill="none" stroke="#3f3f46" d="M1717.27,-222.38C1762.24,-205.52 1812.67,-187.44 1857.64,-172.07"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1858.72,-174.66 1865.39,-169.43 1856.92,-169.36 1858.72,-174.66"/>
 </g>
-<!-- transition_9_ready_error_local_signal_show_lifecycle_transition_not_allowed -->
+<!-- state_machine_trigger_9_ready_error_local_signal_show_lifecycle_transition_not_allowed -->
 <g id="node14" class="node">
-<title>transition_9_ready_error_local_signal_show_lifecycle_transition_not_allowed</title>
+<title>state_machine_trigger_9_ready_error_local_signal_show_lifecycle_transition_not_allowed</title>
 <polygon fill="#ffffff" stroke="transparent" points="1818,-464.4 1818,-535.4 2158,-535.4 2158,-464.4 1818,-464.4"/>
 <polygon fill="#2563eb" stroke="transparent" points="1819,-525.9 1819,-533.9 2157,-533.9 2157,-525.9 1819,-525.9"/>
 <polygon fill="#eff6ff" stroke="transparent" points="1819,-494.9 1819,-525.9 2157,-525.9 2157,-494.9 1819,-494.9"/>
 <text text-anchor="start" x="1823" y="-512.5" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.show_lifecycle_transition_not_allowed</text>
-<text text-anchor="start" x="1823" y="-501.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
+<text text-anchor="start" x="1823" y="-501.5" font-family="Arial" font-size="8.00" fill="#64748b">state&#45;machine trigger</text>
 <text text-anchor="start" x="1823" y="-483.9" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">Invalid list queries move the list into its</text>
 <text text-anchor="start" x="1823" y="-472.9" font-family="Arial" font-style="italic" font-size="10.00" fill="#3f3f46">displayable error state.</text>
 <polygon fill="none" stroke="#2563eb" points="1818,-464.4 1818,-535.4 2158,-535.4 2158,-464.4 1818,-464.4"/>
 </g>
-<!-- state_ready&#45;&gt;transition_9_ready_error_local_signal_show_lifecycle_transition_not_allowed -->
+<!-- state_ready&#45;&gt;state_machine_trigger_9_ready_error_local_signal_show_lifecycle_transition_not_allowed -->
 <g id="edge19" class="edge">
-<title>state_ready&#45;&gt;transition_9_ready_error_local_signal_show_lifecycle_transition_not_allowed</title>
+<title>state_ready&#45;&gt;state_machine_trigger_9_ready_error_local_signal_show_lifecycle_transition_not_allowed</title>
 <path fill="none" stroke="#3f3f46" d="M1709.86,-381.52C1743.38,-406.45 1780.78,-431.23 1818,-449.9 1826.23,-454.02 1834.85,-457.87 1843.67,-461.45"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1842.65,-464.05 1851.12,-464.39 1844.71,-458.85 1842.65,-464.05"/>
 </g>
-<!-- transition_0_loading_empty_data_refresh_signal_project_collection_empty&#45;&gt;state_empty -->
+<!-- state_machine_trigger_0_loading_empty_data_refresh_signal_project_collection_empty&#45;&gt;state_empty -->
 <g id="edge2" class="edge">
-<title>transition_0_loading_empty_data_refresh_signal_project_collection_empty&#45;&gt;state_empty</title>
+<title>state_machine_trigger_0_loading_empty_data_refresh_signal_project_collection_empty&#45;&gt;state_empty</title>
 <path fill="none" stroke="#3f3f46" d="M638.2,-387.63C655.47,-388.85 673.18,-390.11 690.74,-391.36"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="690.61,-394.15 698.79,-391.93 691.01,-388.57 690.61,-394.15"/>
 </g>
-<!-- transition_1_loading_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready -->
+<!-- state_machine_trigger_1_loading_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready -->
 <g id="edge4" class="edge">
-<title>transition_1_loading_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready</title>
+<title>state_machine_trigger_1_loading_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready</title>
 <path fill="none" stroke="#3f3f46" d="M608.66,-238.37C776.77,-242.09 1089.52,-250.07 1356,-262.9 1385.99,-264.34 1418.17,-266.23 1448.67,-268.17"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1448.64,-270.98 1456.8,-268.7 1448.99,-265.39 1448.64,-270.98"/>
 </g>
-<!-- transition_2_loading_error_data_refresh_signal_project_list_failed&#45;&gt;state_error -->
+<!-- state_machine_trigger_2_loading_error_data_refresh_signal_project_list_failed&#45;&gt;state_error -->
 <g id="edge6" class="edge">
-<title>transition_2_loading_error_data_refresh_signal_project_list_failed&#45;&gt;state_error</title>
+<title>state_machine_trigger_2_loading_error_data_refresh_signal_project_list_failed&#45;&gt;state_error</title>
 <path fill="none" stroke="#3f3f46" d="M997.04,-90.59C1285.08,-38.65 1975.09,68.13 2158,-62.9 2283.99,-153.15 2304.37,-356.47 2306.8,-450.49"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="2304.01,-450.76 2306.98,-458.7 2309.61,-450.64 2304.01,-450.76"/>
 </g>
-<!-- transition_3_empty_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready -->
+<!-- state_machine_trigger_3_empty_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready -->
 <g id="edge8" class="edge">
-<title>transition_3_empty_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready</title>
+<title>state_machine_trigger_3_empty_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready</title>
 <path fill="none" stroke="#3f3f46" d="M1350.03,-305.62C1381.76,-301.89 1416.17,-297.85 1448.65,-294.04"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1449.24,-296.78 1456.86,-293.07 1448.59,-291.22 1449.24,-296.78"/>
 </g>
-<!-- transition_4_empty_empty_data_refresh_signal_projects_changed&#45;&gt;state_empty -->
+<!-- state_machine_trigger_4_empty_empty_data_refresh_signal_projects_changed&#45;&gt;state_empty -->
 <g id="edge10" class="edge">
-<title>transition_4_empty_empty_data_refresh_signal_projects_changed&#45;&gt;state_empty</title>
+<title>state_machine_trigger_4_empty_empty_data_refresh_signal_projects_changed&#45;&gt;state_empty</title>
 <path fill="none" stroke="#3f3f46" d="M1098.98,-477.65C1081.85,-473.16 1064.03,-468.35 1046.24,-463.41"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1046.53,-460.58 1038.07,-461.13 1045.02,-465.98 1046.53,-460.58"/>
 </g>
-<!-- transition_5_empty_error_local_signal_show_lifecycle_transition_not_allowed&#45;&gt;state_error -->
+<!-- state_machine_trigger_5_empty_error_local_signal_show_lifecycle_transition_not_allowed&#45;&gt;state_error -->
 <g id="edge12" class="edge">
-<title>transition_5_empty_error_local_signal_show_lifecycle_transition_not_allowed&#45;&gt;state_error</title>
+<title>state_machine_trigger_5_empty_error_local_signal_show_lifecycle_transition_not_allowed&#45;&gt;state_error</title>
 <path fill="none" stroke="#3f3f46" d="M1757.27,-541.5C1871.14,-557.87 2024.32,-570.38 2158,-548.9 2175.43,-546.1 2193.59,-541.56 2210.99,-536.34"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="2212.09,-538.93 2218.92,-533.9 2210.45,-533.58 2212.09,-538.93"/>
 </g>
-<!-- transition_6_ready_ready_local_signal_project_select&#45;&gt;state_ready -->
+<!-- state_machine_trigger_6_ready_ready_local_signal_project_select&#45;&gt;state_ready -->
 <g id="edge14" class="edge">
-<title>transition_6_ready_ready_local_signal_project_select&#45;&gt;state_ready</title>
+<title>state_machine_trigger_6_ready_ready_local_signal_project_select&#45;&gt;state_ready</title>
 <path fill="none" stroke="#3f3f46" d="M1896.63,-386.19C1871.19,-379.07 1843.5,-370.68 1818,-362.9 1787.88,-353.7 1755.56,-343.77 1724.95,-333.97"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1725.67,-331.27 1717.2,-331.48 1723.96,-336.6 1725.67,-331.27"/>
 </g>
-<!-- transition_7_ready_ready_data_refresh_signal_projects_changed&#45;&gt;state_ready -->
+<!-- state_machine_trigger_7_ready_ready_data_refresh_signal_projects_changed&#45;&gt;state_ready -->
 <g id="edge16" class="edge">
-<title>transition_7_ready_ready_data_refresh_signal_projects_changed&#45;&gt;state_ready</title>
+<title>state_machine_trigger_7_ready_ready_data_refresh_signal_projects_changed&#45;&gt;state_ready</title>
 <path fill="none" stroke="#3f3f46" d="M1859.3,-287.77C1816.57,-288.55 1768.76,-288.6 1725.33,-287.93"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1725.31,-285.13 1717.27,-287.8 1725.22,-290.73 1725.31,-285.13"/>
 </g>
-<!-- transition_8_ready_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready -->
+<!-- state_machine_trigger_8_ready_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready -->
 <g id="edge18" class="edge">
-<title>transition_8_ready_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready</title>
+<title>state_machine_trigger_8_ready_ready_data_refresh_signal_projects_loaded&#45;&gt;state_ready</title>
 <path fill="none" stroke="#3f3f46" d="M1865.39,-188.24C1820.99,-205.04 1770.48,-223.24 1724.84,-238.88"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="1723.93,-236.23 1717.27,-241.47 1725.74,-241.53 1723.93,-236.23"/>
 </g>
-<!-- transition_9_ready_error_local_signal_show_lifecycle_transition_not_allowed&#45;&gt;state_error -->
+<!-- state_machine_trigger_9_ready_error_local_signal_show_lifecycle_transition_not_allowed&#45;&gt;state_error -->
 <g id="edge20" class="edge">
-<title>transition_9_ready_error_local_signal_show_lifecycle_transition_not_allowed&#45;&gt;state_error</title>
+<title>state_machine_trigger_9_ready_error_local_signal_show_lifecycle_transition_not_allowed&#45;&gt;state_error</title>
 <path fill="none" stroke="#3f3f46" d="M2158.44,-499.9C2176.34,-499.9 2194.07,-499.9 2210.69,-499.9"/>
 <polygon fill="#3f3f46" stroke="#3f3f46" points="2210.76,-502.7 2218.76,-499.9 2210.76,-497.1 2210.76,-502.7"/>
 </g>

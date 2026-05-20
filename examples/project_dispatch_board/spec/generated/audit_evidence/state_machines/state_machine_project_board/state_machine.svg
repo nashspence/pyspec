@@ -1,14 +1,14 @@
 <svg width="344pt" height="150pt"
  viewBox="0.00 0.00 344.00 150.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 7a0ee6908d794254cbf324b6f7121754ffc7da6bcf9e036e4e9eefd1b18daf49 -->
+<!-- pyspec-contract-input-sha256: 492854a036ca60c199b875ce44fcdd7c1f6e9de1d4fdcbe5b6a018323a13885c -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 132)">
-<title>state_machine_state_machine_project_board</title>
+<title>state_machine_chart_state_machine_project_board</title>
 <!-- state_ready -->
 <g id="node1" class="node">
 <title>state_ready</title>
 <polygon fill="#ffffff" stroke="transparent" points="0,0 0,-114 308,-114 308,0 0,0"/>
-<polygon fill="#0891b2" stroke="transparent" points="1,-105 1,-113 307,-113 307,-105 1,-105"/>
-<polygon fill="#ecfeff" stroke="transparent" points="1,-74 1,-105 307,-105 307,-74 1,-74"/>
+<polygon fill="#0369a1" stroke="transparent" points="1,-105 1,-113 307,-113 307,-105 1,-105"/>
+<polygon fill="#e0f2fe" stroke="transparent" points="1,-74 1,-105 307,-105 307,-74 1,-74"/>
 <text text-anchor="start" x="5" y="-91.6" font-family="Arial" font-weight="bold" font-size="13.00">ready</text>
 <text text-anchor="start" x="5" y="-80.6" font-family="Arial" font-size="8.00" fill="#64748b">initial state</text>
 <text text-anchor="start" x="5" y="-63" font-family="Arial" font-weight="bold" font-size="10.00">child_state_machines</text>
@@ -20,7 +20,7 @@
 <text text-anchor="start" x="21" y="-30" font-family="Arial" font-size="8.00" fill="#94a3b8">  state_machine.project.list</text>
 <text text-anchor="start" x="6" y="-10" font-family="Arial" font-weight="bold" font-size="10.00">local_signal_sync_rules:</text>
 <text text-anchor="start" x="121" y="-10" font-family="Arial" font-size="10.00">  select_project_updates_state_machines</text>
-<polygon fill="none" stroke="#0891b2" points="0,0 0,-114 308,-114 308,0 0,0"/>
+<polygon fill="none" stroke="#0369a1" points="0,0 0,-114 308,-114 308,0 0,0"/>
 </g>
 </g>
 </svg>
