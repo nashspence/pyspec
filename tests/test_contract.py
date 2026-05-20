@@ -898,7 +898,7 @@ def test_context_set_local_effect_respects_context_null_type() -> None:
         "state_machines": {
             "state_machine.project.panel": {
                 "context_schema": O({"project_id": F(P("ID"), allow_null=True)}, required=[]),
-                "local_signals": {"accepts": {"local_signals": {"clear": {}}}},
+                "local_signals": {"accepts": {"local_signals": {"clear": {"payload_schema": EMPTY_OBJECT_SCHEMA}}}},
                 "initial_state": "ready",
                 "states": {
                     "ready": {
@@ -935,7 +935,7 @@ def test_context_set_local_effect_respects_context_null_type() -> None:
                     },
                     required=["target_project_id"],
                 ),
-                "local_signals": {"accepts": {"local_signals": {"copy": {}}}},
+                "local_signals": {"accepts": {"local_signals": {"copy": {"payload_schema": EMPTY_OBJECT_SCHEMA}}}},
                 "initial_state": "ready",
                 "states": {
                     "ready": {
@@ -1055,30 +1055,41 @@ def test_author_source_prunes_empty_signal_directions() -> None:
     assert "emits" not in pruned["state_machines"]["state_machine.project.activity"]["local_signals"]
 
 
-def test_empty_state_machine_signal_payloads_can_be_omitted() -> None:
+def test_empty_state_machine_signal_payloads_must_be_explicit() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
 
-    assert activity["local_signals"]["accepts"]["local_signals"]["selection_cleared"] == {}
+    assert activity["local_signals"]["accepts"]["local_signals"]["selection_cleared"]["payload_schema"] == EMPTY_OBJECT_SCHEMA
     contract = compile_source(author)
 
     assert contract["state_machines"]["state_machine.project.activity"]["local_signals"]["accepts"]["local_signals"]["selection_cleared"]["payload_schema"] == EMPTY_OBJECT_SCHEMA
 
+    del activity["local_signals"]["accepts"]["local_signals"]["selection_cleared"]["payload_schema"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
 
-def test_author_source_prunes_empty_local_signal_payloads() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
     activity["local_signals"]["accepts"]["local_signals"]["selection_cleared"]["payload_schema"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_source(author)
+
+
+def test_author_source_preserves_empty_local_signal_payload_contracts() -> None:
+    author = _author()
+    activity = _item(author, "state_machines", "state_machine.project.activity")
 
     pruned = author_from_source(author)
 
-    assert pruned["state_machines"]["state_machine.project.activity"]["local_signals"]["accepts"]["local_signals"]["selection_cleared"] == {}
+    assert pruned["state_machines"]["state_machine.project.activity"]["local_signals"]["accepts"]["local_signals"]["selection_cleared"] == {
+        "payload_schema": EMPTY_OBJECT_SCHEMA
+    }
 
 
 def test_state_machine_accepted_messages_must_be_used_by_transition() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
-    activity["local_signals"]["accepts"]["local_signals"]["unused"] = {}
+    activity["local_signals"]["accepts"]["local_signals"]["unused"] = {"payload_schema": EMPTY_OBJECT_SCHEMA}
     with pytest.raises(ContractError, match=r"state machine state_machine\.project\.activity declares accepted state-machine signal without transition: .*local_signal\.unused"):
         compile_source(author)
 
@@ -1086,7 +1097,7 @@ def test_state_machine_accepted_messages_must_be_used_by_transition() -> None:
 def test_state_machine_local_messages_reject_global_looking_names() -> None:
     author = _author()
     activity = _item(author, "state_machines", "state_machine.project.activity")
-    activity["local_signals"]["accepts"]["local_signals"]["local_signal.global"] = {}
+    activity["local_signals"]["accepts"]["local_signals"]["local_signal.global"] = {"payload_schema": EMPTY_OBJECT_SCHEMA}
     with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
@@ -1330,7 +1341,7 @@ def test_legacy_state_machine_command_and_query_fields_are_rejected() -> None:
 def test_renderer_slot_binding_accepts_command_binding_and_rejects_command_ref() -> None:
     author = _author()
     board = _item(author, "state_machines", "state_machine.project.board")
-    board["local_signals"] = {"accepts": {"data_refresh_signals": {"command_completed": {}}}}
+    board["local_signals"] = {"accepts": {"data_refresh_signals": {"command_completed": {"payload_schema": EMPTY_OBJECT_SCHEMA}}}}
     board["transitions"] = [{"from": "ready", "to": "ready", "trigger": {"data_refresh_signal": "command_completed"}}]
     state = board["states"]["ready"]
     state["command_bindings"] = {
@@ -1357,7 +1368,7 @@ def test_renderer_slot_binding_accepts_command_binding_and_rejects_command_ref()
 
     bad = _author()
     board = _item(bad, "state_machines", "state_machine.project.board")
-    board["local_signals"] = {"accepts": {"data_refresh_signals": {"command_completed": {}}}}
+    board["local_signals"] = {"accepts": {"data_refresh_signals": {"command_completed": {"payload_schema": EMPTY_OBJECT_SCHEMA}}}}
     board["transitions"] = [{"from": "ready", "to": "ready", "trigger": {"data_refresh_signal": "command_completed"}}]
     state = board["states"]["ready"]
     state["command_bindings"] = {
@@ -1838,7 +1849,7 @@ def test_signal_names_that_match_states_emit_lint_warnings() -> None:
         "project": "signal_lint",
         "state_machines": {
             "state_machine.panel": {
-                "local_signals": {"accepts": {"local_signals": {"ready": {}}}},
+                "local_signals": {"accepts": {"local_signals": {"ready": {"payload_schema": EMPTY_OBJECT_SCHEMA}}}},
                 "initial_state": "ready",
                 "states": {
                     "ready": {

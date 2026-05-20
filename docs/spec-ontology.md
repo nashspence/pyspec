@@ -497,7 +497,8 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:render_example --> `$defs/render_example`: state-machine contract component.
 - <!-- schema-def:state_machine_signal_raise --> `$defs/state_machine_signal_raise`: state-machine local signal raise contract component.
 - <!-- schema-def:state_machine_signal_trigger --> `$defs/state_machine_signal_trigger`: tagged local signal/data-refresh-signal trigger contract component.
-- <!-- schema-def:state_machine_signal --> `$defs/state_machine_signal`: state-machine contract component.
+- <!-- schema-def:state_machine_signal --> `$defs/state_machine_signal`: state-machine signal contract with required JSON Schema `payload_schema`; empty payloads use an explicit empty object schema.
+- <!-- schema-def:state_machine_signal_payload_schema --> `$defs/state_machine_signal_payload_schema`: explicit object-shaped JSON Schema for a state-machine signal payload.
 - <!-- schema-def:state_machine_state_query_binding --> `$defs/state_machine_state_query_binding`: state-machine state query binding contract component.
 - <!-- schema-def:state_machine_ref --> `$defs/state_machine_ref`: typed reference definition for its namespace.
 - <!-- schema-def:state_machine_transition --> `$defs/state_machine_transition`: state-machine contract component.

@@ -553,7 +553,12 @@ state_machines:
               required:
               - project_id
               additionalProperties: false
-          selection_cleared: {}
+          selection_cleared:
+            payload_schema:
+              type: object
+              properties: {}
+              required: []
+              additionalProperties: false
     initial_state: empty
     states:
       empty:
@@ -865,7 +870,12 @@ state_machines:
               required:
               - project_id
               additionalProperties: false
-          selection_cleared: {}
+          selection_cleared:
+            payload_schema:
+              type: object
+              properties: {}
+              required: []
+              additionalProperties: false
           show_lifecycle_transition_not_allowed:
             payload_schema:
               type: object
@@ -876,9 +886,24 @@ state_machines:
               - message
               additionalProperties: false
         data_refresh_signals:
-          project_changed: {}
-          project_load_failed: {}
-          project_loaded: {}
+          project_changed:
+            payload_schema:
+              type: object
+              properties: {}
+              required: []
+              additionalProperties: false
+          project_load_failed:
+            payload_schema:
+              type: object
+              properties: {}
+              required: []
+              additionalProperties: false
+          project_loaded:
+            payload_schema:
+              type: object
+              properties: {}
+              required: []
+              additionalProperties: false
     initial_state: none
     states:
       error:
@@ -1163,10 +1188,30 @@ state_machines:
               - message
               additionalProperties: false
         data_refresh_signals:
-          project_collection_empty: {}
-          project_list_failed: {}
-          projects_changed: {}
-          projects_loaded: {}
+          project_collection_empty:
+            payload_schema:
+              type: object
+              properties: {}
+              required: []
+              additionalProperties: false
+          project_list_failed:
+            payload_schema:
+              type: object
+              properties: {}
+              required: []
+              additionalProperties: false
+          projects_changed:
+            payload_schema:
+              type: object
+              properties: {}
+              required: []
+              additionalProperties: false
+          projects_loaded:
+            payload_schema:
+              type: object
+              properties: {}
+              required: []
+              additionalProperties: false
       emits:
         local_signals:
           project_selected:

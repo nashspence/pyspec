@@ -298,9 +298,6 @@ def _prune_empty_author_state_machine_signal_directions(author: dict[str, Any]) 
             if not isinstance(direction_body, dict):
                 continue
             for group in groups:
-                for signal in (direction_body.get(group) or {}).values():
-                    if isinstance(signal, dict) and signal.get("payload_schema") == {}:
-                        signal.pop("payload_schema")
                 if direction_body.get(group) == {}:
                     direction_body.pop(group)
             if not direction_body:

@@ -233,6 +233,27 @@ def test_query_binding_load_policies_are_context_specific() -> None:
         assert defs["state_machine_state_query_binding"]["properties"]["load"]["$ref"] == "#/$defs/state_machine_state_query_binding_load_policy", schema_name
 
 
+def test_state_machine_signals_require_payload_schema() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        signal = schema["$defs"]["state_machine_signal"]
+        assert signal["required"] == ["payload_schema"], schema_name
+        assert signal["properties"]["payload_schema"]["$ref"] == "#/$defs/state_machine_signal_payload_schema", schema_name
+
+        payload = schema["$defs"]["state_machine_signal_payload_schema"]
+        assert payload["required"] == ["type", "properties", "required", "additionalProperties"], schema_name
+        assert payload["properties"]["type"]["const"] == "object", schema_name
+        assert payload["properties"]["additionalProperties"]["const"] is False, schema_name
+
+
 def test_authored_local_id_collections_are_keyed_maps() -> None:
     schema_cases: list[tuple[str, dict[str, Any]]] = [
         ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),

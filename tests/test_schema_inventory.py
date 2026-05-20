@@ -211,6 +211,10 @@ ALLOWED_JSON_SCHEMA_KEYWORD_PROPERTIES = {
     ("schema", "properties"),
     ("schema", "required"),
     ("schema", "type"),
+    ("state_machine_signal_payload_schema", "additionalProperties"),
+    ("state_machine_signal_payload_schema", "properties"),
+    ("state_machine_signal_payload_schema", "required"),
+    ("state_machine_signal_payload_schema", "type"),
     ("behavior_scenario_item", "then"),
     ("behavior_scenario_item", "title"),
 }

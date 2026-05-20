@@ -3482,16 +3482,55 @@
       "pattern": "^state_machine\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
       "type": "string"
     },
+    "state_machine_signal_payload_schema": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/schema"
+        }
+      ],
+      "properties": {
+        "additionalProperties": {
+          "const": false
+        },
+        "properties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/schema"
+          },
+          "type": "object"
+        },
+        "required": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "type": {
+          "const": "object"
+        }
+      },
+      "required": [
+        "type",
+        "properties",
+        "required",
+        "additionalProperties"
+      ],
+      "type": "object"
+    },
     "state_machine_signal": {
       "additionalProperties": false,
       "properties": {
         "payload_schema": {
-          "$ref": "#/$defs/schema"
+          "$ref": "#/$defs/state_machine_signal_payload_schema"
         },
         "rationale": {
           "$ref": "#/$defs/rationale"
         }
       },
+      "required": [
+        "payload_schema"
+      ],
       "type": "object"
     },
     "state_machine_signal_raise": {
