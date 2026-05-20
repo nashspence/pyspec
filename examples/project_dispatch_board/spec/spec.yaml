@@ -182,6 +182,7 @@ access_policies:
     rationale: Workspace members may create, read, list, and submit dispatch projects.
     subject:
     - kind: actor
+      source: $principal.id
     resource:
     - entity_type: entity_type.project
     action:
@@ -199,6 +200,7 @@ access_policies:
     rationale: Reviewers may approve, archive, and send approval notices for dispatch projects.
     subject:
     - kind: actor
+      source: $principal.id
     resource:
     - entity_type: entity_type.project
     action:

@@ -25,7 +25,8 @@
       ],
       "subject": [
         {
-          "kind": "actor"
+          "kind": "actor",
+          "source": "$principal.id"
         }
       ]
     },
@@ -53,7 +54,8 @@
       ],
       "subject": [
         {
-          "kind": "actor"
+          "kind": "actor",
+          "source": "$principal.id"
         }
       ]
     }

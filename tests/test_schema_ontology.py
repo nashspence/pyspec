@@ -332,3 +332,25 @@ def test_access_policy_action_requires_explicit_action() -> None:
     for schema_name, schema, definition_name in schema_cases:
         action = schema["$defs"][definition_name]["properties"]["action"]
         assert action["minItems"] == 1, schema_name
+
+
+def test_access_policy_subject_source_is_kind_specific() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        assert schema["$defs"]["principal_binding_expression"]["pattern"].startswith("^\\$principal\\."), schema_name
+
+        all_of = schema["$defs"]["access_policy_subject"]["allOf"]
+        actor_rule = next(rule for rule in all_of if rule["if"]["properties"]["kind"]["const"] == "actor")
+        assert actor_rule["then"]["required"] == ["source"], schema_name
+        assert actor_rule["then"]["properties"]["source"]["$ref"] == "#/$defs/principal_binding_expression", schema_name
+
+        anonymous_rule = next(rule for rule in all_of if rule["if"]["properties"]["kind"]["const"] == "anonymous")
+        assert anonymous_rule["then"]["not"]["required"] == ["source"], schema_name

@@ -434,7 +434,7 @@ def test_access_policies_require_explicit_conditions_and_support_value_equals() 
     author["commands"]["command.ticket.submit"]["outcomes"]["access_denied"] = {"kind": "failure", "result": M("Problem")}
     author["access_policies"] = {
         "access_policy.ticket.submit": {
-            "subject": [{"kind": "actor"}],
+            "subject": [{"kind": "actor", "source": "$principal.id"}],
             "resource": [{"entity_type": ET("Ticket")}],
             "action": ["command.ticket.submit"],
             "environment": [],
@@ -465,7 +465,7 @@ def test_access_policies_require_explicit_conditions_and_support_value_equals() 
 def test_access_policies_reject_duplicated_rule_sets() -> None:
     author = _authorized_transition_author()
     author["access_policies"]["access_policy.ticket.submit_duplicate"] = {
-        "subject": [{"kind": "actor"}],
+        "subject": [{"kind": "actor", "source": "$principal.id"}],
         "resource": [{"entity_type": ET("Ticket")}],
         "action": ["command.ticket.submit"],
         "environment": [],
@@ -491,6 +491,27 @@ def test_access_policy_action_requires_at_least_one_action() -> None:
         compile_author(author)
 
 
+def test_access_policy_actor_subject_requires_principal_source() -> None:
+    author = _authorized_transition_author()
+    del author["access_policies"]["access_policy.ticket.submit"]["subject"][0]["source"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_author(author)
+
+
+def test_access_policy_actor_subject_rejects_non_principal_source() -> None:
+    author = _authorized_transition_author()
+    author["access_policies"]["access_policy.ticket.submit"]["subject"][0]["source"] = "$command_input.actor_id"
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_author(author)
+
+
+def test_access_policy_anonymous_subject_rejects_source() -> None:
+    author = _authorized_transition_author()
+    author["access_policies"]["access_policy.ticket.submit"]["subject"] = [{"kind": "anonymous", "source": "$principal.id"}]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_author(author)
+
+
 def _authorized_transition_author() -> dict:
     author = _explicit_transition_author()
     command = author["commands"]["command.ticket.submit"]
@@ -503,7 +524,7 @@ def _authorized_transition_author() -> dict:
     command["outcomes"]["access_denied"] = {"kind": "failure", "result": M("Problem")}
     author["access_policies"] = {
         "access_policy.ticket.submit": {
-            "subject": [{"kind": "actor"}],
+            "subject": [{"kind": "actor", "source": "$principal.id"}],
             "resource": [{"entity_type": ET("Ticket")}],
             "action": ["command.ticket.submit"],
             "environment": [],
@@ -2264,7 +2285,7 @@ def test_delegated_and_outer_access_policies_are_both_evaluated(tmp_path: Path) 
     author = _author()
     outer_policy = "access_policy.project.cli_approve"
     author.setdefault("access_policies", {})[outer_policy] = {
-        "subject": [{"kind": "actor"}],
+        "subject": [{"kind": "actor", "source": "$principal.id"}],
         "resource": [{"external_interface": "external_interface.cli.project.approve"}],
         "action": ["command.project.approve"],
         "environment": [],

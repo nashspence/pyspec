@@ -1636,6 +1636,10 @@
       "pattern": "^\\$fixture\\.[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)*$",
       "type": "string"
     },
+    "principal_binding_expression": {
+      "pattern": "^\\$principal\\.[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)*$",
+      "type": "string"
+    },
     "binding_map": {
       "additionalProperties": {
         "$ref": "#/$defs/binding_value"
@@ -3643,6 +3647,49 @@
     },
     "access_policy_subject": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "actor"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source": {
+                "$ref": "#/$defs/principal_binding_expression"
+              }
+            },
+            "required": [
+              "source"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "anonymous"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "source"
+              ]
+            }
+          }
+        }
+      ],
       "properties": {
         "kind": {
           "enum": [

@@ -442,14 +442,13 @@ class ProductApp:
         for subject in policy.get("subject", []):
             if subject.get("kind") != "actor":
                 continue
-            source = subject.get("source")
-            if source:
-                try:
-                    return resolve_binding({"from": source}, {"command_input": dict(input_values), "fixture": self.fixtures}) is not None
-                except Exception:
-                    return False
-            if self.fixtures.get("actor", {}).get("id"):
-                return True
+            try:
+                return resolve_binding(
+                    {"from": subject["source"]},
+                    {"command_input": dict(input_values), "fixture": self.fixtures, "principal": self.fixtures.get("actor", {})},
+                ) is not None
+            except Exception:
+                return False
         return False
 
     def _condition_matches(self, condition: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:

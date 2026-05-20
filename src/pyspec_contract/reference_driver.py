@@ -522,15 +522,13 @@ class ReferenceSpecDriver:
         for subject in policy.get("subject", []):
             if subject.get("kind") != "actor":
                 continue
-            source = subject.get("source")
-            if source:
-                try:
-                    return _resolve_binding({"from": source}, {"command_input": dict(input_values), "fixture": self.fixtures}) is not None
-                except (KeyError, BindingExpressionError):
-                    return False
-            actor = self.fixtures.get("actor", {})
-            if actor.get("id"):
-                return True
+            try:
+                return _resolve_binding(
+                    {"from": subject["source"]},
+                    {"command_input": dict(input_values), "fixture": self.fixtures, "principal": self.fixtures.get("actor", {})},
+                ) is not None
+            except (KeyError, BindingExpressionError):
+                return False
         return False
 
     def _condition_matches(self, condition: Mapping[str, Any], input_values: Mapping[str, Any]) -> bool:

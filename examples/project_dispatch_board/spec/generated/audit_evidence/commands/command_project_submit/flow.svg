@@ -1,6 +1,6 @@
 <svg width="1550pt" height="622pt"
  viewBox="0.00 0.00 1550.00 622.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: 416fdf67805f2ad7b6923549039d4a20cf404d9d3daed02b202e222ad5284d27 -->
+<!-- pyspec-contract-input-sha256: 0bebda2db75295229ce0fccccaafceec2293a7d11125093eace5654001eacfb7 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 604)">
 <title>command_command_project_submit</title>
 <!-- command_input_command_project_submit -->
@@ -29,7 +29,7 @@
 <text text-anchor="start" x="186" y="-437.5" font-family="Arial" font-weight="bold" font-size="10.00">combining_algorithm:</text>
 <text text-anchor="start" x="290" y="-437.5" font-family="Arial" font-size="10.00">  all_permit_rules_must_match</text>
 <text text-anchor="start" x="186" y="-425.5" font-family="Arial" font-weight="bold" font-size="10.00">subject:</text>
-<text text-anchor="start" x="223" y="-425.5" font-family="Arial" font-size="10.00">  actor</text>
+<text text-anchor="start" x="223" y="-425.5" font-family="Arial" font-size="10.00">  actor ← principal.id</text>
 <text text-anchor="start" x="185" y="-405.5" font-family="Arial" font-weight="bold" font-size="10.00">action</text>
 <text text-anchor="start" x="185" y="-393.5" font-family="Arial" font-size="10.00">command.project.create</text>
 <text text-anchor="start" x="185" y="-382.5" font-family="Arial" font-size="10.00">query.project.list</text>

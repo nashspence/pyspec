@@ -16,6 +16,7 @@ access_policies:
       effect: permit
     subject:
     - kind: actor
+      source: $principal.id
   access_policy.project.reviewer:
     action:
     - command.project.approve
@@ -32,6 +33,7 @@ access_policies:
       effect: permit
     subject:
     - kind: actor
+      source: $principal.id
 assertions: {}
 behavior_scenarios:
   behavior_scenario.project.approval_notice.workflow:

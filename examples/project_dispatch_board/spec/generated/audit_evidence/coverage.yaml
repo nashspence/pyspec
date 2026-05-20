@@ -1,9 +1,9 @@
 version: 1
 project: project_dispatch_board
 summary:
-  required_visual_pointers: 894
+  required_visual_pointers: 896
   missing_required_visual_pointers: 0
-  required_visual_text_witnesses: 286
+  required_visual_text_witnesses: 288
   optional_visual_pointers: 507
   optional_visual_pointers_not_shown: 6
   non_visual_pointers: 152
@@ -272,6 +272,7 @@ visual_audit:
       /access_policies/access_policy.project.member/rules/0/condition/subject_has_role: V0001
       /access_policies/access_policy.project.member/rules/0/effect: V0001
       /access_policies/access_policy.project.member/subject/0/kind: V0001
+      /access_policies/access_policy.project.member/subject/0/source: V0001
       /access_policies/access_policy.project.reviewer/action/0: V0002
       /access_policies/access_policy.project.reviewer/action/1: V0002
       /access_policies/access_policy.project.reviewer/action/2: V0002
@@ -282,6 +283,7 @@ visual_audit:
       /access_policies/access_policy.project.reviewer/rules/0/condition/subject_has_role: V0002
       /access_policies/access_policy.project.reviewer/rules/0/effect: V0002
       /access_policies/access_policy.project.reviewer/subject/0/kind: V0002
+      /access_policies/access_policy.project.reviewer/subject/0/source: V0002
       /commands/command.project.approve/authorization/access_denied_as: V0004
       /commands/command.project.approve/authorization/authentication_required_as: V0004
       /commands/command.project.approve/authorization/policy: V0004
@@ -1343,6 +1345,11 @@ visual_audit:
         tokens:
         - subject
         - actor
+      /access_policies/access_policy.project.member/subject/0/source:
+        visual_evidence_set: V0001
+        tokens:
+        - subject
+        - principal.id
       /access_policies/access_policy.project.reviewer/action/0:
         visual_evidence_set: V0002
         tokens:
@@ -1372,6 +1379,11 @@ visual_audit:
         tokens:
         - subject
         - actor
+      /access_policies/access_policy.project.reviewer/subject/0/source:
+        visual_evidence_set: V0002
+        tokens:
+        - subject
+        - principal.id
       /commands/command.project.approve/authorization/access_denied_as:
         visual_evidence_set: V0004
         tokens:
