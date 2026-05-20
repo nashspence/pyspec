@@ -108,6 +108,12 @@ ALLOWED_DUPLICATE_DEFINITION_GROUPS = {
 ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
     "author.schema.json": {
         "$defs.authored_child_state_machine.anyOf",
+        "$defs.authored_external_interface.allOf.3.then.properties.input_mapping.not.anyOf",
+        "$defs.authored_external_interface.allOf.4.then.properties.input_mapping.not.anyOf",
+        "$defs.authored_external_interface.allOf.5.then.properties.input_mapping.not.anyOf",
+        "$defs.authored_external_interface.allOf.6.then.properties.input_mapping.not.anyOf",
+        "$defs.authored_external_interface.allOf.7.then.properties.input_mapping.not.anyOf",
+        "$defs.authored_external_interface.allOf.8.then.properties.input_mapping.not.anyOf",
         "$defs.authored_viewport_profile.anyOf",
         "$defs.authored_access_policy.properties.action.items.anyOf",
         "$defs.command_entity_changes.anyOf",
@@ -118,6 +124,12 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
     },
     "spec.schema.json": {
         "$defs.child_state_machine_item.anyOf",
+        "$defs.external_interface_item.allOf.2.then.properties.input_mapping.not.anyOf",
+        "$defs.external_interface_item.allOf.3.then.properties.input_mapping.not.anyOf",
+        "$defs.external_interface_item.allOf.4.then.properties.input_mapping.not.anyOf",
+        "$defs.external_interface_item.allOf.5.then.properties.input_mapping.not.anyOf",
+        "$defs.external_interface_item.allOf.6.then.properties.input_mapping.not.anyOf",
+        "$defs.external_interface_item.allOf.7.then.properties.input_mapping.not.anyOf",
         "$defs.viewport_profile_item.anyOf",
         "$defs.access_policy_item.properties.action.items.anyOf",
         "$defs.command_entity_changes.anyOf",

@@ -124,6 +124,61 @@ def test_author_value_maps_require_tagged_literals_or_binding_sources() -> None:
         validate_against_schema(contract, "spec.schema.json")
 
 
+def test_external_interface_input_mapping_matches_invocation_kind() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    direct = author["external_interfaces"]["external_interface.api.project.create"]
+    del direct["input_mapping"]["bindings"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    direct = author["external_interfaces"]["external_interface.api.project.create"]
+    direct["input_mapping"]["delegated_input"] = {"body": {}}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    delegated = author["external_interfaces"]["external_interface.cli.project.approve"]
+    del delegated["input_mapping"]["delegated_input"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    delegated = author["external_interfaces"]["external_interface.cli.project.approve"]
+    delegated["input_mapping"]["bindings"] = {"approved_by": {"from": "$adapter_input.args.approved_by"}}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    contract = copy.deepcopy(read_yaml(ROOT / COMPILED_SPEC_PATH))
+    del contract["external_interfaces"]["external_interface.worker.project.approval_notice"]["input_mapping"]["bindings"]
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(contract, "spec.schema.json")
+
+
+def test_external_interface_input_mapping_matches_adapter_shape() -> None:
+    cases = [
+        ("external_interface.api.project.create", None, "payload", {"type": "object"}),
+        ("external_interface.html.project.board", None, "args", {"workspace_id": P("ID")}),
+        ("external_interface.cli.project.board", None, "body", {"workspace_id": P("ID")}),
+        ("external_interface.worker.project.approval_notice", None, "query_params", {"workspace_id": P("ID")}),
+        ("external_interface.worker.project.approval_notice", {"webhook": {"path": "/webhooks/approval"}}, "body", {"workspace_id": P("ID")}),
+        ("external_interface.worker.project.approval_notice", {"scheduled": {"schedule_expression": "0 * * * *"}}, "payload", {"type": "object"}),
+    ]
+    for external_interface_id, adapter, section, value in cases:
+        author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+        external_interface = author["external_interfaces"][external_interface_id]
+        if adapter is not None:
+            external_interface["adapter"] = adapter
+        external_interface["input_mapping"][section] = value
+        with pytest.raises(ContractError, match="Schema validation failed"):
+            validate_against_schema(author, "author.schema.json")
+
+    contract = copy.deepcopy(read_yaml(ROOT / COMPILED_SPEC_PATH))
+    contract["external_interfaces"]["external_interface.html.project.board"]["input_mapping"]["args"] = {"workspace_id": P("ID")}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(contract, "spec.schema.json")
+
+
 def test_author_no_local_effect_reasons_are_closed_vocabulary() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     effect = author["state_machines"]["state_machine.project.list"]["states"]["ready"]["command_bindings"]["create"]["local_effects"]["validation_failed"]

@@ -1923,7 +1923,7 @@ def test_authoring_layers_reject_wrong_external_interface_renderer() -> None:
     author["external_interfaces"]["external_interface.html.ticket.create"] = {
         "adapter": {"html_route": {"path": "/tickets"}},
         "invokes": {"state_machine": {"ref": "state_machine.ticket.list", "renderer": "html"}},
-        "input_mapping": {},
+        "input_mapping": {"bindings": {}},
         "output_mapping": {},
     }
     with pytest.raises(ContractError, match="external interface adapter html_route requires ui"):
@@ -1940,7 +1940,7 @@ def test_cli_state_machine_external_interface_must_provide_required_context_args
 def test_external_interface_rejects_renderer_irrelevant_fields() -> None:
     author = _author()
     author["external_interfaces"]["external_interface.html.project.board"]["input_mapping"]["args"] = {"workspace_id": P("ID")}
-    with pytest.raises(ContractError, match=r"adapter html_route has unsupported input sections: \['args'\]"):
+    with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
@@ -2056,7 +2056,7 @@ def test_external_interface_delegate_invocation_requires_ref_and_input_mapping()
 
     author = _author()
     del author["external_interfaces"]["external_interface.cli.project.approve"]["input_mapping"]["delegated_input"]
-    with pytest.raises(ContractError, match=r"input_mapping\.delegated_input must exactly bind delegated external interface input"):
+    with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 
@@ -2352,7 +2352,7 @@ def test_cli_state_machine_external_interface_can_launch_html_renderer() -> None
 def test_workflow_invocation_must_declare_input_mapping_bindings() -> None:
     author = _author()
     del author["external_interfaces"]["external_interface.worker.project.approval_notice"]["input_mapping"]["bindings"]
-    with pytest.raises(ContractError, match=r"workflow invocation must declare input_mapping\.bindings"):
+    with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 

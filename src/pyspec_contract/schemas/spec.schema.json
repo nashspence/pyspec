@@ -1137,6 +1137,286 @@
     },
     "external_interface_item": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "invokes": {
+                "not": {
+                  "required": [
+                    "external_interface"
+                  ]
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "input_mapping": {
+                "not": {
+                  "required": [
+                    "delegated_input"
+                  ]
+                },
+                "required": [
+                  "bindings"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "invokes": {
+                "required": [
+                  "external_interface"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "input_mapping": {
+                "not": {
+                  "required": [
+                    "bindings"
+                  ]
+                },
+                "required": [
+                  "delegated_input"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "http_api"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "input_mapping": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "args"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "payload"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "html_route"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "input_mapping": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "args"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "body"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "payload"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "cli"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "input_mapping": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "body"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "path_params"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "payload"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "query_params"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "worker"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "input_mapping": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "args"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "body"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "path_params"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "query_params"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "webhook"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "input_mapping": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "args"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "body"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "adapter": {
+                "required": [
+                  "scheduled"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "input_mapping": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "args"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "body"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "path_params"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "payload"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "query_params"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ],
       "properties": {
         "adapter": {
           "$ref": "#/$defs/external_interface_adapter"
