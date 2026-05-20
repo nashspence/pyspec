@@ -828,7 +828,12 @@ def test_author_state_machine_defaults_empty_collections() -> None:
             "state_machine.ticket.empty": {
                 "entity_type": ET("Ticket"),
                 "initial_state": "empty",
-                "states": {"empty": {}},
+                "states": {
+                    "empty": {
+                        "intentionally_empty": True,
+                        "rationale": "This state intentionally has no authored slots, bindings, or renderers.",
+                    }
+                },
                 "rationale": "state machine can start as a minimal empty-state.",
             }
         },
@@ -856,7 +861,12 @@ def test_nested_json_values_binding_values_and_model_less_state_machines_compile
                     }
                 },
                 "initial_state": "ready",
-                "states": {"ready": {}},
+                "states": {
+                    "ready": {
+                        "intentionally_empty": True,
+                        "rationale": "This state intentionally has no authored slots, bindings, or renderers.",
+                    }
+                },
                 "transitions": [
                     {
                         "from": "ready",
@@ -890,7 +900,12 @@ def test_context_set_local_effect_respects_context_null_type() -> None:
                 "context_schema": O({"project_id": F(P("ID"), allow_null=True)}, required=[]),
                 "local_signals": {"accepts": {"local_signals": {"clear": {}}}},
                 "initial_state": "ready",
-                "states": {"ready": {}},
+                "states": {
+                    "ready": {
+                        "intentionally_empty": True,
+                        "rationale": "This state intentionally has no authored slots, bindings, or renderers.",
+                    }
+                },
                 "transitions": [
                     {
                         "from": "ready",
@@ -922,7 +937,12 @@ def test_context_set_local_effect_respects_context_null_type() -> None:
                 ),
                 "local_signals": {"accepts": {"local_signals": {"copy": {}}}},
                 "initial_state": "ready",
-                "states": {"ready": {}},
+                "states": {
+                    "ready": {
+                        "intentionally_empty": True,
+                        "rationale": "This state intentionally has no authored slots, bindings, or renderers.",
+                    }
+                },
                 "transitions": [
                     {
                         "from": "ready",
@@ -1802,7 +1822,12 @@ def test_signal_names_that_match_states_emit_lint_warnings() -> None:
             "state_machine.panel": {
                 "local_signals": {"accepts": {"local_signals": {"ready": {}}}},
                 "initial_state": "ready",
-                "states": {"ready": {}},
+                "states": {
+                    "ready": {
+                        "intentionally_empty": True,
+                        "rationale": "This state intentionally has no authored slots, bindings, or renderers.",
+                    }
+                },
                 "transitions": [
                     {
                         "from": "ready",
@@ -1917,7 +1942,12 @@ def test_authoring_layers_reject_irrelevant_ui_targets() -> None:
             "entity_type": ET("Ticket"),
             "context_schema": {},
             "initial_state": "empty",
-            "states": {"empty": {}},
+            "states": {
+                "empty": {
+                    "intentionally_empty": True,
+                    "rationale": "This state intentionally has no authored slots, bindings, or renderers.",
+                }
+            },
             "transitions": [],
             "rationale": _rationale("UI state machine is not part of this API layer"),
         }

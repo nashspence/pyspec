@@ -63,6 +63,23 @@ def test_author_query_bindings_must_be_non_empty_when_present() -> None:
         validate_against_schema(author, "author.schema.json")
 
 
+def test_author_state_machine_states_must_have_content_or_explicit_empty_marker() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["state_machines"]["state_machine.project.list"]["states"]["ready"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author["state_machines"]["state_machine.project.list"]["states"]["ready"] = {"intentionally_empty": True}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author["state_machines"]["state_machine.project.list"]["states"]["ready"] = {
+        "intentionally_empty": True,
+        "rationale": "This state intentionally has no authored slots, bindings, or renderers.",
+    }
+    validate_against_schema(author, "author.schema.json")
+
+
 def test_author_state_machine_context_uses_json_schema_properties() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     author["state_machines"]["state_machine.project.list"]["context_schema"]["workspace_id"] = P("ID")

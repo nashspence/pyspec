@@ -180,6 +180,26 @@ def test_state_machine_media_asset_slot_vocabulary_is_canonical() -> None:
         assert ("asset_slot",) not in required_keys, schema_name
 
 
+def test_authored_state_machine_states_require_content_or_explicit_empty_marker() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        state = schema["$defs"]["authored_state_machine_state"]
+        assert state["minProperties"] == 1, schema_name
+        assert state["properties"]["intentionally_empty"]["const"] is True, schema_name
+        assert state["properties"]["rationale"]["$ref"] == "#/$defs/rationale", schema_name
+        required_alternatives = {tuple(branch["required"]) for branch in state["anyOf"]}
+        assert ("intentionally_empty",) in required_alternatives, schema_name
+        assert ("text_slots",) in required_alternatives, schema_name
+        assert state["allOf"][0]["then"]["required"] == ["rationale"], schema_name
+
+
 def test_authored_local_id_collections_are_keyed_maps() -> None:
     schema_cases: list[tuple[str, dict[str, Any]]] = [
         ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),

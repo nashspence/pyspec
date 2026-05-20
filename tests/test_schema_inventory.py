@@ -114,6 +114,7 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
         "$defs.authored_external_interface.allOf.6.then.properties.input_mapping.not.anyOf",
         "$defs.authored_external_interface.allOf.7.then.properties.input_mapping.not.anyOf",
         "$defs.authored_external_interface.allOf.8.then.properties.input_mapping.not.anyOf",
+        "$defs.authored_state_machine_state.anyOf",
         "$defs.authored_viewport_profile.anyOf",
         "$defs.authored_access_policy.properties.action.items.anyOf",
         "$defs.command_entity_changes.anyOf",

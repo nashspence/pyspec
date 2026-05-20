@@ -1366,6 +1366,73 @@
     },
     "authored_state_machine_state": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "intentionally_empty"
+            ]
+          },
+          "then": {
+            "required": [
+              "rationale"
+            ]
+          }
+        }
+      ],
+      "anyOf": [
+        {
+          "required": [
+            "command_bindings"
+          ]
+        },
+        {
+          "required": [
+            "media_asset_slots"
+          ]
+        },
+        {
+          "required": [
+            "child_state_machines"
+          ]
+        },
+        {
+          "required": [
+            "query_bindings"
+          ]
+        },
+        {
+          "required": [
+            "field_slots"
+          ]
+        },
+        {
+          "required": [
+            "render_examples"
+          ]
+        },
+        {
+          "required": [
+            "renderers"
+          ]
+        },
+        {
+          "required": [
+            "local_signal_sync_rules"
+          ]
+        },
+        {
+          "required": [
+            "text_slots"
+          ]
+        },
+        {
+          "required": [
+            "intentionally_empty"
+          ]
+        }
+      ],
+      "minProperties": 1,
       "properties": {
         "command_bindings": {
           "additionalProperties": {
@@ -1408,6 +1475,12 @@
           },
           "type": "array",
           "uniqueItems": true
+        },
+        "intentionally_empty": {
+          "const": true
+        },
+        "rationale": {
+          "$ref": "#/$defs/rationale"
         },
         "render_examples": {
           "additionalProperties": {
