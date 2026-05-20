@@ -393,3 +393,19 @@ def test_authorization_assertion_requires_observable_decision() -> None:
         assert {tuple(branch["required"]) for branch in assertion["anyOf"]} == {("allowed",), ("denied",)}, schema_name
         assert assertion["properties"]["allowed"]["minItems"] == 1, schema_name
         assert assertion["properties"]["denied"]["minItems"] == 1, schema_name
+
+
+def test_schema_map_keys_are_field_names() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        schema_map = schema["$defs"]["schema_map"]
+        assert schema_map["propertyNames"]["$ref"] == "#/$defs/field_name", schema_name
+        assert schema_map["additionalProperties"]["$ref"] == "#/$defs/schema", schema_name

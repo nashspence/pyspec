@@ -2809,6 +2809,9 @@
         "$ref": "#/$defs/schema"
       },
       "description": "Map of field or parameter names to JSON Schema fragments.",
+      "propertyNames": {
+        "$ref": "#/$defs/field_name"
+      },
       "type": "object"
     },
     "schema_ref": {
