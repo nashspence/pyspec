@@ -1732,12 +1732,12 @@
             "$invocation_outcome.result"
           ]
         },
-        "type": {
+        "schema": {
           "$ref": "#/$defs/schema"
         }
       },
       "required": [
-        "type",
+        "schema",
         "from"
       ],
       "type": "object"

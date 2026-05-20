@@ -489,26 +489,26 @@ visual_audit:
       /external_interfaces/external_interface.api.project.approve/input_mapping/path_params/project_id/type: V0014
       /external_interfaces/external_interface.api.project.approve/invokes/command/ref: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/access_denied/body/from: V0014
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/access_denied/body/type/$ref: V0014
+      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/access_denied/body/schema/$ref: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/access_denied/status: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/approved/body/from: V0014
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/approved/body/type/$ref: V0014
+      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/approved/body/schema/$ref: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/approved/status: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/authentication_required/body/from: V0014
-      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/authentication_required/body/type/$ref
+      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/authentication_required/body/schema/$ref
       : V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/authentication_required/status: V0014
       ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/body/from
       : V0014
-      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/body/type/$ref
+      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/body/schema/$ref
       : V0014
       ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/status
       : V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/body/from: V0014
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/body/type/$ref: V0014
+      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/body/schema/$ref: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/status: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/body/from: V0014
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/body/type/$ref: V0014
+      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/body/schema/$ref: V0014
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/status: V0014
       /external_interfaces/external_interface.api.project.approve/rationale: V0014
       /external_interfaces/external_interface.api.project.approve/retryable: V0014
@@ -526,16 +526,17 @@ visual_audit:
       /external_interfaces/external_interface.api.project.create/input_mapping/path_params/workspace_id/type: V0006
       /external_interfaces/external_interface.api.project.create/invokes/command/ref: V0006
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/access_denied/body/from: V0006
-      /external_interfaces/external_interface.api.project.create/output_mapping/responses/access_denied/body/type/$ref: V0006
+      /external_interfaces/external_interface.api.project.create/output_mapping/responses/access_denied/body/schema/$ref: V0006
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/access_denied/status: V0006
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/authentication_required/body/from: V0006
-      /external_interfaces/external_interface.api.project.create/output_mapping/responses/authentication_required/body/type/$ref: V0006
+      ? /external_interfaces/external_interface.api.project.create/output_mapping/responses/authentication_required/body/schema/$ref
+      : V0006
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/authentication_required/status: V0006
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/created/body/from: V0006
-      /external_interfaces/external_interface.api.project.create/output_mapping/responses/created/body/type/$ref: V0006
+      /external_interfaces/external_interface.api.project.create/output_mapping/responses/created/body/schema/$ref: V0006
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/created/status: V0006
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/validation_failed/body/from: V0006
-      /external_interfaces/external_interface.api.project.create/output_mapping/responses/validation_failed/body/type/$ref: V0006
+      /external_interfaces/external_interface.api.project.create/output_mapping/responses/validation_failed/body/schema/$ref: V0006
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/validation_failed/status: V0006
       /external_interfaces/external_interface.api.project.create/rationale: V0006
       /external_interfaces/external_interface.api.project.list/adapter/http_api/method: V0015
@@ -545,17 +546,17 @@ visual_audit:
       /external_interfaces/external_interface.api.project.list/input_mapping/path_params/workspace_id/type: V0015
       /external_interfaces/external_interface.api.project.list/invokes/query/ref: V0015
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/access_denied/body/from: V0015
-      /external_interfaces/external_interface.api.project.list/output_mapping/responses/access_denied/body/type/$ref: V0015
+      /external_interfaces/external_interface.api.project.list/output_mapping/responses/access_denied/body/schema/$ref: V0015
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/access_denied/status: V0015
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/authentication_required/body/from: V0015
-      /external_interfaces/external_interface.api.project.list/output_mapping/responses/authentication_required/body/type/$ref: V0015
+      /external_interfaces/external_interface.api.project.list/output_mapping/responses/authentication_required/body/schema/$ref: V0015
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/authentication_required/status: V0015
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/body/from: V0015
-      /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/body/type/items/$ref: V0015
-      /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/body/type/type: V0015
+      /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/body/schema/items/$ref: V0015
+      /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/body/schema/type: V0015
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/status: V0015
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/unavailable/body/from: V0015
-      /external_interfaces/external_interface.api.project.list/output_mapping/responses/unavailable/body/type/$ref: V0015
+      /external_interfaces/external_interface.api.project.list/output_mapping/responses/unavailable/body/schema/$ref: V0015
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/unavailable/status: V0015
       /external_interfaces/external_interface.api.project.list/rationale: V0015
       /external_interfaces/external_interface.cli.project.approve/adapter/cli/cli_command: V0016
@@ -1854,60 +1855,60 @@ visual_audit:
         visual_evidence_set: V0014
         tokens:
         - command.project.approve
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/access_denied/body/type/$ref:
+      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/access_denied/body/schema/$ref:
         visual_evidence_set: V0014
         tokens:
-        - body
+        - schema
         - Problem
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/access_denied/status:
         visual_evidence_set: V0014
         tokens:
         - status
         - '403'
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/approved/body/type/$ref:
+      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/approved/body/schema/$ref:
         visual_evidence_set: V0014
         tokens:
-        - body
+        - schema
         - Project
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/approved/status:
         visual_evidence_set: V0014
         tokens:
         - status
         - '200'
-      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/authentication_required/body/type/$ref
+      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/authentication_required/body/schema/$ref
       : visual_evidence_set: V0014
         tokens:
-        - body
+        - schema
         - Problem
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/authentication_required/status:
         visual_evidence_set: V0014
         tokens:
         - status
         - '401'
-      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/body/type/$ref
+      ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/body/schema/$ref
       : visual_evidence_set: V0014
         tokens:
-        - body
+        - schema
         - Problem
       ? /external_interfaces/external_interface.api.project.approve/output_mapping/responses/lifecycle_transition_not_allowed/status
       : visual_evidence_set: V0014
         tokens:
         - status
         - '409'
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/body/type/$ref:
+      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/body/schema/$ref:
         visual_evidence_set: V0014
         tokens:
-        - body
+        - schema
         - Problem
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/not_found/status:
         visual_evidence_set: V0014
         tokens:
         - status
         - '404'
-      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/body/type/$ref:
+      /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/body/schema/$ref:
         visual_evidence_set: V0014
         tokens:
-        - body
+        - schema
         - Problem
       /external_interfaces/external_interface.api.project.approve/output_mapping/responses/unavailable/status:
         visual_evidence_set: V0014
@@ -1970,40 +1971,40 @@ visual_audit:
         visual_evidence_set: V0006
         tokens:
         - command.project.create
-      /external_interfaces/external_interface.api.project.create/output_mapping/responses/access_denied/body/type/$ref:
+      /external_interfaces/external_interface.api.project.create/output_mapping/responses/access_denied/body/schema/$ref:
         visual_evidence_set: V0006
         tokens:
-        - body
+        - schema
         - Problem
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/access_denied/status:
         visual_evidence_set: V0006
         tokens:
         - status
         - '403'
-      /external_interfaces/external_interface.api.project.create/output_mapping/responses/authentication_required/body/type/$ref:
-        visual_evidence_set: V0006
+      ? /external_interfaces/external_interface.api.project.create/output_mapping/responses/authentication_required/body/schema/$ref
+      : visual_evidence_set: V0006
         tokens:
-        - body
+        - schema
         - Problem
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/authentication_required/status:
         visual_evidence_set: V0006
         tokens:
         - status
         - '401'
-      /external_interfaces/external_interface.api.project.create/output_mapping/responses/created/body/type/$ref:
+      /external_interfaces/external_interface.api.project.create/output_mapping/responses/created/body/schema/$ref:
         visual_evidence_set: V0006
         tokens:
-        - body
+        - schema
         - Project
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/created/status:
         visual_evidence_set: V0006
         tokens:
         - status
         - '201'
-      /external_interfaces/external_interface.api.project.create/output_mapping/responses/validation_failed/body/type/$ref:
+      /external_interfaces/external_interface.api.project.create/output_mapping/responses/validation_failed/body/schema/$ref:
         visual_evidence_set: V0006
         tokens:
-        - body
+        - schema
         - Problem
       /external_interfaces/external_interface.api.project.create/output_mapping/responses/validation_failed/status:
         visual_evidence_set: V0006
@@ -2035,45 +2036,45 @@ visual_audit:
         visual_evidence_set: V0015
         tokens:
         - query.project.list
-      /external_interfaces/external_interface.api.project.list/output_mapping/responses/access_denied/body/type/$ref:
+      /external_interfaces/external_interface.api.project.list/output_mapping/responses/access_denied/body/schema/$ref:
         visual_evidence_set: V0015
         tokens:
-        - body
+        - schema
         - Problem
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/access_denied/status:
         visual_evidence_set: V0015
         tokens:
         - status
         - '403'
-      /external_interfaces/external_interface.api.project.list/output_mapping/responses/authentication_required/body/type/$ref:
+      /external_interfaces/external_interface.api.project.list/output_mapping/responses/authentication_required/body/schema/$ref:
         visual_evidence_set: V0015
         tokens:
-        - body
+        - schema
         - Problem
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/authentication_required/status:
         visual_evidence_set: V0015
         tokens:
         - status
         - '401'
-      /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/body/type/items/$ref:
+      /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/body/schema/items/$ref:
         visual_evidence_set: V0015
         tokens:
-        - body
+        - schema
         - Project
-      /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/body/type/type:
+      /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/body/schema/type:
         visual_evidence_set: V0015
         tokens:
-        - body
+        - schema
         - array<Project>
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/listed/status:
         visual_evidence_set: V0015
         tokens:
         - status
         - '200'
-      /external_interfaces/external_interface.api.project.list/output_mapping/responses/unavailable/body/type/$ref:
+      /external_interfaces/external_interface.api.project.list/output_mapping/responses/unavailable/body/schema/$ref:
         visual_evidence_set: V0015
         tokens:
-        - body
+        - schema
         - Problem
       /external_interfaces/external_interface.api.project.list/output_mapping/responses/unavailable/status:
         visual_evidence_set: V0015

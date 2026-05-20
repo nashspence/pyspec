@@ -386,7 +386,8 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert "<B>external interface input</B>" not in worker_external_interface
     assert "<B>external interface output</B>" not in worker_external_interface
     assert "<B>body</B>" in api_external_interface
-    assert 'body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;$invocation_outcome.result</FONT>' in api_external_interface
+    assert "<B>body schema</B>" in api_external_interface
+    assert '<FONT POINT-SIZE="10">body</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;Project</FONT><FONT POINT-SIZE="8">&#160;←&#160;$invocation_outcome.result</FONT>' in api_external_interface
     assert "validation_failed" in api_external_interface
     invocation_card = api_external_interface[api_external_interface.index('"external_interface_invocation_command_project_create"') : api_external_interface.index('"external_interface_response_external_interface_api_project_create_created"')]
     assert '<FONT POINT-SIZE="10"><B>input</B></FONT>' not in invocation_card

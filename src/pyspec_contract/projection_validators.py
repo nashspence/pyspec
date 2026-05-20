@@ -227,7 +227,7 @@ def validate_openapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
         expected_responses = {
             str(response["status"]): {
                 "description": humanize(outcome_id),
-                "content": {"application/json": {"schema": type_schema(response["body"]["type"])}},
+                "content": {"application/json": {"schema": type_schema(response["body"]["schema"])}},
             }
             for outcome_id, response in sorted(external_interface_output_responses(external_interface).items())
         }

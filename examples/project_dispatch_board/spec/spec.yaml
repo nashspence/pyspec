@@ -1327,25 +1327,25 @@ external_interfaces:
         created:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.project
           status: 201
         access_denied:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 403
         authentication_required:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 401
         validation_failed:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 422
   external_interface.api.project.list:
@@ -1369,7 +1369,7 @@ external_interfaces:
         listed:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               type: array
               items:
                 $ref: entity_type.project
@@ -1377,19 +1377,19 @@ external_interfaces:
         access_denied:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 403
         authentication_required:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 401
         unavailable:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 503
   external_interface.api.project.approve:
@@ -1420,37 +1420,37 @@ external_interfaces:
         approved:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.project
           status: 200
         access_denied:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 403
         lifecycle_transition_not_allowed:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 409
         not_found:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 404
         unavailable:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 503
         authentication_required:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 401
   external_interface.cli.project.approve:

@@ -194,7 +194,6 @@ JSON_SCHEMA_KEYWORD_PROPERTY_NAMES = {
 ALLOWED_JSON_SCHEMA_KEYWORD_PROPERTIES = {
     ("authored_behavior_scenario", "then"),
     ("authored_behavior_scenario", "title"),
-    ("external_interface_response_value", "type"),
     ("schema", "$ref"),
     ("schema", "additionalProperties"),
     ("schema", "allOf"),

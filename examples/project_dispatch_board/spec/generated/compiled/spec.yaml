@@ -1034,37 +1034,37 @@ external_interfaces:
         access_denied:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 403
         approved:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.project
           status: 200
         authentication_required:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 401
         lifecycle_transition_not_allowed:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 409
         not_found:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 404
         unavailable:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 503
     rationale: HTTP operation for approving submitted dispatch projects.
@@ -1104,25 +1104,25 @@ external_interfaces:
         access_denied:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 403
         authentication_required:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 401
         created:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.project
           status: 201
         validation_failed:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 422
     rationale: HTTP operation for creating a dispatch project.
@@ -1147,19 +1147,19 @@ external_interfaces:
         access_denied:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 403
         authentication_required:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 401
         listed:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               items:
                 $ref: entity_type.project
               type: array
@@ -1167,7 +1167,7 @@ external_interfaces:
         unavailable:
           body:
             from: $invocation_outcome.result
-            type:
+            schema:
               $ref: entity_type.problem
           status: 503
     rationale: HTTP operation for listing dispatch projects.

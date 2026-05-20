@@ -1,6 +1,6 @@
 <svg width="928pt" height="485pt"
  viewBox="0.00 0.00 928.00 485.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: ce626a5f8cdc77f7c42989e6b9b04c5067394ec2898daef67e8936f908421193 -->
+<!-- pyspec-contract-input-sha256: 67e45072529383c3c3fdced52de99266e00064e0e45625ef7fc899e5314a3bd4 -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 467)">
 <title>external_interface_external_interface_api_project_list</title>
 <!-- external_interface_external_interface_api_project_list -->
@@ -51,7 +51,7 @@
 <text text-anchor="start" x="709" y="-415.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
 <text text-anchor="start" x="710" y="-397" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
 <text text-anchor="start" x="741" y="-397" font-family="Arial" font-size="10.00">  403</text>
-<text text-anchor="start" x="709" y="-377" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="709" y="-377" font-family="Arial" font-weight="bold" font-size="10.00">body schema</text>
 <text text-anchor="start" x="709" y="-366" font-family="Arial" font-size="10.00">body</text>
 <text text-anchor="start" x="731" y="-366" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <text text-anchor="start" x="766" y="-366" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
@@ -73,7 +73,7 @@
 <text text-anchor="start" x="709" y="-296.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
 <text text-anchor="start" x="710" y="-278" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
 <text text-anchor="start" x="741" y="-278" font-family="Arial" font-size="10.00">  401</text>
-<text text-anchor="start" x="709" y="-258" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="709" y="-258" font-family="Arial" font-weight="bold" font-size="10.00">body schema</text>
 <text text-anchor="start" x="709" y="-247" font-family="Arial" font-size="10.00">body</text>
 <text text-anchor="start" x="731" y="-247" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <text text-anchor="start" x="766" y="-247" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
@@ -95,7 +95,7 @@
 <text text-anchor="start" x="697" y="-177.6" font-family="Arial" font-size="8.00" fill="#64748b">success response</text>
 <text text-anchor="start" x="698" y="-159" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
 <text text-anchor="start" x="729" y="-159" font-family="Arial" font-size="10.00">  200</text>
-<text text-anchor="start" x="697" y="-139" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="697" y="-139" font-family="Arial" font-weight="bold" font-size="10.00">body schema</text>
 <text text-anchor="start" x="697" y="-128" font-family="Arial" font-size="10.00">body</text>
 <text text-anchor="start" x="719" y="-128" font-family="Arial" font-size="8.00" fill="#94a3b8">  array&lt;Project&gt;</text>
 <text text-anchor="start" x="777" y="-128" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>
@@ -117,7 +117,7 @@
 <text text-anchor="start" x="709" y="-58.6" font-family="Arial" font-size="8.00" fill="#64748b">failure response</text>
 <text text-anchor="start" x="710" y="-40" font-family="Arial" font-weight="bold" font-size="10.00">status:</text>
 <text text-anchor="start" x="741" y="-40" font-family="Arial" font-size="10.00">  503</text>
-<text text-anchor="start" x="709" y="-20" font-family="Arial" font-weight="bold" font-size="10.00">body</text>
+<text text-anchor="start" x="709" y="-20" font-family="Arial" font-weight="bold" font-size="10.00">body schema</text>
 <text text-anchor="start" x="709" y="-9" font-family="Arial" font-size="10.00">body</text>
 <text text-anchor="start" x="731" y="-9" font-family="Arial" font-size="8.00" fill="#94a3b8">  Problem</text>
 <text text-anchor="start" x="766" y="-9" font-family="Arial" font-size="8.00"> ← $invocation_outcome.result</text>

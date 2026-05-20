@@ -2261,19 +2261,19 @@ def _external_interface_response_sections(response: dict[str, Any]) -> list[tupl
         sections.append(("status", [str(response["status"])]))
     if "body" in response:
         body = response["body"]
-        sections.append(("body", [_DotTypedField("body", body["type"], body.get("from"))]))
+        sections.append(("body schema", [_DotTypedField("body", body["schema"], body.get("from"))]))
     if "stdout" in response:
         stdout = response["stdout"]
-        if "type" in stdout:
-            sections.append(("stdout", [_DotTypedField("stdout", stdout["type"], stdout.get("from"))]))
+        if "schema" in stdout:
+            sections.append(("stdout schema", [_DotTypedField("stdout", stdout["schema"], stdout.get("from"))]))
         else:
             sections.append(("stdout", [stdout["text"]]))
             if stdout.get("bindings"):
                 sections.append(("stdout bindings", _format_binding_lines(stdout["bindings"])))
     if "stderr" in response:
         stderr = response["stderr"]
-        if "type" in stderr:
-            sections.append(("stderr", [_DotTypedField("stderr", stderr["type"], stderr.get("from"))]))
+        if "schema" in stderr:
+            sections.append(("stderr schema", [_DotTypedField("stderr", stderr["schema"], stderr.get("from"))]))
         else:
             sections.append(("stderr", [stderr["text"]]))
             if stderr.get("bindings"):

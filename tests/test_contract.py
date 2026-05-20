@@ -1863,8 +1863,8 @@ def _api_only_author() -> dict:
                 },
                 "output_mapping": {
                     "responses": {
-                        "created": {"status": 201, "body": {"type": M("Ticket"), "from": "$invocation_outcome.result"}},
-                        "validation_failed": {"status": 422, "body": {"type": M("Problem"), "from": "$invocation_outcome.result"}},
+                        "created": {"status": 201, "body": {"schema": M("Ticket"), "from": "$invocation_outcome.result"}},
+                        "validation_failed": {"status": 422, "body": {"schema": M("Problem"), "from": "$invocation_outcome.result"}},
                     },
                 },
                 "rationale": _rationale("HTTP create ticket external_interface"),
@@ -1971,7 +1971,7 @@ def test_external_interface_target_bindings_must_exactly_match_target_input() ->
 
 def test_external_interface_response_must_match_renderer_contract() -> None:
     author = _author()
-    author["external_interfaces"]["external_interface.api.project.create"]["output_mapping"]["responses"]["created"]["body"]["type"] = P("Text")
+    author["external_interfaces"]["external_interface.api.project.create"]["output_mapping"]["responses"]["created"]["body"]["schema"] = P("Text")
     with pytest.raises(ContractError, match=r"API external interface external_interface.api\.project\.create response created\.body must expose \$invocation_outcome\.result as Project"):
         compile_source(author)
 

@@ -3606,7 +3606,7 @@ def _external_interface_response_body_types(contract: dict[str, Any], external_i
     for outcome_id, response in responses.items():
         body = response.get("body")
         if body:
-            result[outcome_id] = body["type"]
+            result[outcome_id] = body["schema"]
     if result:
         return result
     target_kind, target_ref = external_interface_invoked_ref_pair(external_interface)
@@ -3620,7 +3620,7 @@ def _external_interface_response_body_types(contract: dict[str, Any], external_i
 
 
 def _validate_response_value(label: str, value: dict[str, Any], expected_type: Any) -> None:
-    if set(value) != {"type", "from"} or value["from"] != "$invocation_outcome.result" or not type_equals(value["type"], expected_type):
+    if set(value) != {"schema", "from"} or value["from"] != "$invocation_outcome.result" or not type_equals(value["schema"], expected_type):
         raise ContractError(f"{label} must expose $invocation_outcome.result as {type_display(expected_type)}")
 
 

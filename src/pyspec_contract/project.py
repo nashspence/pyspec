@@ -190,7 +190,7 @@ def openapi_projection(contract: dict[str, Any]) -> dict[str, Any]:
         responses = {}
         for outcome_id, response in sorted(external_interface_output_responses(external_interface).items()):
             response_status = str(response["status"])
-            body_type = response["body"]["type"]
+            body_type = response["body"]["schema"]
             responses[response_status] = {
                 "description": humanize(outcome_id),
                 "content": {"application/json": {"schema": type_schema(body_type)}},
