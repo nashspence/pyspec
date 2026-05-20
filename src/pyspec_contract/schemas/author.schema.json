@@ -3443,25 +3443,12 @@
               {
                 "additionalProperties": false,
                 "properties": {
-                  "emit": {
-                    "additionalProperties": false,
-                    "properties": {
-                      "local_signal": {
-                        "$ref": "#/$defs/local_signal_name"
-                      },
-                      "payload_bindings": {
-                        "$ref": "#/$defs/binding_map"
-                      }
-                    },
-                    "required": [
-                      "local_signal",
-                      "payload_bindings"
-                    ],
-                    "type": "object"
+                  "raise": {
+                    "$ref": "#/$defs/state_machine_signal_raise"
                   }
                 },
                 "required": [
-                  "emit"
+                  "raise"
                 ],
                 "type": "object"
               }

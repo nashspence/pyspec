@@ -732,6 +732,19 @@ def _derive_refs(contract: dict[str, Any]) -> dict[str, list[str]]:
     for state_machine_id in contract["state_machines"]:
         refs["state_machine"].add(state_machine_id)
     for state_machine_id, owner in contract["state_machines"].items():
+        for transition_index, transition in enumerate(owner.get("transitions", [])):
+            for effect in transition.get("local_effects", []):
+                signal = effect.get("raise")
+                if signal:
+                    kind, signal_id = _signal_raise_selector_key(signal)
+                    refs["local_signal_raise"].add(
+                        _generated_transition_local_signal_raise_ref(
+                            state_machine_id,
+                            transition_index,
+                            kind,
+                            signal_id,
+                        )
+                    )
         for invocation_id, invocation in sorted((owner.get("query_bindings") or {}).items()):
             refs["query_binding"].add(_generated_query_binding_ref(state_machine_id, None, invocation_id))
             for outcome_id, effect in sorted(invocation.get("local_effects", {}).items()):
@@ -853,6 +866,15 @@ def _generated_query_local_signal_raise_ref(
 ) -> str:
     state_part = f".{state_name}" if state_name else ""
     return f"local_signal_raise.{rules.resource_tail(state_machine_id)}{state_part}.query_binding.{invocation_id}.{outcome_id}.{signal_kind}.{signal_id}"
+
+
+def _generated_transition_local_signal_raise_ref(
+    state_machine_id: str,
+    transition_index: int,
+    signal_kind: str,
+    signal_id: str,
+) -> str:
+    return f"local_signal_raise.{rules.resource_tail(state_machine_id)}.transition.{transition_index}.{signal_kind}.{signal_id}"
 
 
 def _binding_references_root(binding: Any, root: str) -> bool:
@@ -2208,13 +2230,20 @@ def _validate_state_machine_transitions(contract: dict[str, Any], state_machine_
                     {"trigger": _prefixed_type_scope(("payload",), local_signal_payload), "state_context": _type_scope(context)},
                     allow_null_source=False,
                 )
-            elif kind == "emit":
-                emitted_payload = _state_machine_signal_payload(state_machine, "emits", {"local_signal": body["local_signal"]}, f"state machine {state_machine_id} transition emit")
-                _validate_payload_bindings(
+            elif kind == "raise":
+                signal_kind, signal_id = _signal_raise_selector_key(body)
+                direction = "emits" if signal_kind == "local_signal" else "accepts"
+                raised_payload = _state_machine_signal_payload(
+                    state_machine,
+                    direction,
+                    _signal_raise_selector(body),
+                    f"state machine {state_machine_id} transition raise",
+                )
+                _validate_optional_payload_bindings(
                     contract=contract,
-                    label=f"state machine {state_machine_id} transition emit {body['local_signal']} payload_bindings",
-                    bindings=body["payload_bindings"],
-                    payload=emitted_payload,
+                    label=f"state machine {state_machine_id} transition raise {signal_id} payload_bindings",
+                    bindings=body.get("payload_bindings"),
+                    payload=raised_payload,
                     scopes={"trigger": _prefixed_type_scope(("payload",), local_signal_payload), "state_context": _type_scope(_state_machine_context(state_machine))},
                 )
             else:  # pragma: no cover - schema prevents this.
@@ -2242,7 +2271,7 @@ def _validate_signals(state_machine_id: str, state_machine: dict[str, Any]) -> N
         raise ContractError(f"state machine {state_machine_id} declares accepted state-machine signal without transition: {[_signal_label(item) for item in orphan_accepts]}")
     orphan_emits = sorted(declared_emits - emitted)
     if orphan_emits:
-        raise ContractError(f"state machine {state_machine_id} declares emitted state-machine signal without emit local_effect: {[_signal_label(item) for item in orphan_emits]}")
+        raise ContractError(f"state machine {state_machine_id} declares emitted state-machine signal without raise local_effect: {[_signal_label(item) for item in orphan_emits]}")
     undeclared_accepts = sorted(accepted - declared_accepts)
     if undeclared_accepts:
         raise ContractError(f"state machine {state_machine_id} accepts state-machine signal without declaring it: {[_signal_label(item) for item in undeclared_accepts]}")
@@ -2452,7 +2481,7 @@ def _state_machine_emits(state_machine: dict[str, Any]) -> set[tuple[str, str]]:
     for transition in state_machine.get("transitions", []):
         for effect in transition.get("local_effects", []):
             kind, body = _one(effect, "state_machine transition local_effect")
-            if kind == "emit":
+            if kind == "raise" and "local_signal" in body:
                 emits.add(("local_signal", body["local_signal"]))
     return emits
 

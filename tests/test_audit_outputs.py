@@ -202,7 +202,7 @@ def test_audit_flowcharts_use_graphviz_dot_sources() -> None:
     assert state_machine.index("<B>media_assets:</B>") < state_machine.index("<B>command_bindings:</B>")
     assert state_machine.index("<B>text_resources:</B>&#160;&#160;text_resource.project.list.ready.heading") < state_machine.index("<B>query.project.list fields</B>")
     assert state_machine.index("<B>query.project.list fields</B>") < state_machine.index("<B>command_bindings</B>")
-    assert "<B>emit:</B>&#160;&#160;local_signal.project_selected" in state_machine
+    assert "<B>raise:</B>&#160;&#160;local_signal.project_selected" in state_machine
     payload_project = '<FONT POINT-SIZE="10"><B>payload:</B>&#160;&#160;project_id</FONT><FONT POINT-SIZE="8" COLOR="#94a3b8">&#160;&#160;string</FONT>'
     assert payload_project in state_machine
     assert "<B>local_effects:</B>" not in state_machine
@@ -503,7 +503,7 @@ def test_composition_dot_syncs_local_signals_generically() -> None:
                         "trigger": {"local_signal": "submit"},
                         "from": "idle",
                         "to": "ready",
-                        "local_effects": [{"emit": {"local_signal": "ready", "payload_bindings": {"id": {"from": "$trigger.payload.id"}}}}],
+                        "local_effects": [{"raise": {"local_signal": "ready", "payload_bindings": {"id": {"from": "$trigger.payload.id"}}}}],
                     }
                 ]
             },
@@ -599,7 +599,7 @@ def test_generated_flowchart_svgs_include_contract_audit_details() -> None:
     assert "on data_refresh_signal.projects_loaded" not in list_state_machine
     assert "text_resource.project.list.ready.heading" in list_state_machine
     assert "media_asset.project.list.empty.illustration" in list_state_machine
-    assert "emit:" in list_state_machine
+    assert "raise:" in list_state_machine
     assert "local_signal.project_selected" in list_state_machine
     assert "payload:" in list_state_machine
     assert "emit local_signal.project_selected" not in list_state_machine

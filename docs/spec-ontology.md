@@ -149,6 +149,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `actor_user_binding_source`: local command bindings should bind actor-like input fields such as `actor_id`, `approved_by`, or `reviewer_id` from `$principal.id` or an explicit context source. Literal actor/user ids are linted because they usually hide fixture-only assumptions in authored UI behavior.
 - `local_signal_raise`: creation of a state-machine-local `local_signal` or `data_refresh_signal`.
 - `emits_domain_events`: command-level durable domain-event emission mapping keyed by successful command outcome. It is not used for local state-machine transition local_effects.
+- `state_machine_transition.local_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a state transition.
 - `command_binding.local_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a user command binding.
 - `query_binding.local_effects.raise`: local state-machine `local_signal` or `data_refresh_signal` raise after a query load or refresh outcome.
 - `local_signals`: local UI/component/state-machine signal contracts split into accepted `local_signals`/`data_refresh_signals` maps and emitted `local_signals` maps with JSON Schema `payload_schema` declarations.

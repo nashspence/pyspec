@@ -1062,7 +1062,7 @@ state_machines:
       trigger:
         local_signal: show_lifecycle_transition_not_allowed
     - local_effects:
-      - emit:
+      - raise:
           local_signal: project_selected
           payload_bindings:
             project_id:

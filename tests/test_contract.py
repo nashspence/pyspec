@@ -1728,16 +1728,27 @@ def test_state_machine_composition_rejects_unknown_sync_target_local_signal() ->
         compile_source(author)
 
 
-def test_state_machine_emit_data_must_exactly_match_emitted_local_signal_payload() -> None:
+def test_state_machine_raise_data_must_exactly_match_emitted_local_signal_payload() -> None:
     author = _author()
     transition = next(
         transition
         for transition in _item(author, "state_machines", "state_machine.project.list")["transitions"]
-        if transition.get("local_effects") and "emit" in transition["local_effects"][0]
+        if transition.get("local_effects") and "raise" in transition["local_effects"][0]
     )
-    transition["local_effects"][0]["emit"]["payload_bindings"] = {}
-    with pytest.raises(ContractError, match=r"transition emit project_selected payload_bindings must exactly match payload fields: missing: project_id"):
+    transition["local_effects"][0]["raise"]["payload_bindings"] = {}
+    with pytest.raises(ContractError, match=r"transition raise project_selected payload_bindings must exactly match payload fields: missing: project_id"):
         compile_source(author)
+
+
+def test_state_machine_transition_can_raise_data_refresh_signal() -> None:
+    author = _author()
+    transition = next(
+        transition
+        for transition in _item(author, "state_machines", "state_machine.project.list")["transitions"]
+        if transition.get("local_effects") and "raise" in transition["local_effects"][0]
+    )
+    transition["local_effects"].append({"raise": {"data_refresh_signal": "projects_changed"}})
+    compile_source(author)
 
 
 def test_sync_send_data_must_exactly_match_target_local_signal_payload() -> None:

@@ -6,7 +6,7 @@ summary:
   required_visual_text_witnesses: 287
   optional_visual_pointers: 507
   optional_visual_pointers_not_shown: 6
-  non_visual_pointers: 151
+  non_visual_pointers: 152
   visual_evidence_sets: 34
 visual_evidence_sets:
   V0001:
@@ -1257,8 +1257,8 @@ visual_audit:
       /state_machines/state_machine.project.list/transitions/5/to: V0028
       /state_machines/state_machine.project.list/transitions/5/trigger/local_signal: V0028
       /state_machines/state_machine.project.list/transitions/6/from: V0028
-      /state_machines/state_machine.project.list/transitions/6/local_effects/0/emit/local_signal: V0028
-      /state_machines/state_machine.project.list/transitions/6/local_effects/0/emit/payload_bindings/project_id/from: V0028
+      /state_machines/state_machine.project.list/transitions/6/local_effects/0/raise/local_signal: V0028
+      /state_machines/state_machine.project.list/transitions/6/local_effects/0/raise/payload_bindings/project_id/from: V0028
       /state_machines/state_machine.project.list/transitions/6/to: V0028
       /state_machines/state_machine.project.list/transitions/6/trigger/local_signal: V0028
       /state_machines/state_machine.project.list/transitions/7/from: V0028
@@ -3457,6 +3457,8 @@ visual_audit:
     /reference_index/local_signal_raise/25:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/26:
+      reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
+    /reference_index/local_signal_raise/27:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers
     /reference_index/local_signal_raise/3:
       reason: canonical compiled reference index metadata; owning resources are covered at their compiled JSON Pointers

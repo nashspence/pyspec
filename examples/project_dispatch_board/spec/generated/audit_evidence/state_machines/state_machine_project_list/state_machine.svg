@@ -1,6 +1,6 @@
 <svg width="2432pt" height="597pt"
  viewBox="0.00 0.00 2432.00 596.90" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<!-- pyspec-contract-input-sha256: d2562d228da81c9d85606520a0de3b5043c17d04d83d88a3c9859dca1c219469 -->
+<!-- pyspec-contract-input-sha256: e9e9a4ca433c596cf1e3d92b25dcbd0ebafab211ccb059fa43fe267325b0b19c -->
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(18 578.9)">
 <title>state_machine_state_machine_project_list</title>
 <!-- state_empty -->
@@ -225,8 +225,8 @@
 <polygon fill="#eff6ff" stroke="transparent" points="1898,-396.9 1898,-427.9 2078,-427.9 2078,-396.9 1898,-396.9"/>
 <text text-anchor="start" x="1902" y="-414.5" font-family="Arial" font-weight="bold" font-size="13.00">local_signal.project_select</text>
 <text text-anchor="start" x="1902" y="-403.5" font-family="Arial" font-size="8.00" fill="#64748b">transition signal</text>
-<text text-anchor="start" x="1903" y="-384.9" font-family="Arial" font-weight="bold" font-size="10.00">emit:</text>
-<text text-anchor="start" x="1927" y="-384.9" font-family="Arial" font-size="10.00">  local_signal.project_selected</text>
+<text text-anchor="start" x="1903" y="-384.9" font-family="Arial" font-weight="bold" font-size="10.00">raise:</text>
+<text text-anchor="start" x="1929" y="-384.9" font-family="Arial" font-size="10.00">  local_signal.project_selected</text>
 <text text-anchor="start" x="1903" y="-372.9" font-family="Arial" font-weight="bold" font-size="10.00">payload:</text>
 <text text-anchor="start" x="1943" y="-372.9" font-family="Arial" font-size="10.00">  project_id</text>
 <text text-anchor="start" x="1992" y="-372.9" font-family="Arial" font-size="8.00" fill="#94a3b8">  string</text>

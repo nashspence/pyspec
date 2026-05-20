@@ -1193,7 +1193,7 @@
             "from": "ready",
             "local_effects": [
               {
-                "emit": {
+                "raise": {
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
@@ -1319,7 +1319,7 @@
             "from": "ready",
             "local_effects": [
               {
-                "emit": {
+                "raise": {
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
@@ -1444,7 +1444,7 @@
             "from": "ready",
             "local_effects": [
               {
-                "emit": {
+                "raise": {
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {
@@ -1672,7 +1672,7 @@
             "from": "ready",
             "local_effects": [
               {
-                "emit": {
+                "raise": {
                   "local_signal": "project_selected",
                   "payload_bindings": {
                     "project_id": {

@@ -2681,8 +2681,8 @@ def _emitted_local_signal_data_lines(
     payload = _local_signal_payload_for_instance(instance_id, "emits", emitted, mount_by_id, contract)
     lines: list[_DotTypedField] = []
     seen: set[str] = set()
-    for emit in _emitting_transition_emits(instance_id, emitted, mount_by_id, contract):
-        for line in _format_typed_data_flow(emit.get("payload_bindings", {}), payload):
+    for signal_raise in _emitting_transition_raises(instance_id, emitted, mount_by_id, contract):
+        for line in _format_typed_data_flow(signal_raise.get("payload_bindings", {}), payload):
             signature = str(line)
             if signature not in seen:
                 lines.append(line)
@@ -2727,7 +2727,7 @@ def _local_signal_payload_for_instance(
     return schema_properties(state_machine["local_signals"][direction]["local_signals"][local_signal]["payload_schema"])
 
 
-def _emitting_transition_emits(
+def _emitting_transition_raises(
     instance_id: str,
     emitted: str,
     mount_by_id: dict[str, dict[str, Any]],
@@ -2735,13 +2735,13 @@ def _emitting_transition_emits(
 ) -> list[dict[str, Any]]:
     mount = mount_by_id[instance_id]
     state_machine = contract["state_machines"][mount["state_machine"]]
-    emits = []
+    raises = []
     for transition in state_machine.get("transitions", []):
         for effect in transition.get("local_effects", []):
-            emit = effect.get("emit")
-            if emit and emit["local_signal"] == emitted:
-                emits.append(emit)
-    return emits
+            signal_raise = effect.get("raise")
+            if signal_raise and signal_raise.get("local_signal") == emitted:
+                raises.append(signal_raise)
+    return raises
 
 
 def _emitting_transition_refs(
@@ -2760,7 +2760,7 @@ def _emitting_transition_refs(
     if not state_machine:
         return refs
     for transition in state_machine.get("transitions", []):
-        if any(effect.get("emit", {}).get("local_signal") == emitted for effect in transition.get("local_effects", [])):
+        if any(effect.get("raise", {}).get("local_signal") == emitted for effect in transition.get("local_effects", [])):
             refs.append(_signal_label(transition["trigger"]))
     return refs
 
@@ -3300,6 +3300,14 @@ def _signal_label(signal: dict[str, str]) -> str:
     return str(signal)
 
 
+def _signal_raise_selector(signal: dict[str, Any]) -> dict[str, str]:
+    if "local_signal" in signal:
+        return {"local_signal": signal["local_signal"]}
+    if "data_refresh_signal" in signal:
+        return {"data_refresh_signal": signal["data_refresh_signal"]}
+    return {}
+
+
 def _local_signal_label(local_signal: str) -> str:
     return f"local_signal.{local_signal}"
 
@@ -3331,11 +3339,19 @@ def _unique_data_bindings(bindings: Iterable[dict[str, Any]]) -> list[dict[str, 
 def _format_transition_effect_sections(state_machine: dict[str, Any], transition: dict[str, Any]) -> list[tuple[str, list[object]]]:
     sections: list[tuple[str, list[object]]] = []
     for effect in transition.get("local_effects", []):
-        if "emit" in effect:
-            emit = effect["emit"]
-            sections.append(("emit", [_local_signal_label(emit["local_signal"])]))
-            payload_types = schema_properties(state_machine["local_signals"]["emits"]["local_signals"][emit["local_signal"]]["payload_schema"])
-            payload = _format_typed_data_flow(emit.get("payload_bindings", {}), payload_types)
+        if "raise" in effect:
+            signal_raise = effect["raise"]
+            sections.append(("raise", [_signal_label(_signal_raise_selector(signal_raise))]))
+            if "local_signal" in signal_raise:
+                payload_schema = state_machine["local_signals"]["emits"]["local_signals"][signal_raise["local_signal"]][
+                    "payload_schema"
+                ]
+            else:
+                payload_schema = state_machine["local_signals"]["accepts"]["data_refresh_signals"][signal_raise["data_refresh_signal"]][
+                    "payload_schema"
+                ]
+            payload_types = schema_properties(payload_schema)
+            payload = _format_typed_data_flow(signal_raise.get("payload_bindings", {}), payload_types)
             if payload:
                 sections.append(("payload", payload))
         elif "set" in effect:

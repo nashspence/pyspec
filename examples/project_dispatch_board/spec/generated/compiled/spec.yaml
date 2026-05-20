@@ -1559,6 +1559,7 @@ reference_index:
   - local_signal_raise.project.list.ready.command_binding.submit.lifecycle_transition_not_allowed.local_signal.show_lifecycle_transition_not_allowed
   - local_signal_raise.project.list.ready.command_binding.submit.not_found.local_signal.show_lifecycle_transition_not_allowed
   - local_signal_raise.project.list.ready.command_binding.submit.submitted.data_refresh_signal.projects_changed
+  - local_signal_raise.project.list.transition.6.local_signal.project_selected
   media_asset:
   - media_asset.project.detail.ready.priority_badge
   - media_asset.project.list.empty.illustration
@@ -2519,7 +2520,7 @@ state_machines:
         local_signal: show_lifecycle_transition_not_allowed
     - from: ready
       local_effects:
-      - emit:
+      - raise:
           local_signal: project_selected
           payload_bindings:
             project_id:
