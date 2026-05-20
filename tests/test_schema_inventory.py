@@ -116,6 +116,7 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
         "$defs.authored_external_interface.allOf.8.then.properties.input_mapping.not.anyOf",
         "$defs.authored_state_machine_state.anyOf",
         "$defs.authored_viewport_profile.anyOf",
+        "$defs.authorization_assertion.anyOf",
         "$defs.authored_access_policy.properties.action.items.anyOf",
         "$defs.command_entity_changes.anyOf",
         "$defs.external_interface_output_mapping.anyOf",
@@ -128,6 +129,7 @@ ALLOWED_ANY_OF_PATHS_BY_SCHEMA = {
     },
     "spec.schema.json": {
         "$defs.child_state_machine_item.anyOf",
+        "$defs.authorization_assertion.anyOf",
         "$defs.external_interface_item.allOf.2.then.properties.input_mapping.not.anyOf",
         "$defs.external_interface_item.allOf.3.then.properties.input_mapping.not.anyOf",
         "$defs.external_interface_item.allOf.4.then.properties.input_mapping.not.anyOf",

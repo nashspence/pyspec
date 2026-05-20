@@ -354,3 +354,21 @@ def test_access_policy_subject_source_is_kind_specific() -> None:
 
         anonymous_rule = next(rule for rule in all_of if rule["if"]["properties"]["kind"]["const"] == "anonymous")
         assert anonymous_rule["then"]["not"]["required"] == ["source"], schema_name
+
+
+def test_authorization_assertion_requires_observable_decision() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        assertion = schema["$defs"]["authorization_assertion"]
+        assert assertion["minProperties"] == 1, schema_name
+        assert {tuple(branch["required"]) for branch in assertion["anyOf"]} == {("allowed",), ("denied",)}, schema_name
+        assert assertion["properties"]["allowed"]["minItems"] == 1, schema_name
+        assert assertion["properties"]["denied"]["minItems"] == 1, schema_name

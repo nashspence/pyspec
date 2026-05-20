@@ -237,11 +237,25 @@
     },
     "authorization_assertion": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "allowed"
+          ]
+        },
+        {
+          "required": [
+            "denied"
+          ]
+        }
+      ],
+      "minProperties": 1,
       "properties": {
         "allowed": {
           "items": {
             "$ref": "#/$defs/authorization_decision_assertion"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         },
@@ -249,6 +263,7 @@
           "items": {
             "$ref": "#/$defs/authorization_decision_assertion"
           },
+          "minItems": 1,
           "type": "array",
           "uniqueItems": true
         }

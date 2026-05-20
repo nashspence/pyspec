@@ -371,6 +371,20 @@ def test_authorization_denied_assertion_archetype_outcome_must_be_mapped_authori
         compile_author(author)
 
 
+def test_authorization_assertion_rejects_empty_block() -> None:
+    author = _author()
+    author["behavior_scenarios"]["behavior_scenario.project.approve.access_denied"]["then"]["authorization"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_author(author)
+
+
+def test_authorization_assertion_rejects_empty_decision_list() -> None:
+    author = _author()
+    author["behavior_scenarios"]["behavior_scenario.project.approve.access_denied"]["then"]["authorization"] = {"denied": []}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        compile_author(author)
+
+
 def test_invocation_assertion_must_follow_when() -> None:
     author = _author()
     author["behavior_scenarios"]["behavior_scenario.project.approve.success"]["then"]["invoked"].append("command.project.create")
