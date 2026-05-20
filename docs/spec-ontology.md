@@ -44,7 +44,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 ## Top-Level Resource Kinds
 
 - <!-- top-level:entity_types --> `entity_types`: collection-prefixed stable product/domain entity type ids such as `entity_type.project`, each with a PascalCase display/type `name` such as `Project`, fields, and optional `entity_lifecycle` declarations. Entity types are not ORM types, API contracts, generated implementation classes, or storage schemas.
-- <!-- top-level:schemas --> `schemas`: first-class reusable JSON Schema payload or object schemas referenced with `schema.*` ids.
+- <!-- top-level:schemas --> `schemas`: first-class reusable JSON Schema payload or object schemas referenced with `schema.*` ids. JSON Schema `$ref` values may target either `schema.*` reusable schemas or `entity_type.*` entity schemas when a contract returns, accepts, emits, or embeds a product entity type.
 - <!-- top-level:commands --> `commands`: state-changing product behavior with `input_schema`, optional authorization, explicit `entity_changes`, outcomes, and `emits_domain_events`.
 - <!-- top-level:queries --> `queries`: read-only product behavior with `input_schema`, `result_schema`, and outcomes.
 - <!-- top-level:domain_events --> `domain_events`: durable product-domain occurrences with payload_schema contracts and compiled emitters.
@@ -67,7 +67,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 
 - `media_asset_ref`: `media_asset.<domain>...`; media asset declarations, generated media asset slots, content examples, and audit evidence.
 - `content_example_ref`: `content_example.<domain>...`; content_resolver examples.
-- `schema_ref`: `schema.<domain>...`; reusable typed payload schemas referenced through JSON Schema `$ref`.
+- `schema_ref`: `schema.<domain>...`; reusable typed payload schema ids. JSON Schema `$ref` values may also target `entity_type_ref` for product entity schemas; `schema_ref` names only the reusable `schemas` collection.
 - `data_refresh_signal_name`: local state-machine data-refresh signal name; authored sources do not use global-looking `data_refresh_signal.*` references for local refresh signals.
 - `external_interface_ref`: `external_interface.<domain>...`; external-interface declarations, delegated external-interface invocations, and behavior-scenario `open_external_interface` or `call_external_interface` stimuli.
 - `domain_event_ref`: `domain_event.<domain>...`; durable domain-event declarations, command emissions, workflow inputs, and behavior-scenario domain-event assertions.
@@ -157,7 +157,7 @@ Bare `event` is avoided for durable domain occurrences because CloudEvents and U
 - `renderer_contracts`: state renderer declarations keyed by concrete renderer surface. `renderers.html` and `renderers.textual` each own renderer-local `layout`, `presentation`, and `style`.
 - `renderer_placement_validation`: HTML slots and child machines must reference declared HTML `region_id`s; Textual widgets and child machines must reference declared Textual `container_id`s. Placement ids are layout ids, not field names.
 - `resolver_output_escaping`: text, SVG, XML, and HTML resolvers must escape dynamic values before placing them in markup text or attributes. Plain-text outputs and alt text must not expose unescaped markup-sensitive values where they may be rendered into HTML/XML.
-- `schema`: JSON Schema subset used for payloads, entity types, command inputs/results, query inputs/results, state-machine context, content args, and adapter input sections. It uses `type`, `$ref`, `properties`, `required`, `enum`, `const`, `items`, `additionalProperties`, and `format`; null is represented through JSON Schema type arrays such as `type: ["string", "null"]`.
+- `schema`: JSON Schema subset used for payloads, entity types, command inputs/results, query inputs/results, state-machine context, content args, and adapter input sections. It uses `type`, `$ref`, `properties`, `required`, `enum`, `const`, `items`, `additionalProperties`, and `format`; `$ref` may target `schema.*` or `entity_type.*`; null is represented through JSON Schema type arrays such as `type: ["string", "null"]`.
 - `access_policy`: reusable rule set that determines whether `subject` may attempt `action` on `resource` under `environment`. Actor subjects must bind their concrete identity from `$principal...`; anonymous subjects must not carry a source. Direct `access_policy_ref` fields identify the policy applied to an external interface or authorization assertion. Commands use `authorization.policy` plus explicit `authentication_required_as` and `access_denied_as` outcome mappings. Policies with identical `subject`, `resource`, `action`, `environment`, combining behavior, and `rules` should be one `access_policy`.
 - `command_authorization`: command-local access-policy mapping with `policy`, `authentication_required_as`, and `access_denied_as`. The mapped names must be normal command outcomes with `kind: failure`.
 - `rule_effect`: access-policy rule result vocabulary carried by each rule's `effect`; currently only `permit` is active while `combining_algorithm` is `all_permit_rules_must_match`. Deny rules are not part of the active authored ontology yet.

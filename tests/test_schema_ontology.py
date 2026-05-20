@@ -111,6 +111,27 @@ def test_entity_type_ref_allows_dotted_domain_segments() -> None:
         assert not re.fullmatch(pattern, "entity_type.billing..invoice"), schema_name
 
 
+def test_schema_ref_targets_are_entity_types_or_reusable_schemas() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    for schema_name, schema in schema_cases:
+        pattern = schema["$defs"]["schema"]["properties"]["$ref"]["pattern"]
+        assert re.fullmatch(pattern, "schema.project.approved"), schema_name
+        assert re.fullmatch(pattern, "schema.billing.invoice_summary"), schema_name
+        assert re.fullmatch(pattern, "entity_type.project"), schema_name
+        assert re.fullmatch(pattern, "entity_type.billing.invoice"), schema_name
+        assert not re.fullmatch(pattern, "command.project.approve"), schema_name
+        assert not re.fullmatch(pattern, "schema."), schema_name
+        assert not re.fullmatch(pattern, "entity_type."), schema_name
+
+
 def test_binding_expression_restricts_root_vocabulary() -> None:
     schema_cases: list[tuple[str, dict[str, Any]]] = [
         ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),

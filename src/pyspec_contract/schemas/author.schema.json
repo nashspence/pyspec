@@ -3024,7 +3024,7 @@
     },
     "schema": {
       "additionalProperties": false,
-      "description": "JSON Schema subset used by the product-spec ontology for payloads, entity types, command/query inputs, context, and reusable schemas.",
+      "description": "JSON Schema subset used by the product-spec ontology for payloads, entity types, command/query inputs, context, and reusable schemas. $ref may target schema.* reusable schemas or entity_type.* entity schemas.",
       "properties": {
         "$ref": {
           "pattern": "^(entity_type|schema)\\.[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$",
