@@ -1780,7 +1780,7 @@ def test_state_machine_trigger_payload_uses_trigger_root_not_signal_root() -> No
     author = _author()
     ready = author["state_machines"]["state_machine.project.board"]["states"]["ready"]
     ready["local_signal_sync_rules"]["select_project_updates_state_machines"]["local_effects"][0]["set"]["from"] = "$" + "signal.payload.project_id"
-    with pytest.raises(ContractError, match=r"references unavailable binding root: \$signal"):
+    with pytest.raises(ContractError, match="Schema validation failed"):
         compile_source(author)
 
 

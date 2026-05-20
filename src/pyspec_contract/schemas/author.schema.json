@@ -1061,7 +1061,7 @@
     },
     "binding_expression": {
       "description": "Shared binding expression using $root.path.to.field syntax. Context-specific compiler validation restricts allowed roots and field paths.",
-      "pattern": "^\\$[a-z][a-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+$",
+      "pattern": "^\\$(fixture|state_machine|trigger|state_context|principal|adapter_input|command_input|command_outcome|query_outcome|invocation_outcome|command_binding|query_binding|adapter_response|workflow_input|activity_outcome)(\\.[A-Za-z][A-Za-z0-9_]*|\\[\\*\\])+$",
       "type": "string"
     },
     "fixture_binding_expression": {

@@ -111,6 +111,49 @@ def test_entity_type_ref_allows_dotted_domain_segments() -> None:
         assert not re.fullmatch(pattern, "entity_type.billing..invoice"), schema_name
 
 
+def test_binding_expression_restricts_root_vocabulary() -> None:
+    schema_cases: list[tuple[str, dict[str, Any]]] = [
+        ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),
+        ("spec.schema.json", read_json(ROOT / "schemas" / "spec.schema.json")),
+    ]
+    schema_cases.extend(
+        (f"generated:{name}.author.schema.json", author_schema_for_layers(layers))
+        for name, layers in sorted(COMMON_LAYER_SETS.items())
+    )
+
+    valid = [
+        "$fixture.workspace.id",
+        "$state_machine.selected_project_id",
+        "$trigger.payload.project_id",
+        "$state_context.workspace_id",
+        "$principal.roles[*]",
+        "$adapter_input.body.title",
+        "$command_input.project_id",
+        "$command_outcome.result.message",
+        "$query_outcome.result",
+        "$invocation_outcome.result",
+        "$command_binding.input.project_id",
+        "$query_binding.input.workspace_id",
+        "$adapter_response.body.message",
+        "$workflow_input.payload.project_id",
+        "$activity_outcome.send_notice.sent.result",
+    ]
+    invalid = [
+        "$message.payload.project_id",
+        "$operation_input.project_id",
+        "$domain_event.payload.project_id",
+        "$state.context",
+        "$adapter.input.body.title",
+    ]
+
+    for schema_name, schema in schema_cases:
+        pattern = schema["$defs"]["binding_expression"]["pattern"]
+        for expression in valid:
+            assert re.fullmatch(pattern, expression), f"{schema_name} should accept {expression}"
+        for expression in invalid:
+            assert not re.fullmatch(pattern, expression), f"{schema_name} should reject {expression}"
+
+
 def test_state_machine_media_asset_slot_vocabulary_is_canonical() -> None:
     authored_schema_cases: list[tuple[str, dict[str, Any]]] = [
         ("author.schema.json", read_json(ROOT / "schemas" / "author.schema.json")),

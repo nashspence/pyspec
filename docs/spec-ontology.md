@@ -335,7 +335,7 @@ The visual audit includes state-machine and composition diagrams, external-inter
 - `$activity_outcome.<activity>.<outcome>.result[.<field>]` reads a previous workflow activity result.
 
 Binding expressions appear inside binding objects. `authored_value` maps use `{from: $fixture...}` for fixture expressions and `{value: ...}` for literal JSON values; a raw string beginning with `$` is a literal only when wrapped with `value`.
-- The shared grammar is `$source.path.to.field`; semantic validation checks available roots and declared field paths for each context.
+- The shared grammar is `$canonical_root.path.to.field` with optional `[*]` wildcard segments; semantic validation checks available roots and declared field paths for each context.
 
 ## Generated Artifacts
 
