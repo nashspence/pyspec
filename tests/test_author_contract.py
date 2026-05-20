@@ -210,6 +210,49 @@ def test_external_interface_output_mapping_requires_section_and_matches_adapter(
         validate_against_schema(contract, "spec.schema.json")
 
 
+def test_external_interface_response_entries_require_kind_specific_fields() -> None:
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["external_interfaces"]["external_interface.api.project.create"]["output_mapping"]["responses"]["created"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["external_interfaces"]["external_interface.api.project.create"]["output_mapping"]["responses"]["created"] = {
+        "body": {
+            "from": "$invocation_outcome.result",
+            "schema": {"$ref": "entity_type.project"},
+        }
+    }
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["external_interfaces"]["external_interface.worker.project.approval_notice"]["output_mapping"]["ingress_responses"]["accepted"] = {}
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["external_interfaces"]["external_interface.worker.project.approval_notice"]["output_mapping"]["ingress_responses"]["malformed"] = {
+        "problem": {"$ref": "entity_type.problem"}
+    }
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
+    author["external_interfaces"]["external_interface.cli.project.approve"]["output_mapping"]["response_handlers"]["approved"] = {
+        "stdout": {"text": "text_resource.project.approve.success"}
+    }
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(author, "author.schema.json")
+
+    contract = copy.deepcopy(read_yaml(ROOT / COMPILED_SPEC_PATH))
+    contract["external_interfaces"]["external_interface.worker.project.approval_notice"]["output_mapping"]["ingress_responses"]["accepted"] = {
+        "status": 202
+    }
+    with pytest.raises(ContractError, match="Schema validation failed"):
+        validate_against_schema(contract, "spec.schema.json")
+
+
 def test_author_no_local_effect_reasons_are_closed_vocabulary() -> None:
     author = copy.deepcopy(read_yaml(ROOT / SOURCE_SPEC_PATH))
     effect = author["state_machines"]["state_machine.project.list"]["states"]["ready"]["command_bindings"]["create"]["local_effects"]["validation_failed"]

@@ -332,7 +332,7 @@ def validate_asyncapi(contract: dict[str, Any], doc: dict[str, Any]) -> None:
 def _workflow_external_interface_dispositions(contract: dict[str, Any], workflow_id: str) -> dict[str, Any]:
     dispositions: dict[str, Any] = {}
     for external_interface_id, external_interface in sorted(contract.get("external_interfaces", {}).items()):
-        if external_interface_adapter_pair(external_interface)[0] not in {"worker", "scheduled"}:
+        if external_interface_adapter_pair(external_interface)[0] not in {"webhook", "worker", "scheduled"}:
             continue
         target_kind, target_ref = external_interface_invoked_ref_pair(external_interface)
         if target_kind != "workflow" or target_ref != workflow_id:

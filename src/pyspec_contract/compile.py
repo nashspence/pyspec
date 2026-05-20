@@ -3647,8 +3647,10 @@ def _validate_async_external_interface_output_responses(external_interface_id: s
 def _validate_webhook_external_interface_output_responses(external_interface_id: str, external_interface: dict[str, Any]) -> None:
     if "responses" in external_interface_output_mapping(external_interface):
         raise ContractError(f"Webhook external interface {external_interface_id} must use output_mapping.ingress_responses, not responses")
-    if external_interface_output_responses(external_interface) != {"accepted": {"status": 202}}:
-        raise ContractError(f"Webhook external interface {external_interface_id} ingress_responses.accepted.status must be 202")
+    responses = external_interface_output_responses(external_interface)
+    accepted = responses.get("accepted")
+    if accepted != {"disposition": "acknowledge"}:
+        raise ContractError(f"Webhook external interface {external_interface_id} ingress_responses.accepted must declare disposition: acknowledge")
 
 
 def _validate_state_machine_external_interface_inputs(

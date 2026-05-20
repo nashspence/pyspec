@@ -413,9 +413,11 @@ Each `$defs` entry in the JSON Schemas is documented exactly once here. The sche
 - <!-- schema-def:external_interface_ref --> `$defs/external_interface_ref`: typed reference definition for its namespace.
 - <!-- schema-def:external_interface_invokes --> `$defs/external_interface_invokes`: exactly one invoked command, query, state machine, workflow, or delegated external interface.
 - <!-- schema-def:external_interface_output_mapping --> `$defs/external_interface_output_mapping`: external-interface adapter response, response-handler, or ingress-disposition mapping.
-- <!-- schema-def:external_interface_response --> `$defs/external_interface_response`: external-interface adapter, invocation, input, or response contract component.
-- <!-- schema-def:external_interface_response_value --> `$defs/external_interface_response_value`: external-interface adapter, invocation, input, or response contract component.
-- <!-- schema-def:external_interface_responses --> `$defs/external_interface_responses`: external-interface adapter, invocation, input, or response contract component.
+- <!-- schema-def:external_interface_response --> `$defs/external_interface_response`: HTTP-style adapter response with required status and optional body or problem.
+- <!-- schema-def:external_interface_ingress_response --> `$defs/external_interface_ingress_response`: asynchronous adapter ingress response with required disposition and optional problem.
+- <!-- schema-def:external_interface_response_value --> `$defs/external_interface_response_value`: external-interface response payload schema and source binding.
+- <!-- schema-def:external_interface_responses --> `$defs/external_interface_responses`: map from named outcomes to HTTP-style adapter responses.
+- <!-- schema-def:external_interface_ingress_responses --> `$defs/external_interface_ingress_responses`: map from named adapter-level outcomes to ingress disposition responses.
 - <!-- schema-def:external_interface_retry_policy --> `$defs/external_interface_retry_policy`: bounded automatic retry policy for retryable delegated external interfaces.
 - <!-- schema-def:external_interface_state_machine_invocation --> `$defs/external_interface_state_machine_invocation`: external-interface adapter, invocation, input, or response contract component.
 - <!-- schema-def:external_interface_workflow_invocation --> `$defs/external_interface_workflow_invocation`: external-interface adapter, invocation, input, or response contract component.

@@ -2106,20 +2106,10 @@
     },
     "external_interface_response": {
       "additionalProperties": false,
+      "minProperties": 1,
       "properties": {
         "body": {
           "$ref": "#/$defs/external_interface_response_value"
-        },
-        "disposition": {
-          "enum": [
-            "acknowledge",
-            "retry",
-            "reject",
-            "dead_letter"
-          ]
-        },
-        "exit_code": {
-          "type": "integer"
         },
         "problem": {
           "$ref": "#/$defs/schema"
@@ -2128,14 +2118,32 @@
           "maximum": 599,
           "minimum": 100,
           "type": "integer"
-        },
-        "stderr": {
-          "$ref": "#/$defs/external_interface_response_value"
-        },
-        "stdout": {
-          "$ref": "#/$defs/external_interface_response_value"
         }
       },
+      "required": [
+        "status"
+      ],
+      "type": "object"
+    },
+    "external_interface_ingress_response": {
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "disposition": {
+          "enum": [
+            "acknowledge",
+            "retry",
+            "reject",
+            "dead_letter"
+          ]
+        },
+        "problem": {
+          "$ref": "#/$defs/schema"
+        }
+      },
+      "required": [
+        "disposition"
+      ],
       "type": "object"
     },
     "external_interface_response_value": {
@@ -2159,6 +2167,16 @@
     "external_interface_responses": {
       "additionalProperties": {
         "$ref": "#/$defs/external_interface_response"
+      },
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/outcome_name"
+      },
+      "type": "object"
+    },
+    "external_interface_ingress_responses": {
+      "additionalProperties": {
+        "$ref": "#/$defs/external_interface_ingress_response"
       },
       "minProperties": 1,
       "propertyNames": {
@@ -4502,7 +4520,7 @@
       "minProperties": 1,
       "properties": {
         "ingress_responses": {
-          "$ref": "#/$defs/external_interface_responses"
+          "$ref": "#/$defs/external_interface_ingress_responses"
         },
         "response_handlers": {
           "$ref": "#/$defs/cli_response_handlers"
